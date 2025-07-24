@@ -1,0 +1,63 @@
+query Articles($page: Int!, $pageSize: Int!, $category: String, $tag: String) {
+  articles(
+    sort: "publishedAt:desc"
+    pagination: { page: $page, pageSize: $pageSize }
+    filters: { category: { eqi: $category }, tags: { value: { eqi: $tag } } }
+  ) {
+    data {
+      id
+      attributes {
+        ...ArticleItem
+      }
+    }
+    meta {
+      pagination {
+        page
+        pageSize
+        total
+        pageCount
+      }
+    }
+  }
+}
+
+fragment ArticleItem on Article {
+  slug
+  title
+  summary
+  category
+  publishedAt
+  defaultImage {
+    data {
+      id
+      attributes {
+        name
+        url
+        blurhash
+        width
+        height
+      }
+    }
+  }
+  author {
+    data {
+      id
+      attributes {
+        slug
+        name
+        avatar {
+          data {
+            id
+            attributes {
+              name
+              url
+              blurhash
+              width
+              height
+            }
+          }
+        }
+      }
+    }
+  }
+}

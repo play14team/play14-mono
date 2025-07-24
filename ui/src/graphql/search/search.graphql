@@ -1,0 +1,34 @@
+query Search($input: String!) {
+  search(query: $input) {
+    events(filters: { publishedAt: { notNull: true } }) {
+      data {
+        id
+        attributes {
+          ...EventItem
+        }
+      }
+    }
+    players {
+      data {
+        id
+        attributes {
+          ...PlayerItem
+        }
+      }
+    }
+    games(filters: { publishedAt: { notNull: true } }) {
+      data {
+        attributes {
+          ...GameItem
+        }
+      }
+    }
+    articles(filters: { publishedAt: { notNull: true } }) {
+      data {
+        attributes {
+          ...ArticleItem
+        }
+      }
+    }
+  }
+}

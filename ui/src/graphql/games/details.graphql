@@ -1,0 +1,126 @@
+query Game($slug: String!) {
+  games(filters: { slug: { eq: $slug } }) {
+    data {
+      attributes {
+        ...GameDetails
+      }
+    }
+  }
+}
+
+fragment GameDetails on Game {
+  slug
+  name
+  category
+  scale
+  timebox
+  summary
+  credits
+  description
+  publishedAt
+  tags(pagination: { limit: 10000 }) {
+    id
+    value
+  }
+  materials(pagination: { limit: 10000 }) {
+    id
+    value
+  }
+  preparationSteps(pagination: { limit: 10000 }) {
+    id
+    value
+  }
+  safety(pagination: { limit: 10000 }) {
+    id
+    key
+    value
+  }
+  defaultImage {
+    data {
+      id
+      attributes {
+        name
+        url
+        blurhash
+        width
+        height
+      }
+    }
+  }
+  images(pagination: { limit: 10000 }) {
+    data {
+      id
+      attributes {
+        name
+        url
+        blurhash
+        width
+        height
+      }
+    }
+  }
+  resources(pagination: { limit: 10000 }) {
+    data {
+      id
+      attributes {
+        name
+        url
+      }
+    }
+  }
+  firstPlayedAt {
+    data {
+      attributes {
+        name
+        slug
+      }
+    }
+  }
+  documentedBy {
+    data {
+      id
+      attributes {
+        name
+        slug
+        avatar {
+          data {
+            id
+            attributes {
+              name
+              url
+              blurhash
+              width
+              height
+            }
+          }
+        }
+      }
+    }
+  }
+  proposedBy {
+    data {
+      id
+      attributes {
+        name
+        slug
+        avatar {
+          data {
+            id
+            attributes {
+              name
+              url
+              blurhash
+              width
+              height
+            }
+          }
+        }
+      }
+    }
+  }
+  ratings {
+    energy
+    connection
+    silliness
+  }
+}
