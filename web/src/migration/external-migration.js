@@ -85,37 +85,47 @@ async function fetchFromStrapi(endpoint, params = {}) {
 	const records = data.data || [];
 	const meta = data.meta;
 
-	if (meta && meta.pagination && meta.pagination.pageCount > 1) {
-		console.log(
-			`📑 Found ${meta.pagination.total} total records in ${meta.pagination.pageCount} pages for ${endpoint}`
-		);
+	if (meta && meta.pagination) {
+		const { total, limit } = meta.pagination;
+		const pageCount = Math.ceil(total / limit);
 
-		// Fetch remaining pages
-		for (let page = 2; page <= meta.pagination.pageCount; page++) {
-			const pageUrl = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
-			pageUrl.searchParams.append('pagination[limit]', '500');
-			pageUrl.searchParams.append('pagination[page]', page.toString());
+		if (pageCount > 1) {
+			console.log(`📑 Found ${total} total records in ${pageCount} pages for ${endpoint}`);
 
-			// Add custom parameters to each page request
-			Object.entries(params).forEach(([key, value]) => {
-				if (Array.isArray(value)) {
-					value.forEach((v) => pageUrl.searchParams.append(key, v));
+			// Fetch remaining pages using start/limit instead of page
+			for (let page = 2; page <= pageCount; page++) {
+				const pageUrl = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
+				const start = (page - 1) * limit;
+				pageUrl.searchParams.append('pagination[start]', start.toString());
+				pageUrl.searchParams.append('pagination[limit]', limit.toString());
+
+				// Add custom parameters to each page request
+				Object.entries(params).forEach(([key, value]) => {
+					if (Array.isArray(value)) {
+						value.forEach((v) => pageUrl.searchParams.append(key, v));
+					} else {
+						pageUrl.searchParams.append(key, String(value));
+					}
+				});
+
+				const pageResponse = await fetch(pageUrl.toString(), {
+					headers: {
+						Authorization: `Bearer ${STRAPI_API_SECRET}`,
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (pageResponse.ok) {
+					const pageData = await pageResponse.json();
+					records.push(...(pageData.data || []));
+					console.log(
+						`📄 Fetched page ${page}/${pageCount} for ${endpoint} - got ${pageData.data?.length || 0} records`
+					);
 				} else {
-					pageUrl.searchParams.append(key, String(value));
+					console.error(
+						`❌ Failed to fetch page ${page} for ${endpoint}: ${pageResponse.status} ${pageResponse.statusText}`
+					);
 				}
-			});
-
-			const pageResponse = await fetch(pageUrl.toString(), {
-				headers: {
-					Authorization: `Bearer ${STRAPI_API_SECRET}`,
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (pageResponse.ok) {
-				const pageData = await pageResponse.json();
-				records.push(...(pageData.data || []));
-				console.log(`📄 Fetched page ${page}/${meta.pagination.pageCount} for ${endpoint}`);
 			}
 		}
 	}
