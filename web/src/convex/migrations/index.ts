@@ -1,0 +1,9 @@
+export { migrateEvents } from './migrateEvents';
+export { migrateGames } from './migrateGames';
+export { migratePlayers } from './migratePlayers';
+export { migrateArticles } from './migrateArticles';
+export { migrateEventLocations } from './migrateEventLocations';
+export { migrateVenues } from './migrateVenues';
+export { migrateSponsors } from './migrateSponsors';
+export { migrateTags } from './migrateTags';
+export { migrateHome } from './migrateHome';

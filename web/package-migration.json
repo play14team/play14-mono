@@ -1,0 +1,19 @@
+{
+	"name": "strapi-to-convex-migration",
+	"version": "1.0.0",
+	"description": "Migration script from Strapi to Convex",
+	"main": "migration.js",
+	"scripts": {
+		"migrate": "node migration.js",
+		"migrate:dry-run": "node migration.js --dry-run",
+		"migrate:events": "node migration.js --dry-run --tables=events",
+		"migrate:games": "node migration.js --dry-run --tables=games",
+		"migrate:players": "node migration.js --dry-run --tables=players",
+		"migrate:all": "node migration.js --dry-run --tables=events,games,players,articles,eventLocations,venues,sponsors"
+	},
+	"dependencies": {},
+	"devDependencies": {},
+	"engines": {
+		"node": ">=16"
+	}
+}
