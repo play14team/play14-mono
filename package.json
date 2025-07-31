@@ -6,7 +6,15 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:ui": "pnpm --filter play14-ui dev",
+    "dev:web": "pnpm --filter play14-web dev",
+    "build:ui": "pnpm --filter play14-ui build",
+    "build:web": "pnpm --filter play14-web build",
+    "lint:ui": "pnpm --filter play14-ui lint",
+    "lint:web": "pnpm --filter play14-web lint",
+    "format:ui": "pnpm --filter play14-ui format",
+    "format:web": "pnpm --filter play14-web format"
   },
   "keywords": [],
   "author": "",
