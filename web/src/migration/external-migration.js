@@ -448,8 +448,8 @@ async function migratePlayers() {
 				tagline: attrs.tagline || undefined,
 				bio: attrs.bio || undefined,
 				website: attrs.website || undefined,
-				location: coordinates,
-				locationData: attrs.location, // Store complete location JSON
+				location: coordinates || undefined, // Convert null to undefined for v.optional()
+				locationData: attrs.location || undefined, // Store complete location JSON or undefined
 				strapiId: player.id
 				// Skip socialNetworks and avatarId for now
 			});

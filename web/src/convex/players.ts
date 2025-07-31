@@ -101,7 +101,8 @@ export const create = mutation({
 			})
 		),
 		locationData: v.optional(v.any()),
-		userId: v.optional(v.id('users'))
+		userId: v.optional(v.id('users')),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -120,6 +121,7 @@ export const create = mutation({
 			};
 			locationData?: Record<string, unknown>;
 			userId?: Id<'users'>;
+			strapiId?: number;
 		}
 	) => {
 		const playerId = await ctx.db.insert('players', {

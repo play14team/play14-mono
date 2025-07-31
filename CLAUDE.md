@@ -13,6 +13,7 @@ This is a monorepo containing three main applications for the #play14 platform:
 ## Development Commands
 
 ### API (Strapi Backend)
+
 ```bash
 cd api
 yarn install
@@ -24,6 +25,7 @@ yarn import       # Import database backup
 ```
 
 ### UI (Next.js Frontend)
+
 ```bash
 cd ui
 pnpm install
@@ -37,6 +39,7 @@ pnpm codegen-watch # Watch for GraphQL changes
 ```
 
 ### Web (SvelteKit + Convex)
+
 ```bash
 cd web
 pnpm install
@@ -56,7 +59,9 @@ pnpm test:e2e     # Run end-to-end tests with Playwright
 ## Architecture Overview
 
 ### Backend (Strapi) - PRODUCTION SYSTEM
+
 **Current live backend for https://play14.org**
+
 - **Content Types**: Event, Game, Player, Article, Venue, Sponsor, etc. located in `/api/src/api/`
 - **Components**: Reusable content structures in `/api/src/components/`
 - **Custom Logic**: Lifecycles and custom controllers for business logic
@@ -66,14 +71,16 @@ pnpm test:e2e     # Run end-to-end tests with Playwright
 - **Content Management**: Full-featured Strapi admin panel for content creators
 - **Plugins**: Calendar, CKEditor, country/timezone selectors, fuzzy search, map fields
 
-### Frontend (Next.js) - PRODUCTION SYSTEM  
+### Frontend (Next.js) - PRODUCTION SYSTEM
+
 **Current live frontend for https://play14.org**
+
 - **App Router**: Modern Next.js app directory structure with file-based routing
 - **GraphQL Integration**: Apollo Client with code generation from Strapi schema
 - **Styling**: SCSS with Bootstrap base and custom #play14 theme
 - **Maps**: Mapbox GL integration for interactive event location maps
 - **Internationalization**: Multi-language support (English/French)
-- **Key Features**: 
+- **Key Features**:
   - Event calendar and interactive map
   - Player profiles with positions and social links
   - Game library with ratings and categories
@@ -82,7 +89,9 @@ pnpm test:e2e     # Run end-to-end tests with Playwright
   - Responsive design with mobile optimization
 
 ### Web Application (SvelteKit + Convex) - EXPERIMENTAL
+
 **Alternative/future implementation - not currently in production**
+
 - **Framework**: SvelteKit 5 with TypeScript
 - **Backend**: Convex for real-time database and backend functions
 - **UI Components**: shadcn/ui (Svelte port) with Tailwind CSS
@@ -91,12 +100,14 @@ pnpm test:e2e     # Run end-to-end tests with Playwright
 - **Development**: Parallel frontend/backend development with npm-run-all
 
 ### Database Schema (Production - Strapi/PostgreSQL)
+
 Key content types powering https://play14.org:
+
 - **Events**: Locations, schedules, registrations, time slots, timetables, media, sponsorships
 - **Games**: Ratings, categories, tags, detailed descriptions
 - **Players**: Profiles, positions, social networks, biography
 - **Articles**: Content with tags, categories, SEO metadata
-- **Venues**: Geographic data (PostGIS), addresses, contact information  
+- **Venues**: Geographic data (PostGIS), addresses, contact information
 - **Event Locations**: Specific event venues with coordinates
 - **Testimonials**: User feedback and experiences
 - **Sponsors**: Company information and sponsorship details
@@ -113,12 +124,13 @@ Key content types powering https://play14.org:
 ## Package Management
 
 - **API**: Yarn (locked to v1.22.22)
-- **UI**: PNPM (v10.13.1) 
+- **UI**: PNPM (v10.13.1)
 - **Web**: PNPM (v10.13.1)
 
 ## Important Notes
 
 ### Production System (API + UI)
+
 - **LIVE WEBSITE**: The `/api` and `/ui` directories contain the current production code for https://play14.org
 - **API** has specific dependency constraints (do not update react-router-dom, strapi-blurhash, styled-components)
 - Environment variables required for Strapi API connection and Mapbox integration
@@ -128,9 +140,38 @@ Key content types powering https://play14.org:
 - File uploads handled by Azure Blob Storage
 
 ### Development/Experimental System (Web)
+
 - **EXPERIMENTAL**: The `/web` directory is for future development, not production
 - Uses different tech stack: SvelteKit + Convex vs Next.js + Strapi
 - Convex functions located in `src/convex/` directory
 - Uses shadcn/ui component library with Tailwind CSS v4
 - Convex requires authentication and project setup for deployment
 - Package managers: API (Yarn), UI (PNPM), Web (PNPM)
+
+## Coding Standards and Best Practices
+
+### Object-Oriented Programming Principles
+
+- **SOLID Principles**: Always adhere to Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion principles
+- **DRY (Don't Repeat Yourself)**: Eliminate code duplication by extracting common functionality
+- **Boy Scout Rule**: Always leave code cleaner than you found it
+
+### Development Workflow
+
+1. **Implement**: Create a working solution first
+2. **Refactor**: Once working, refactor to improve code quality and structure
+3. **Clean**: Remove unused code, improve naming, and optimize structure
+
+### Resources for Code Quality
+
+- **Refactoring Techniques**: https://refactoring.guru/refactoring
+- **Design Patterns**: https://refactoring.guru/design-patterns
+- **Code Smells**: https://refactoring.guru/refactoring/smells
+
+### Code Quality Guidelines
+
+- Avoid code smells and anti-patterns
+- Apply appropriate design patterns when beneficial
+- Maintain clear separation of concerns
+- Use meaningful names for variables, functions, and classes
+- Keep functions and classes focused on single responsibilities
