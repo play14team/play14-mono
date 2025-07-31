@@ -169,7 +169,7 @@ export const migrateTestimonials = mutation({
 				}
 
 				await upsertRecord(ctx, 'testimonials', testimonial.id, {
-					name: attrs.name,
+					name: attrs.name || undefined,
 					position: attrs.position || undefined,
 					company: attrs.company || undefined,
 					quote: attrs.quote || '',
@@ -208,12 +208,22 @@ export const migrateFormats = mutation({
 			for (const format of formats) {
 				const attrs = format.attributes;
 
+				// Handle format single type data structure from Strapi
+				const name = 'Event Format';
+				const slug = 'event-format';
+				let description = '';
+
+				// Combine openspace and schedule content into description
+				if (attrs.openspace || attrs.schedule) {
+					description = [attrs.openspace, attrs.schedule].filter(Boolean).join('\n\n');
+				}
+
 				await upsertRecord(ctx, 'formats', format.id, {
-					name: attrs.name,
-					slug: attrs.slug,
-					description: attrs.description || '',
+					name,
+					slug,
+					description: description || '',
 					publishedAt: attrs.publishedAt ? new Date(attrs.publishedAt).getTime() : undefined,
-					updatedAt: new Date(attrs.updatedAt).getTime()
+					updatedAt: attrs.updatedAt ? new Date(attrs.updatedAt).getTime() : Date.now()
 				});
 				migratedCount++;
 			}
@@ -248,13 +258,27 @@ export const migrateHistory = mutation({
 				// Process image if present
 				const imageId = await processImageField(ctx, attrs.image);
 
+				// Handle history single type data structure from Strapi
+				const title = '#play14 History';
+				let description = '';
+				const year = new Date().getFullYear();
+
+				// Combine intro, founders, and keyMoments content into description
+				if (attrs.intro || attrs.founders || attrs.keyMoments) {
+					const sections = [];
+					if (attrs.intro) sections.push(attrs.intro);
+					if (attrs.founders) sections.push(`<h2>Founders</h2>${attrs.founders}`);
+					if (attrs.keyMoments) sections.push(`<h2>Key Moments</h2>${attrs.keyMoments}`);
+					description = sections.join('\n\n');
+				}
+
 				await upsertRecord(ctx, 'history', historyItem.id, {
-					year: attrs.year || new Date().getFullYear(),
-					title: attrs.title,
-					description: attrs.description || '',
+					year,
+					title,
+					description: description || '',
 					imageId,
 					publishedAt: attrs.publishedAt ? new Date(attrs.publishedAt).getTime() : undefined,
-					updatedAt: new Date(attrs.updatedAt).getTime()
+					updatedAt: attrs.updatedAt ? new Date(attrs.updatedAt).getTime() : Date.now()
 				});
 				migratedCount++;
 			}
@@ -286,12 +310,16 @@ export const migrateHosting = mutation({
 			for (const hostingItem of hostingItems) {
 				const attrs = hostingItem.attributes;
 
+				// Handle hosting single type data structure from Strapi
+				const title = 'How to Host a #play14 Event';
+				const content = attrs.content || '';
+
 				await upsertRecord(ctx, 'hosting', hostingItem.id, {
-					title: attrs.title,
-					content: attrs.content || '',
+					title,
+					content,
 					step: attrs.step || undefined,
 					publishedAt: attrs.publishedAt ? new Date(attrs.publishedAt).getTime() : undefined,
-					updatedAt: new Date(attrs.updatedAt).getTime()
+					updatedAt: attrs.updatedAt ? new Date(attrs.updatedAt).getTime() : Date.now()
 				});
 				migratedCount++;
 			}

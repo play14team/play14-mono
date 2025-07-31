@@ -306,7 +306,7 @@ export default defineSchema({
 
 	testimonials: defineTable({
 		strapiId: v.optional(v.number()), // Strapi record ID
-		name: v.string(),
+		name: v.optional(v.string()),
 		position: v.optional(v.string()),
 		company: v.optional(v.string()),
 		quote: v.string(), // rich text

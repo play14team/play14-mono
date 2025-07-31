@@ -133,6 +133,36 @@ async function fetchFromStrapi(endpoint, params = {}) {
 	return records;
 }
 
+// Fetch single type data from Strapi (different API structure)
+async function fetchSingleTypeFromStrapi(endpoint, params = {}) {
+	const url = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
+
+	// Add custom parameters
+	Object.entries(params).forEach(([key, value]) => {
+		if (Array.isArray(value)) {
+			value.forEach((v) => url.searchParams.append(key, v));
+		} else {
+			url.searchParams.append(key, String(value));
+		}
+	});
+
+	const response = await fetch(url.toString(), {
+		headers: {
+			Authorization: `Bearer ${STRAPI_API_SECRET}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`);
+	}
+
+	const data = await response.json();
+
+	// Single types return data directly, not in a data array
+	return data.data || data;
+}
+
 // Migrate Tags
 async function migrateTags() {
 	console.log('🏷️ Starting Tags migration...');
@@ -588,15 +618,22 @@ async function migrateFormats() {
 	console.log('📋 Starting Formats migration...');
 
 	try {
-		const formats = await fetchFromStrapi('formats');
-		console.log(`📥 Fetched ${formats.length} formats from Strapi`);
+		// Format is a single type in Strapi
+		const formatData = await fetchSingleTypeFromStrapi('format');
+		console.log(`📥 Fetched format data from Strapi`);
 
-		const args = JSON.stringify({ formatsData: formats });
+		// Convert single type to array format expected by migration
+		const formatsArray = formatData ? [{ id: 1, attributes: formatData }] : [];
+		const args = JSON.stringify({ formatsData: formatsArray });
 		await runConvexCommand('run', ['migrationPart3:migrateFormats', args]);
 
-		console.log(`🎉 Formats migration completed: ${formats.length} formats`);
-		return { success: true, count: formats.length };
+		console.log(`🎉 Formats migration completed: ${formatsArray.length} format`);
+		return { success: true, count: formatsArray.length };
 	} catch (error) {
+		if (error.message.includes('404 Not Found')) {
+			console.log('⚠️ Format endpoint not found in Strapi - skipping');
+			return { success: true, count: 0 };
+		}
 		console.error('❌ Formats migration failed:', error);
 		throw error;
 	}
@@ -607,17 +644,25 @@ async function migrateHistory() {
 	console.log('📜 Starting History migration...');
 
 	try {
-		const historyItems = await fetchFromStrapi('histories', {
+		// History is a single type in Strapi
+		const historyData = await fetchSingleTypeFromStrapi('history', {
 			populate: ['image']
 		});
-		console.log(`📥 Fetched ${historyItems.length} history items from Strapi`);
+		console.log(`📥 Fetched history data from Strapi`);
+		// Removed debug logging
 
-		const args = JSON.stringify({ historyData: historyItems });
+		// Convert single type to array format expected by migration
+		const historyArray = historyData ? [{ id: 1, attributes: historyData }] : [];
+		const args = JSON.stringify({ historyData: historyArray });
 		await runConvexCommand('run', ['migrationPart3:migrateHistory', args]);
 
-		console.log(`🎉 History migration completed: ${historyItems.length} history items`);
-		return { success: true, count: historyItems.length };
+		console.log(`🎉 History migration completed: ${historyArray.length} history item`);
+		return { success: true, count: historyArray.length };
 	} catch (error) {
+		if (error.message.includes('404 Not Found')) {
+			console.log('⚠️ History endpoint not found in Strapi - skipping');
+			return { success: true, count: 0 };
+		}
 		console.error('❌ History migration failed:', error);
 		throw error;
 	}
@@ -628,15 +673,23 @@ async function migrateHosting() {
 	console.log('🏠 Starting Hosting migration...');
 
 	try {
-		const hostingItems = await fetchFromStrapi('hostings');
-		console.log(`📥 Fetched ${hostingItems.length} hosting items from Strapi`);
+		// Hosting is a single type in Strapi
+		const hostingData = await fetchSingleTypeFromStrapi('hosting');
+		console.log(`📥 Fetched hosting data from Strapi`);
+		// Removed debug logging
 
-		const args = JSON.stringify({ hostingData: hostingItems });
+		// Convert single type to array format expected by migration
+		const hostingArray = hostingData ? [{ id: 1, attributes: hostingData }] : [];
+		const args = JSON.stringify({ hostingData: hostingArray });
 		await runConvexCommand('run', ['migrationPart3:migrateHosting', args]);
 
-		console.log(`🎉 Hosting migration completed: ${hostingItems.length} hosting items`);
-		return { success: true, count: hostingItems.length };
+		console.log(`🎉 Hosting migration completed: ${hostingArray.length} hosting item`);
+		return { success: true, count: hostingArray.length };
 	} catch (error) {
+		if (error.message.includes('404 Not Found')) {
+			console.log('⚠️ Hosting endpoint not found in Strapi - skipping');
+			return { success: true, count: 0 };
+		}
 		console.error('❌ Hosting migration failed:', error);
 		throw error;
 	}
