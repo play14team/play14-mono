@@ -22,7 +22,13 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"verify": "pnpm format && pnpm lint --fix && pnpm check"
+		"verify": "pnpm format && pnpm lint --fix && pnpm check",
+		"migration:test": "node src/migration/test-simple.js",
+		"migration:test:full": "node src/migration/test-migration-comprehensive.js",
+		"migration:run": "node src/migration/external-migration.js complete",
+		"migration:phase1": "node src/migration/external-migration.js phase1",
+		"migration:phase2": "node src/migration/external-migration.js phase2",
+		"migration:phase3": "node src/migration/external-migration.js phase3"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -34,11 +40,13 @@
 		"@sveltejs/kit": "^2.22.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
 		"@tailwindcss/vite": "^4.0.0",
+		"@types/node": "^24.1.0",
 		"@vitest/browser": "^3.2.3",
 		"bits-ui": "^2.8.14",
 		"clsx": "^2.1.1",
 		"convex": "^1.25.4",
 		"convex-svelte": "^0.0.11",
+		"dotenv": "^17.2.1",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",

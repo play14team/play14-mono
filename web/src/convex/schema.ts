@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 export default defineSchema({
 	// Core content tables
 	events: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		slug: v.string(),
 		start: v.number(), // timestamp
@@ -83,9 +84,11 @@ export default defineSchema({
 		.index('by_status', ['status'])
 		.index('by_start', ['start'])
 		.index('by_location', ['locationId'])
-		.index('by_published', ['publishedAt']),
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
 
 	games: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		slug: v.string(),
 		category: v.union(
@@ -127,9 +130,11 @@ export default defineSchema({
 	})
 		.index('by_slug', ['slug'])
 		.index('by_category', ['category'])
-		.index('by_published', ['publishedAt']),
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
 
 	players: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		slug: v.string(),
 		position: v.union(
@@ -160,9 +165,11 @@ export default defineSchema({
 	})
 		.index('by_slug', ['slug'])
 		.index('by_position', ['position'])
-		.index('by_user', ['userId']),
+		.index('by_user', ['userId'])
+		.index('by_strapi_id', ['strapiId']),
 
 	articles: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		title: v.string(),
 		slug: v.string(),
 		category: v.union(
@@ -184,7 +191,8 @@ export default defineSchema({
 		.index('by_slug', ['slug'])
 		.index('by_category', ['category'])
 		.index('by_author', ['authorId'])
-		.index('by_published', ['publishedAt']),
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
 
 	// Relationship tables for many-to-many
 	eventHosts: defineTable({
@@ -231,6 +239,7 @@ export default defineSchema({
 
 	// Supporting tables
 	eventLocations: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		country: v.string(),
 		location: v.optional(
@@ -239,9 +248,12 @@ export default defineSchema({
 				lng: v.number()
 			})
 		)
-	}).index('by_country', ['country']),
+	})
+		.index('by_country', ['country'])
+		.index('by_strapi_id', ['strapiId']),
 
 	venues: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		website: v.optional(v.string()),
 		location: v.optional(
@@ -251,9 +263,10 @@ export default defineSchema({
 			})
 		),
 		addressDetails: v.optional(v.string())
-	}),
+	}).index('by_strapi_id', ['strapiId']),
 
 	sponsors: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		name: v.string(),
 		url: v.optional(v.string()),
 		logoId: v.optional(v.id('_storage')),
@@ -263,16 +276,82 @@ export default defineSchema({
 				url: v.string()
 			})
 		)
-	}),
+	}).index('by_strapi_id', ['strapiId']),
 
 	tags: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
 		value: v.string()
-	}).index('by_value', ['value']),
+	})
+		.index('by_value', ['value'])
+		.index('by_strapi_id', ['strapiId']),
 
 	// Homepage configuration
 	home: defineTable({
 		imageIds: v.array(v.id('_storage'))
 	}),
+
+	// Missing tables from Strapi
+	expectations: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
+		title: v.string(),
+		description: v.string(), // rich text
+		publishedAt: v.optional(v.number()),
+		updatedAt: v.number()
+	})
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
+
+	testimonials: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
+		name: v.string(),
+		position: v.optional(v.string()),
+		company: v.optional(v.string()),
+		quote: v.string(), // rich text
+		avatarId: v.optional(v.id('_storage')),
+		eventId: v.optional(v.id('events')),
+		publishedAt: v.optional(v.number()),
+		updatedAt: v.number()
+	})
+		.index('by_event', ['eventId'])
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
+
+	formats: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
+		name: v.string(),
+		slug: v.string(),
+		description: v.string(), // rich text
+		publishedAt: v.optional(v.number()),
+		updatedAt: v.number()
+	})
+		.index('by_slug', ['slug'])
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
+
+	history: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
+		year: v.number(),
+		title: v.string(),
+		description: v.string(), // rich text
+		imageId: v.optional(v.id('_storage')),
+		publishedAt: v.optional(v.number()),
+		updatedAt: v.number()
+	})
+		.index('by_year', ['year'])
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
+
+	hosting: defineTable({
+		strapiId: v.optional(v.number()), // Strapi record ID
+		title: v.string(),
+		content: v.string(), // rich text
+		step: v.optional(v.number()), // ordering
+		publishedAt: v.optional(v.number()),
+		updatedAt: v.number()
+	})
+		.index('by_step', ['step'])
+		.index('by_published', ['publishedAt'])
+		.index('by_strapi_id', ['strapiId']),
 
 	// User authentication (if using Convex Auth)
 	users: defineTable({
