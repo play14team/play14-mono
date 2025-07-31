@@ -126,7 +126,8 @@ export const create = mutation({
 		description: v.string(),
 		credits: v.string(),
 		firstPlayedAtEventId: v.optional(v.id('events')),
-		publishedAt: v.optional(v.number())
+		publishedAt: v.optional(v.number()),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -141,8 +142,32 @@ export const create = mutation({
 			credits: string;
 			firstPlayedAtEventId?: Id<'events'>;
 			publishedAt?: number;
+			strapiId?: number;
 		}
 	) => {
+		// Check if game already exists by strapiId
+		if (args.strapiId) {
+			const existing = await ctx.db
+				.query('games')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existing) {
+				// Update existing record
+				await ctx.db.patch(existing._id, {
+					...args,
+					imageIds: existing.imageIds || [],
+					resourceIds: existing.resourceIds || [],
+					materials: existing.materials || [],
+					preparationSteps: existing.preparationSteps || [],
+					safety: existing.safety || [],
+					tags: existing.tags || [],
+					updatedAt: Date.now()
+				});
+				return existing._id;
+			}
+		}
+
 		const gameId = await ctx.db.insert('games', {
 			...args,
 			imageIds: [],

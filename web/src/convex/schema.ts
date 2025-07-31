@@ -155,6 +155,7 @@ export default defineSchema({
 				address: v.optional(v.string())
 			})
 		),
+		locationData: v.optional(v.any()), // Complete location JSON from Strapi
 		socialNetworks: v.array(
 			v.object({
 				type: v.string(),
@@ -247,7 +248,8 @@ export default defineSchema({
 				lat: v.number(),
 				lng: v.number()
 			})
-		)
+		),
+		locationData: v.optional(v.any()) // Complete location JSON from Strapi
 	})
 		.index('by_country', ['country'])
 		.index('by_strapi_id', ['strapiId']),
@@ -262,6 +264,7 @@ export default defineSchema({
 				lng: v.number()
 			})
 		),
+		locationData: v.optional(v.any()), // Complete location JSON from Strapi
 		addressDetails: v.optional(v.string())
 	}).index('by_strapi_id', ['strapiId']),
 

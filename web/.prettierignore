@@ -10,3 +10,4 @@ bun.lockb
 
 src/convex/_generated
 src/migration
+convex.json

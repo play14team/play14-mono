@@ -152,7 +152,8 @@ export const create = mutation({
 		content: v.string(),
 		canonical: v.optional(v.string()),
 		authorId: v.optional(v.id('players')),
-		publishedAt: v.optional(v.number())
+		publishedAt: v.optional(v.number()),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -165,8 +166,27 @@ export const create = mutation({
 			canonical?: string;
 			authorId?: Id<'players'>;
 			publishedAt?: number;
+			strapiId?: number;
 		}
 	) => {
+		// Check if article already exists by strapiId
+		if (args.strapiId) {
+			const existing = await ctx.db
+				.query('articles')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existing) {
+				// Update existing record
+				await ctx.db.patch(existing._id, {
+					...args,
+					imageIds: existing.imageIds || [],
+					updatedAt: Date.now()
+				});
+				return existing._id;
+			}
+		}
+
 		const articleId = await ctx.db.insert('articles', {
 			...args,
 			imageIds: [],

@@ -1,6 +1,7 @@
 import { mutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import type { Id, Doc } from './_generated/dataModel';
+import { v } from 'convex/values';
 import { processImageField, processImagesField } from './migrationHelpers';
 
 // Environment variables are configured in Convex Dashboard
@@ -8,38 +9,111 @@ import { processImageField, processImagesField } from './migrationHelpers';
 
 // Helper to find Convex record by name/slug
 
-async function findConvexRecord(ctx: MutationCtx, table: string, field: string, value: string) {
-	const records = await ctx.db.query(table as never).collect();
+async function findConvexRecord(
+	ctx: MutationCtx,
+	table: string,
+	field: string,
+	value: string
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return records.find((r: any) => r[field] === value);
+): Promise<Doc<any> | null> {
+	try {
+		switch (table) {
+			case 'players': {
+				const records = await ctx.db.query('players').collect();
+				return records.find((r) => (r as Record<string, unknown>)[field] === value);
+			}
+			case 'events': {
+				const records = await ctx.db.query('events').collect();
+				return records.find((r) => (r as Record<string, unknown>)[field] === value);
+			}
+			case 'games': {
+				const records = await ctx.db.query('games').collect();
+				return records.find((r) => (r as Record<string, unknown>)[field] === value);
+			}
+			case 'articles': {
+				const records = await ctx.db.query('articles').collect();
+				return records.find((r) => (r as Record<string, unknown>)[field] === value);
+			}
+			case 'tags': {
+				const records = await ctx.db.query('tags').collect();
+				return records.find((r) => (r as Record<string, unknown>)[field] === value);
+			}
+			default:
+				return null;
+		}
+	} catch (error) {
+		console.error(`Error finding record in ${table}:`, error);
+		return null;
+	}
 }
 
 // Helper to find Convex record by strapiId
-async function findConvexRecordByStrapiId(ctx: MutationCtx, table: string, strapiId: number) {
-	const records = await ctx.db
-		.query(table as never)
-		.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
-		.collect();
-	return records.length > 0 ? records[0] : null;
+
+async function findConvexRecordByStrapiId(
+	ctx: MutationCtx,
+	table: string,
+	strapiId: number
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<Doc<any> | null> {
+	try {
+		switch (table) {
+			case 'players': {
+				const records = await ctx.db
+					.query('players')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'events': {
+				const records = await ctx.db
+					.query('events')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'games': {
+				const records = await ctx.db
+					.query('games')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'articles': {
+				const records = await ctx.db
+					.query('articles')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			default:
+				return null;
+		}
+	} catch (error) {
+		console.error(`Error finding record in ${table}:`, error);
+		return null;
+	}
 }
 
 // Migration for Articles
 export const migrateArticles = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { articles: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { articles?: any[] }) => {
 		console.log('📝 Starting Articles migration...');
 
 		try {
-			throw new Error(
-				'Articles migration must be run via external script - mutations cannot access external APIs'
-			);
+			if (!args.articles) {
+				throw new Error(
+					'Articles data must be provided - mutations cannot fetch from external APIs'
+				);
+			}
 
 			// Clear existing articles
 			const existingArticles = await ctx.db.query('articles').collect();
 			await Promise.all(existingArticles.map((a) => ctx.db.delete(a._id)));
 
 			let migratedCount = 0;
-			for (const article of articles) {
+			for (const article of args.articles) {
 				const attrs = article.attributes;
 
 				// Find author player
@@ -85,21 +159,22 @@ export const migrateArticles = mutation({
 
 // Migration for Games
 export const migrateGames = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { games: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { games?: any[] }) => {
 		console.log('🎮 Starting Games migration...');
 
 		try {
-			throw new Error(
-				'Games migration must be run via external script - mutations cannot access external APIs'
-			);
+			if (!args.games) {
+				throw new Error('Games data must be provided - mutations cannot fetch from external APIs');
+			}
 
 			// Clear existing games
 			const existingGames = await ctx.db.query('games').collect();
 			await Promise.all(existingGames.map((g) => ctx.db.delete(g._id)));
 
 			let migratedCount = 0;
-			for (const game of games) {
+			for (const game of args.games) {
 				const attrs = game.attributes;
 
 				// Find first played at event
@@ -171,21 +246,22 @@ export const migrateGames = mutation({
 
 // Migration for Events
 export const migrateEvents = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { events: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
 		console.log('📅 Starting Events migration...');
 
 		try {
-			throw new Error(
-				'Events migration must be run via external script - mutations cannot access external APIs'
-			);
+			if (!args.events) {
+				throw new Error('Events data must be provided - mutations cannot fetch from external APIs');
+			}
 
 			// Clear existing events
 			const existingEvents = await ctx.db.query('events').collect();
 			await Promise.all(existingEvents.map((e) => ctx.db.delete(e._id)));
 
 			let migratedCount = 0;
-			for (const event of events) {
+			for (const event of args.events) {
 				const attrs = event.attributes;
 
 				// Find location
@@ -316,8 +392,9 @@ export const migrateEvents = mutation({
 
 // Migration for Event-Player Relationships (Hosts, Mentors, Attendees)
 export const migrateEventRelationships = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { events: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
 		console.log('🔗 Starting Event Relationships migration...');
 
 		try {
@@ -342,7 +419,11 @@ export const migrateEventRelationships = mutation({
 				mentorsCount = 0,
 				attendeesCount = 0;
 
-			for (const event of events) {
+			if (!args.events) {
+				throw new Error('Events data is required');
+			}
+
+			for (const event of args.events!) {
 				const attrs = event.attributes;
 
 				// Find the event in Convex
@@ -353,7 +434,7 @@ export const migrateEventRelationships = mutation({
 				if (attrs.hosts?.data) {
 					for (const hostData of attrs.hosts.data) {
 						const player = await findConvexRecord(ctx, 'players', 'slug', hostData.attributes.slug);
-						if (player) {
+						if (player && convexEvent) {
 							await ctx.db.insert('eventHosts', {
 								eventId: convexEvent._id,
 								playerId: player._id
@@ -372,7 +453,7 @@ export const migrateEventRelationships = mutation({
 							'slug',
 							mentorData.attributes.slug
 						);
-						if (player) {
+						if (player && convexEvent) {
 							await ctx.db.insert('eventMentors', {
 								eventId: convexEvent._id,
 								playerId: player._id
@@ -391,7 +472,7 @@ export const migrateEventRelationships = mutation({
 							'slug',
 							playerData.attributes.slug
 						);
-						if (player) {
+						if (player && convexEvent) {
 							await ctx.db.insert('eventAttendees', {
 								eventId: convexEvent._id,
 								playerId: player._id
@@ -420,14 +501,15 @@ export const migrateEventRelationships = mutation({
 
 // Migration for Game-Player Relationships (Documenters, Proposers)
 export const migrateGameRelationships = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { games: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { games?: any[] }) => {
 		console.log('🎲 Starting Game Relationships migration...');
 
 		try {
-			throw new Error(
-				'Game Relationships migration must be run via external script - mutations cannot access external APIs'
-			);
+			if (!args.games) {
+				throw new Error('Games data must be provided - mutations cannot fetch from external APIs');
+			}
 
 			// Clear existing relationships
 			const [existingDocumenters, existingProposers] = await Promise.all([
@@ -443,7 +525,7 @@ export const migrateGameRelationships = mutation({
 			let documentersCount = 0,
 				proposersCount = 0;
 
-			for (const game of games) {
+			for (const game of args.games) {
 				const attrs = game.attributes;
 
 				// Find the game in Convex
@@ -459,7 +541,7 @@ export const migrateGameRelationships = mutation({
 							'slug',
 							documenterData.attributes.slug
 						);
-						if (player) {
+						if (player && convexGame) {
 							await ctx.db.insert('gameDocumenters', {
 								gameId: convexGame._id,
 								playerId: player._id
@@ -478,7 +560,7 @@ export const migrateGameRelationships = mutation({
 							'slug',
 							proposerData.attributes.slug
 						);
-						if (player) {
+						if (player && convexGame) {
 							await ctx.db.insert('gameProposers', {
 								gameId: convexGame._id,
 								playerId: player._id
@@ -506,14 +588,17 @@ export const migrateGameRelationships = mutation({
 
 // Migration for Article-Tag Relationships
 export const migrateArticleTagRelationships = mutation({
-	args: {},
-	handler: async (ctx: MutationCtx) => {
+	args: { articles: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { articles?: any[] }) => {
 		console.log('🏷️ Starting Article-Tag Relationships migration...');
 
 		try {
-			throw new Error(
-				'Article-Tag Relationships migration must be run via external script - mutations cannot access external APIs'
-			);
+			if (!args.articles) {
+				throw new Error(
+					'Articles data must be provided - mutations cannot fetch from external APIs'
+				);
+			}
 
 			// Clear existing relationships
 			const existingRelations = await ctx.db.query('articleTags').collect();
@@ -521,7 +606,7 @@ export const migrateArticleTagRelationships = mutation({
 
 			let relationsCount = 0;
 
-			for (const article of articles) {
+			for (const article of args.articles) {
 				const attrs = article.attributes;
 
 				// Find the article in Convex
@@ -532,7 +617,7 @@ export const migrateArticleTagRelationships = mutation({
 				if (attrs.tags?.data) {
 					for (const tagData of attrs.tags.data) {
 						const tag = await findConvexRecord(ctx, 'tags', 'value', tagData.attributes.value);
-						if (tag) {
+						if (tag && convexArticle) {
 							await ctx.db.insert('articleTags', {
 								articleId: convexArticle._id,
 								tagId: tag._id

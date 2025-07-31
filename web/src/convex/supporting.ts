@@ -31,7 +31,9 @@ export const createEventLocation = mutation({
 				lat: v.number(),
 				lng: v.number()
 			})
-		)
+		),
+		locationData: v.optional(v.any()),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -42,8 +44,24 @@ export const createEventLocation = mutation({
 				lat: number;
 				lng: number;
 			};
+			locationData?: Record<string, unknown>;
+			strapiId?: number;
 		}
 	) => {
+		// Check if event location already exists by strapiId
+		if (args.strapiId) {
+			const existing = await ctx.db
+				.query('eventLocations')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existing) {
+				// Update existing record
+				await ctx.db.patch(existing._id, args);
+				return existing._id;
+			}
+		}
+
 		return await ctx.db.insert('eventLocations', args);
 	}
 });
@@ -66,7 +84,9 @@ export const createVenue = mutation({
 				lng: v.number()
 			})
 		),
-		addressDetails: v.optional(v.string())
+		locationData: v.optional(v.any()),
+		addressDetails: v.optional(v.string()),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -77,9 +97,25 @@ export const createVenue = mutation({
 				lat: number;
 				lng: number;
 			};
+			locationData?: Record<string, unknown>;
 			addressDetails?: string;
+			strapiId?: number;
 		}
 	) => {
+		// Check if venue already exists by strapiId
+		if (args.strapiId) {
+			const existing = await ctx.db
+				.query('venues')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existing) {
+				// Update existing record
+				await ctx.db.patch(existing._id, args);
+				return existing._id;
+			}
+		}
+
 		return await ctx.db.insert('venues', args);
 	}
 });
@@ -104,7 +140,8 @@ export const createSponsor = mutation({
 					url: v.string()
 				})
 			)
-		)
+		),
+		strapiId: v.optional(v.number())
 	},
 	handler: async (
 		ctx: MutationCtx,
@@ -116,8 +153,26 @@ export const createSponsor = mutation({
 				type: string;
 				url: string;
 			}[];
+			strapiId?: number;
 		}
 	) => {
+		// Check if sponsor already exists by strapiId
+		if (args.strapiId) {
+			const existing = await ctx.db
+				.query('sponsors')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existing) {
+				// Update existing record
+				await ctx.db.patch(existing._id, {
+					...args,
+					socialNetworks: args.socialNetworks || []
+				});
+				return existing._id;
+			}
+		}
+
 		return await ctx.db.insert('sponsors', {
 			...args,
 			socialNetworks: args.socialNetworks || []
@@ -145,9 +200,26 @@ export const getTagByValue = query({
 });
 
 export const createTag = mutation({
-	args: { value: v.string() },
-	handler: async (ctx: MutationCtx, args: { value: string }) => {
-		// Check if tag already exists
+	args: {
+		value: v.string(),
+		strapiId: v.optional(v.number())
+	},
+	handler: async (ctx: MutationCtx, args: { value: string; strapiId?: number }) => {
+		// Check if tag already exists by strapiId first
+		if (args.strapiId) {
+			const existingByStrapiId = await ctx.db
+				.query('tags')
+				.withIndex('by_strapi_id', (q) => q.eq('strapiId', args.strapiId))
+				.unique();
+
+			if (existingByStrapiId) {
+				// Update existing record
+				await ctx.db.patch(existingByStrapiId._id, args);
+				return existingByStrapiId._id;
+			}
+		}
+
+		// Check if tag already exists by value (fallback)
 		const existing = await ctx.db
 			.query('tags')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,6 +227,10 @@ export const createTag = mutation({
 			.unique();
 
 		if (existing) {
+			// Update with strapiId if provided
+			if (args.strapiId) {
+				await ctx.db.patch(existing._id, { strapiId: args.strapiId });
+			}
 			return existing._id;
 		}
 

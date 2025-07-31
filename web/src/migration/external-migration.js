@@ -53,8 +53,22 @@ function runConvexCommand(command, args) {
 }
 
 // Fetch data from Strapi
-async function fetchFromStrapi(endpoint) {
-	const response = await fetch(`${STRAPI_API_URL}/api/${endpoint}`, {
+async function fetchFromStrapi(endpoint, params = {}) {
+	const url = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
+
+	// Set high pagination limit to get all records
+	url.searchParams.append('pagination[limit]', '500');
+
+	// Add custom parameters
+	Object.entries(params).forEach(([key, value]) => {
+		if (Array.isArray(value)) {
+			value.forEach((v) => url.searchParams.append(key, v));
+		} else {
+			url.searchParams.append(key, String(value));
+		}
+	});
+
+	const response = await fetch(url.toString(), {
 		headers: {
 			Authorization: `Bearer ${STRAPI_API_SECRET}`,
 			'Content-Type': 'application/json'
@@ -66,7 +80,47 @@ async function fetchFromStrapi(endpoint) {
 	}
 
 	const data = await response.json();
-	return data.data || [];
+
+	// Check if we need to fetch more pages
+	const records = data.data || [];
+	const meta = data.meta;
+
+	if (meta && meta.pagination && meta.pagination.pageCount > 1) {
+		console.log(
+			`📑 Found ${meta.pagination.total} total records in ${meta.pagination.pageCount} pages for ${endpoint}`
+		);
+
+		// Fetch remaining pages
+		for (let page = 2; page <= meta.pagination.pageCount; page++) {
+			const pageUrl = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
+			pageUrl.searchParams.append('pagination[limit]', '500');
+			pageUrl.searchParams.append('pagination[page]', page.toString());
+
+			// Add custom parameters to each page request
+			Object.entries(params).forEach(([key, value]) => {
+				if (Array.isArray(value)) {
+					value.forEach((v) => pageUrl.searchParams.append(key, v));
+				} else {
+					pageUrl.searchParams.append(key, String(value));
+				}
+			});
+
+			const pageResponse = await fetch(pageUrl.toString(), {
+				headers: {
+					Authorization: `Bearer ${STRAPI_API_SECRET}`,
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (pageResponse.ok) {
+				const pageData = await pageResponse.json();
+				records.push(...(pageData.data || []));
+				console.log(`📄 Fetched page ${page}/${meta.pagination.pageCount} for ${endpoint}`);
+			}
+		}
+	}
+
+	return records;
 }
 
 // Migrate Tags
@@ -92,10 +146,13 @@ async function migrateTags() {
 		console.log('💾 Inserting new tags...');
 		let migratedCount = 0;
 		for (const tag of tags) {
-			const args = JSON.stringify({ value: tag.attributes.value });
+			const args = JSON.stringify({
+				value: tag.attributes.value,
+				strapiId: tag.id
+			});
 			await runConvexCommand('run', ['supporting:createTag', args]);
 			migratedCount++;
-			console.log(`✅ Created tag: ${tag.attributes.value}`);
+			console.log(`✅ Created/updated tag: ${tag.attributes.value}`);
 		}
 
 		console.log(`🎉 Tags migration completed: ${migratedCount} tags`);
@@ -118,19 +175,73 @@ async function migrateEventLocations() {
 		for (const location of locations) {
 			const attrs = location.attributes;
 
-			// Skip locations without coordinates for now
-			if (!attrs.location || !attrs.location.lat || !attrs.location.lng) {
-				console.log(`⚠️ Skipping location without coordinates: ${attrs.name}`);
-				continue;
+			// Extract coordinates from different possible formats
+			let coordinates = null;
+
+			if (attrs.location) {
+				// Check for direct lat/lng format
+				if (attrs.location.lat && attrs.location.lng) {
+					coordinates = {
+						lat: attrs.location.lat,
+						lng: attrs.location.lng
+					};
+				}
+				// Check for Mapbox geocoding response format
+				else if (attrs.location.geometry && attrs.location.geometry.coordinates) {
+					const coords = attrs.location.geometry.coordinates;
+					if (Array.isArray(coords) && coords.length >= 2) {
+						const [lng, lat] = coords;
+						if (typeof lng === 'number' && typeof lat === 'number') {
+							coordinates = { lat, lng };
+						}
+					}
+				}
+				// Check for Mapbox center format
+				else if (attrs.location.center && Array.isArray(attrs.location.center)) {
+					const [lng, lat] = attrs.location.center;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = { lat, lng };
+					}
+				}
+				// Check for GeoJSON format
+				else if (attrs.location.coordinates && Array.isArray(attrs.location.coordinates)) {
+					// GeoJSON coordinates are [longitude, latitude]
+					const [lng, lat] = attrs.location.coordinates;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = { lat, lng };
+					}
+				}
+				// Check for nested coordinates property
+				else if (attrs.location.location && attrs.location.location.coordinates) {
+					const coords = attrs.location.location.coordinates;
+					if (Array.isArray(coords) && coords.length >= 2) {
+						const [lng, lat] = coords;
+						if (typeof lng === 'number' && typeof lat === 'number') {
+							coordinates = { lat, lng };
+						}
+					}
+				}
+			}
+
+			// Handle locations without coordinates (e.g., "Online")
+			if (!coordinates) {
+				// For "Online" locations or others without coordinates, use default values
+				if (attrs.name && attrs.name.toLowerCase().includes('online')) {
+					coordinates = { lat: 0, lng: 0 };
+					console.log(`📍 Using default coordinates for Online location: ${attrs.name}`);
+				} else {
+					console.log(`⚠️ Skipping location without valid coordinates: ${attrs.name}`);
+					console.log(`   Location data structure:`, JSON.stringify(attrs.location, null, 2));
+					continue;
+				}
 			}
 
 			const args = JSON.stringify({
 				name: attrs.name,
 				country: attrs.country || '',
-				location: {
-					lat: attrs.location.lat,
-					lng: attrs.location.lng
-				}
+				location: coordinates,
+				locationData: attrs.location || {}, // Store complete location JSON or empty object
+				strapiId: location.id
 			});
 
 			await runConvexCommand('run', ['supporting:createEventLocation', args]);
@@ -157,17 +268,51 @@ async function migrateVenues() {
 		let migratedCount = 0;
 		for (const venue of venues) {
 			const attrs = venue.attributes;
+
+			// Extract coordinates from different possible formats
+			let coordinates = null;
+
+			if (attrs.location) {
+				// Check for direct lat/lng format
+				if (attrs.location.lat && attrs.location.lng) {
+					coordinates = {
+						lat: attrs.location.lat,
+						lng: attrs.location.lng
+					};
+				}
+				// Check for Mapbox geocoding response format
+				else if (attrs.location.geometry && attrs.location.geometry.coordinates) {
+					const coords = attrs.location.geometry.coordinates;
+					if (Array.isArray(coords) && coords.length >= 2) {
+						const [lng, lat] = coords;
+						if (typeof lng === 'number' && typeof lat === 'number') {
+							coordinates = { lat, lng };
+						}
+					}
+				}
+				// Check for Mapbox center format
+				else if (attrs.location.center && Array.isArray(attrs.location.center)) {
+					const [lng, lat] = attrs.location.center;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = { lat, lng };
+					}
+				}
+				// Check for GeoJSON format
+				else if (attrs.location.coordinates && Array.isArray(attrs.location.coordinates)) {
+					const [lng, lat] = attrs.location.coordinates;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = { lat, lng };
+					}
+				}
+			}
+
 			const args = JSON.stringify({
 				name: attrs.name,
 				website: attrs.website || undefined,
-				location:
-					attrs.location && attrs.location.lat && attrs.location.lng
-						? {
-								lat: attrs.location.lat,
-								lng: attrs.location.lng
-							}
-						: undefined,
-				addressDetails: attrs.addressDetails || undefined
+				location: coordinates || undefined, // Convert null to undefined for v.optional()
+				locationData: attrs.location, // Store complete location JSON
+				addressDetails: attrs.addressDetails || undefined,
+				strapiId: venue.id
 			});
 
 			await runConvexCommand('run', ['supporting:createVenue', args]);
@@ -204,7 +349,8 @@ async function migrateSponsors() {
 					attrs.socialNetworks?.map((sn) => ({
 						type: sn.type,
 						url: sn.url
-					})) || []
+					})) || [],
+				strapiId: sponsor.id
 			});
 
 			await runConvexCommand('run', ['supporting:createSponsor', args]);
@@ -233,6 +379,57 @@ async function migratePlayers() {
 		let migratedCount = 0;
 		for (const player of players) {
 			const attrs = player.attributes;
+
+			// Extract coordinates from different possible formats
+			let coordinates = null;
+
+			if (attrs.location) {
+				// Check for direct lat/lng format
+				if (attrs.location.lat && attrs.location.lng) {
+					coordinates = {
+						lat: attrs.location.lat,
+						lng: attrs.location.lng,
+						address: attrs.location.address
+					};
+				}
+				// Check for Mapbox geocoding response format
+				else if (attrs.location.geometry && attrs.location.geometry.coordinates) {
+					const coords = attrs.location.geometry.coordinates;
+					if (Array.isArray(coords) && coords.length >= 2) {
+						const [lng, lat] = coords;
+						if (typeof lng === 'number' && typeof lat === 'number') {
+							coordinates = {
+								lat,
+								lng,
+								address: attrs.location.place_name || attrs.location.address
+							};
+						}
+					}
+				}
+				// Check for Mapbox center format
+				else if (attrs.location.center && Array.isArray(attrs.location.center)) {
+					const [lng, lat] = attrs.location.center;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = {
+							lat,
+							lng,
+							address: attrs.location.place_name || attrs.location.address
+						};
+					}
+				}
+				// Check for GeoJSON format
+				else if (attrs.location.coordinates && Array.isArray(attrs.location.coordinates)) {
+					const [lng, lat] = attrs.location.coordinates;
+					if (typeof lng === 'number' && typeof lat === 'number') {
+						coordinates = {
+							lat,
+							lng,
+							address: attrs.location.address
+						};
+					}
+				}
+			}
+
 			const args = JSON.stringify({
 				name: attrs.name,
 				slug: attrs.slug,
@@ -241,14 +438,9 @@ async function migratePlayers() {
 				tagline: attrs.tagline || undefined,
 				bio: attrs.bio || undefined,
 				website: attrs.website || undefined,
-				location:
-					attrs.location && attrs.location.lat && attrs.location.lng
-						? {
-								lat: attrs.location.lat,
-								lng: attrs.location.lng,
-								address: attrs.location.address
-							}
-						: undefined
+				location: coordinates,
+				locationData: attrs.location, // Store complete location JSON
+				strapiId: player.id
 				// Skip socialNetworks and avatarId for now
 			});
 
@@ -286,7 +478,8 @@ async function migrateArticles() {
 				category: attrs.category || 'Article', // Default to Article category
 				authorId: undefined, // Handle relationships later
 				publishedAt: attrs.publishDate ? new Date(attrs.publishDate).getTime() : undefined,
-				canonical: attrs.canonical || undefined
+				canonical: attrs.canonical || undefined,
+				strapiId: article.id
 			});
 
 			await runConvexCommand('run', ['articles:create', args]);
@@ -323,7 +516,8 @@ async function migrateGames() {
 				credits: attrs.credits || attrs.author || 'Unknown',
 				scale: attrs.playerCount || attrs.participants || 'Any',
 				timebox: attrs.duration || attrs.timebox || 'Variable',
-				publishedAt: attrs.publishDate ? new Date(attrs.publishDate).getTime() : undefined
+				publishedAt: attrs.publishDate ? new Date(attrs.publishDate).getTime() : undefined,
+				strapiId: game.id
 			});
 
 			await runConvexCommand('run', ['games:create', args]);

@@ -1,20 +1,67 @@
 import { mutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { v } from 'convex/values';
 import { processImageField } from './migrationHelpers';
 
 // Helper function to find existing record by strapiId
-async function findByStrapiId(ctx: MutationCtx, table: string, strapiId: number) {
-	const records = await ctx.db
-		.query(table as never)
-		.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
-		.collect();
-	return records.length > 0 ? records[0] : null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findByStrapiId(ctx: MutationCtx, table: string, strapiId: number): Promise<any> {
+	try {
+		switch (table) {
+			case 'expectations': {
+				const records = await ctx.db
+					.query('expectations')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'testimonials': {
+				const records = await ctx.db
+					.query('testimonials')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'formats': {
+				const records = await ctx.db
+					.query('formats')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'history': {
+				const records = await ctx.db
+					.query('history')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'hosting': {
+				const records = await ctx.db
+					.query('hosting')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			default:
+				return null;
+		}
+	} catch (error) {
+		console.error(`Error finding record in ${table}:`, error);
+		return null;
+	}
 }
 
 // Helper function to upsert record (insert or update based on strapiId)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertRecord(ctx: MutationCtx, table: string, strapiId: number, data: any) {
+
+async function upsertRecord(
+	ctx: MutationCtx,
+	table: string,
+	strapiId: number,
+	data: Record<string, unknown>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<Id<any> | null> {
 	const existing = await findByStrapiId(ctx, table, strapiId);
 
 	if (existing) {
@@ -23,8 +70,33 @@ async function upsertRecord(ctx: MutationCtx, table: string, strapiId: number, d
 		console.log(`✏️ Updated existing ${table} record with strapiId ${strapiId}`);
 		return existing._id;
 	} else {
-		// Insert new record
-		const newId = await ctx.db.insert(table as never, { ...data, strapiId });
+		// Insert new record with strapiId included
+		const recordData = { ...data, strapiId };
+		let newId;
+		switch (table) {
+			case 'expectations':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('expectations', recordData as any);
+				break;
+			case 'testimonials':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('testimonials', recordData as any);
+				break;
+			case 'formats':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('formats', recordData as any);
+				break;
+			case 'history':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('history', recordData as any);
+				break;
+			case 'hosting':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('hosting', recordData as any);
+				break;
+			default:
+				throw new Error(`Unsupported table: ${table}`);
+		}
 		console.log(`➕ Created new ${table} record with strapiId ${strapiId}`);
 		return newId;
 	}
@@ -32,8 +104,7 @@ async function upsertRecord(ctx: MutationCtx, table: string, strapiId: number, d
 
 // Migration for Expectations
 export const migrateExpectations = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { expectationsData: {} as any },
+	args: { expectationsData: v.any() },
 
 	handler: async (ctx: MutationCtx, { expectationsData }) => {
 		console.log('🎯 Starting Expectations migration...');
@@ -69,8 +140,7 @@ export const migrateExpectations = mutation({
 
 // Migration for Testimonials
 export const migrateTestimonials = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { testimonialsData: {} as any },
+	args: { testimonialsData: v.any() },
 
 	handler: async (ctx: MutationCtx, { testimonialsData }) => {
 		console.log('💬 Starting Testimonials migration...');
@@ -122,8 +192,7 @@ export const migrateTestimonials = mutation({
 
 // Migration for Formats
 export const migrateFormats = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { formatsData: {} as any },
+	args: { formatsData: v.any() },
 
 	handler: async (ctx: MutationCtx, { formatsData }) => {
 		console.log('📋 Starting Formats migration...');
@@ -160,8 +229,7 @@ export const migrateFormats = mutation({
 
 // Migration for History
 export const migrateHistory = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { historyData: {} as any },
+	args: { historyData: v.any() },
 
 	handler: async (ctx: MutationCtx, { historyData }) => {
 		console.log('📜 Starting History migration...');
@@ -202,8 +270,7 @@ export const migrateHistory = mutation({
 
 // Migration for Hosting
 export const migrateHosting = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { hostingData: {} as any },
+	args: { hostingData: v.any() },
 
 	handler: async (ctx: MutationCtx, { hostingData }) => {
 		console.log('🏠 Starting Hosting migration...');

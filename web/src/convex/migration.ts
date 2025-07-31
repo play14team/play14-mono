@@ -1,6 +1,8 @@
 import { api } from './_generated/api';
 import type { ActionCtx, MutationCtx } from './_generated/server';
 import { action, mutation, query } from './_generated/server';
+import { v } from 'convex/values';
+import type { Id } from './_generated/dataModel';
 import { processImageField, processImagesField } from './migrationHelpers';
 
 // Environment variables are configured in Convex Dashboard
@@ -49,17 +51,63 @@ export const getMigrationStatus = query({
 });
 
 // Helper function to find existing record by strapiId
-async function findByStrapiId(ctx: MutationCtx, table: string, strapiId: number) {
-	const records = await ctx.db
-		.query(table as never)
-		.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
-		.collect();
-	return records.length > 0 ? records[0] : null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findByStrapiId(ctx: MutationCtx, table: string, strapiId: number): Promise<any> {
+	try {
+		switch (table) {
+			case 'tags': {
+				const records = await ctx.db
+					.query('tags')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'eventLocations': {
+				const records = await ctx.db
+					.query('eventLocations')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'venues': {
+				const records = await ctx.db
+					.query('venues')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'sponsors': {
+				const records = await ctx.db
+					.query('sponsors')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'players': {
+				const records = await ctx.db
+					.query('players')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			default:
+				return null;
+		}
+	} catch (error) {
+		console.error(`Error finding record in ${table}:`, error);
+		return null;
+	}
 }
 
 // Helper function to upsert record (insert or update based on strapiId)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertRecord(ctx: MutationCtx, table: string, strapiId: number, data: any) {
+
+async function upsertRecord(
+	ctx: MutationCtx,
+	table: string,
+	strapiId: number,
+	data: Record<string, unknown>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<Id<any> | null> {
 	const existing = await findByStrapiId(ctx, table, strapiId);
 
 	if (existing) {
@@ -68,8 +116,45 @@ async function upsertRecord(ctx: MutationCtx, table: string, strapiId: number, d
 		console.log(`✏️ Updated existing ${table} record with strapiId ${strapiId}`);
 		return existing._id;
 	} else {
-		// Insert new record
-		const newId = await ctx.db.insert(table as never, { ...data, strapiId });
+		// Insert new record with strapiId included
+		const recordData = { ...data, strapiId };
+		let newId;
+		switch (table) {
+			case 'tags':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('tags', recordData as any);
+				break;
+			case 'eventLocations':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('eventLocations', recordData as any);
+				break;
+			case 'venues':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('venues', recordData as any);
+				break;
+			case 'sponsors':
+				// Ensure socialNetworks is included
+				newId = await ctx.db.insert('sponsors', {
+					...recordData,
+					socialNetworks:
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						((recordData as any).socialNetworks as Array<{ type: string; url: string }>) || []
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} as any);
+				break;
+			case 'players':
+				// Ensure socialNetworks is included
+				newId = await ctx.db.insert('players', {
+					...recordData,
+					socialNetworks:
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						((recordData as any).socialNetworks as Array<{ type: string; url: string }>) || []
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} as any);
+				break;
+			default:
+				throw new Error(`Unsupported table: ${table}`);
+		}
 		console.log(`➕ Created new ${table} record with strapiId ${strapiId}`);
 		return newId;
 	}
@@ -150,8 +235,11 @@ async function migrateTagsInternal(ctx: MutationCtx, tags?: any[]) {
 
 // Migration for Tags
 export const migrateTags = mutation({
-	args: {},
-	handler: migrateTagsInternal
+	args: { tags: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { tags?: any[] }) => {
+		return await migrateTagsInternal(ctx, args.tags);
+	}
 });
 
 // Internal function for Event Locations migration
@@ -183,7 +271,8 @@ async function migrateEventLocationsInternal(ctx: MutationCtx, locations?: any[]
 							lat: attrs.location.lat,
 							lng: attrs.location.lng
 						}
-					: undefined
+					: undefined,
+				locationData: attrs.locationData || attrs.location // Store complete location JSON
 			});
 			migratedCount++;
 		}
@@ -198,8 +287,11 @@ async function migrateEventLocationsInternal(ctx: MutationCtx, locations?: any[]
 
 // Migration for Event Locations
 export const migrateEventLocations = mutation({
-	args: {},
-	handler: migrateEventLocationsInternal
+	args: { locations: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { locations?: any[] }) => {
+		return await migrateEventLocationsInternal(ctx, args.locations);
+	}
 });
 
 // Internal function for Sponsors migration
@@ -248,8 +340,11 @@ async function migrateSponsorsInternal(ctx: MutationCtx, sponsors?: any[]) {
 
 // Migration for Sponsors
 export const migrateSponsors = mutation({
-	args: {},
-	handler: migrateSponsorsInternal
+	args: { sponsors: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { sponsors?: any[] }) => {
+		return await migrateSponsorsInternal(ctx, args.sponsors);
+	}
 });
 
 // Internal function for Venues migration
@@ -280,6 +375,7 @@ async function migrateVenuesInternal(ctx: MutationCtx, venues?: any[]) {
 							lng: attrs.location.lng
 						}
 					: undefined,
+				locationData: attrs.locationData || attrs.location, // Store complete location JSON
 				addressDetails: attrs.addressDetails || undefined
 			});
 			migratedCount++;
@@ -295,8 +391,11 @@ async function migrateVenuesInternal(ctx: MutationCtx, venues?: any[]) {
 
 // Migration for Venues
 export const migrateVenues = mutation({
-	args: {},
-	handler: migrateVenuesInternal
+	args: { venues: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { venues?: any[] }) => {
+		return await migrateVenuesInternal(ctx, args.venues);
+	}
 });
 
 // Internal function for Players migration
@@ -337,6 +436,7 @@ async function migratePlayersInternal(ctx: MutationCtx, players?: any[]) {
 							address: attrs.location.address
 						}
 					: undefined,
+				locationData: attrs.locationData || attrs.location, // Store complete location JSON
 				socialNetworks:
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					attrs.socialNetworks?.map((sn: any) => ({
@@ -358,8 +458,11 @@ async function migratePlayersInternal(ctx: MutationCtx, players?: any[]) {
 
 // Migration for Players
 export const migratePlayers = mutation({
-	args: {},
-	handler: migratePlayersInternal
+	args: { players: v.any() },
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	handler: async (ctx: MutationCtx, args: { players?: any[] }) => {
+		return await migratePlayersInternal(ctx, args.players);
+	}
 });
 
 // Note: This mutation is deprecated - use runPhase1Migration action instead
@@ -445,8 +548,7 @@ export const fetchTagsData = action({
 
 // MUTATION: Insert Tags data into Convex
 export const insertTagsData = mutation({
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	args: { tagsData: {} as any },
+	args: { tagsData: v.any() },
 
 	handler: async (ctx: MutationCtx, { tagsData }) => {
 		console.log('🏷️ Inserting Tags data...');

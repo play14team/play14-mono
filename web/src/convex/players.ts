@@ -100,6 +100,7 @@ export const create = mutation({
 				address: v.optional(v.string())
 			})
 		),
+		locationData: v.optional(v.any()),
 		userId: v.optional(v.id('users'))
 	},
 	handler: async (
@@ -117,6 +118,7 @@ export const create = mutation({
 				lng: number;
 				address?: string;
 			};
+			locationData?: Record<string, unknown>;
 			userId?: Id<'users'>;
 		}
 	) => {
