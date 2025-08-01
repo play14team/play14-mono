@@ -429,3 +429,39 @@ async function getEventAttendees(ctx: QueryCtx, eventId: Id<'events'>) {
 
 	return attendees.filter(Boolean);
 }
+
+// Helper query: Get event by strapiId for image migration
+export const getByStrapiId = query({
+	args: { strapiId: v.number() },
+	handler: async (ctx: QueryCtx, { strapiId }) => {
+		const records = await ctx.db
+			.query('events')
+			.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+			.collect();
+		return records.length > 0 ? records[0] : null;
+	}
+});
+
+// Helper mutation: Update event images after migration
+export const updateImages = mutation({
+	args: {
+		eventId: v.id('events'),
+		defaultImageId: v.optional(v.string()),
+		imageIds: v.array(v.string())
+	},
+	handler: async (ctx: MutationCtx, { eventId, defaultImageId, imageIds }) => {
+		const updates: Record<string, unknown> = {};
+
+		if (defaultImageId) {
+			updates.defaultImageId = defaultImageId as Id<'_storage'>;
+		}
+
+		if (imageIds.length > 0) {
+			updates.imageIds = imageIds as Id<'_storage'>[];
+		}
+
+		if (Object.keys(updates).length > 0) {
+			await ctx.db.patch(eventId, updates);
+		}
+	}
+});

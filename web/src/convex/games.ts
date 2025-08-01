@@ -340,3 +340,39 @@ async function getGameProposers(ctx: QueryCtx, gameId: Id<'games'>): Promise<Doc
 
 	return proposers.filter((prop): prop is Doc<'players'> => prop !== null);
 }
+
+// Helper query: Get game by strapiId for image migration
+export const getByStrapiId = query({
+	args: { strapiId: v.number() },
+	handler: async (ctx: QueryCtx, { strapiId }) => {
+		const records = await ctx.db
+			.query('games')
+			.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+			.collect();
+		return records.length > 0 ? records[0] : null;
+	}
+});
+
+// Helper mutation: Update game images after migration
+export const updateImages = mutation({
+	args: {
+		gameId: v.id('games'),
+		defaultImageId: v.optional(v.string()),
+		imageIds: v.array(v.string())
+	},
+	handler: async (ctx: MutationCtx, { gameId, defaultImageId, imageIds }) => {
+		const updates: Record<string, unknown> = {};
+
+		if (defaultImageId) {
+			updates.defaultImageId = defaultImageId as Id<'_storage'>;
+		}
+
+		if (imageIds.length > 0) {
+			updates.imageIds = imageIds as Id<'_storage'>[];
+		}
+
+		if (Object.keys(updates).length > 0) {
+			await ctx.db.patch(gameId, updates);
+		}
+	}
+});

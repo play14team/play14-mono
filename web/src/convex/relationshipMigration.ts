@@ -101,9 +101,9 @@ async function findConvexRecord(
 
 // Migration for Event Hosts relationships
 export const migrateEventHosts = mutation({
-	args: { events: v.any() },
+	args: { events: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { events?: any[]; clearExisting?: boolean }) => {
 		console.log('👥 Starting Event Hosts migration...');
 
 		try {
@@ -111,10 +111,12 @@ export const migrateEventHosts = mutation({
 				throw new Error('Events data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing host relationships
-			const existingHosts = await ctx.db.query('eventHosts').collect();
-			await Promise.all(existingHosts.map((h) => ctx.db.delete(h._id)));
-			console.log(`🗑️ Cleared ${existingHosts.length} existing host relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingHosts = await ctx.db.query('eventHosts').collect();
+				await Promise.all(existingHosts.map((h) => ctx.db.delete(h._id)));
+				console.log(`🗑️ Cleared ${existingHosts.length} existing host relationships`);
+			}
 
 			let hostsCount = 0;
 
@@ -170,9 +172,9 @@ export const migrateEventHosts = mutation({
 
 // Migration for Event Mentors relationships
 export const migrateEventMentors = mutation({
-	args: { events: v.any() },
+	args: { events: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { events?: any[]; clearExisting?: boolean }) => {
 		console.log('🧠 Starting Event Mentors migration...');
 
 		try {
@@ -180,10 +182,12 @@ export const migrateEventMentors = mutation({
 				throw new Error('Events data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing mentor relationships
-			const existingMentors = await ctx.db.query('eventMentors').collect();
-			await Promise.all(existingMentors.map((m) => ctx.db.delete(m._id)));
-			console.log(`🗑️ Cleared ${existingMentors.length} existing mentor relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingMentors = await ctx.db.query('eventMentors').collect();
+				await Promise.all(existingMentors.map((m) => ctx.db.delete(m._id)));
+				console.log(`🗑️ Cleared ${existingMentors.length} existing mentor relationships`);
+			}
 
 			let mentorsCount = 0;
 
@@ -239,9 +243,9 @@ export const migrateEventMentors = mutation({
 
 // Migration for Event Attendees relationships
 export const migrateEventAttendees = mutation({
-	args: { events: v.any() },
+	args: { events: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { events?: any[]; clearExisting?: boolean }) => {
 		console.log('👫 Starting Event Attendees migration...');
 
 		try {
@@ -249,10 +253,12 @@ export const migrateEventAttendees = mutation({
 				throw new Error('Events data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing attendee relationships
-			const existingAttendees = await ctx.db.query('eventAttendees').collect();
-			await Promise.all(existingAttendees.map((a) => ctx.db.delete(a._id)));
-			console.log(`🗑️ Cleared ${existingAttendees.length} existing attendee relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingAttendees = await ctx.db.query('eventAttendees').collect();
+				await Promise.all(existingAttendees.map((a) => ctx.db.delete(a._id)));
+				console.log(`🗑️ Cleared ${existingAttendees.length} existing attendee relationships`);
+			}
 
 			let attendeesCount = 0;
 
@@ -310,9 +316,9 @@ export const migrateEventAttendees = mutation({
 
 // Migration for Game Documenters relationships
 export const migrateGameDocumenters = mutation({
-	args: { games: v.any() },
+	args: { games: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { games?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { games?: any[]; clearExisting?: boolean }) => {
 		console.log('📝 Starting Game Documenters migration...');
 
 		try {
@@ -320,10 +326,12 @@ export const migrateGameDocumenters = mutation({
 				throw new Error('Games data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing documenter relationships
-			const existingDocumenters = await ctx.db.query('gameDocumenters').collect();
-			await Promise.all(existingDocumenters.map((d) => ctx.db.delete(d._id)));
-			console.log(`🗑️ Cleared ${existingDocumenters.length} existing documenter relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingDocumenters = await ctx.db.query('gameDocumenters').collect();
+				await Promise.all(existingDocumenters.map((d) => ctx.db.delete(d._id)));
+				console.log(`🗑️ Cleared ${existingDocumenters.length} existing documenter relationships`);
+			}
 
 			let documentersCount = 0;
 
@@ -386,9 +394,9 @@ export const migrateGameDocumenters = mutation({
 
 // Migration for Game Proposers relationships
 export const migrateGameProposers = mutation({
-	args: { games: v.any() },
+	args: { games: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { games?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { games?: any[]; clearExisting?: boolean }) => {
 		console.log('💡 Starting Game Proposers migration...');
 
 		try {
@@ -396,10 +404,12 @@ export const migrateGameProposers = mutation({
 				throw new Error('Games data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing proposer relationships
-			const existingProposers = await ctx.db.query('gameProposers').collect();
-			await Promise.all(existingProposers.map((p) => ctx.db.delete(p._id)));
-			console.log(`🗑️ Cleared ${existingProposers.length} existing proposer relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingProposers = await ctx.db.query('gameProposers').collect();
+				await Promise.all(existingProposers.map((p) => ctx.db.delete(p._id)));
+				console.log(`🗑️ Cleared ${existingProposers.length} existing proposer relationships`);
+			}
 
 			let proposersCount = 0;
 
@@ -462,9 +472,9 @@ export const migrateGameProposers = mutation({
 
 // Migration for Article Tags relationships
 export const migrateArticleTags = mutation({
-	args: { articles: v.any() },
+	args: { articles: v.any(), clearExisting: v.optional(v.boolean()) },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	handler: async (ctx: MutationCtx, args: { articles?: any[] }) => {
+	handler: async (ctx: MutationCtx, args: { articles?: any[]; clearExisting?: boolean }) => {
 		console.log('🏷️ Starting Article Tags migration...');
 
 		try {
@@ -474,10 +484,12 @@ export const migrateArticleTags = mutation({
 				);
 			}
 
-			// Clear existing article-tag relationships
-			const existingRelations = await ctx.db.query('articleTags').collect();
-			await Promise.all(existingRelations.map((r) => ctx.db.delete(r._id)));
-			console.log(`🗑️ Cleared ${existingRelations.length} existing article-tag relationships`);
+			// Only clear existing relationships if explicitly requested (not in batch mode)
+			if (args.clearExisting) {
+				const existingRelations = await ctx.db.query('articleTags').collect();
+				await Promise.all(existingRelations.map((r) => ctx.db.delete(r._id)));
+				console.log(`🗑️ Cleared ${existingRelations.length} existing article-tag relationships`);
+			}
 
 			let relationsCount = 0;
 

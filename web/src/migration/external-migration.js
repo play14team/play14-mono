@@ -52,6 +52,21 @@ function runConvexCommand(command, args) {
 	});
 }
 
+// Helper to run Convex actions (similar to mutations but for actions)
+async function runConvexAction(actionPath, args) {
+	const argsJson = JSON.stringify(args);
+
+	console.log(`🔧 Running Convex action: ${actionPath}`);
+
+	try {
+		const result = await runConvexCommand('run', [actionPath, argsJson]);
+		return JSON.parse(result);
+	} catch (error) {
+		console.error(`❌ Action ${actionPath} failed:`, error.message);
+		throw error;
+	}
+}
+
 // Fetch data from Strapi
 async function fetchFromStrapi(endpoint, params = {}) {
 	const url = new URL(`${STRAPI_API_URL}/api/${endpoint}`);
@@ -1023,6 +1038,63 @@ async function runPhase5Migration() {
 	}
 }
 
+// Phase 6 migration function (Image Migration using Actions)
+async function runPhase6Migration() {
+	console.log('🚀 Starting Phase 6 migration...');
+	console.log('This will migrate: All images and files to Convex File Storage');
+	console.log('Note: This uses Convex actions for proper file storage operations\n');
+
+	const results = [];
+	let totalImages = 0;
+
+	try {
+		// 1. Events Image Migration
+		console.log('🖼️ Starting Events Image Migration...');
+		const events = await fetchFromStrapi('events', {
+			populate: ['defaultImage', 'images']
+		});
+		console.log(`📥 Fetched ${events.length} events for image migration`);
+
+		// Process in batches to avoid oversized payloads
+		const eventBatchSize = 5; // Small batches for image processing
+		for (let i = 0; i < events.length; i += eventBatchSize) {
+			const batch = events.slice(i, i + eventBatchSize);
+			console.log(
+				`📦 Processing events image batch ${Math.floor(i / eventBatchSize) + 1}/${Math.ceil(events.length / eventBatchSize)} (${batch.length} events)`
+			);
+
+			try {
+				const result = await runConvexAction('imageMigrationPhase:migrateEventImages', {
+					events: batch,
+					strapiApiUrl: STRAPI_API_URL
+				});
+				console.log(`✅ Events batch result: ${result.message}`);
+				totalImages += result.details?.totalUploaded || 0;
+			} catch (error) {
+				console.error(`❌ Events image batch failed:`, error.message);
+			}
+		}
+
+		results.push({
+			type: 'Events Images',
+			success: true,
+			message: `Events images migration attempted`
+		});
+
+		console.log('\n🎉 Phase 6 migration completed successfully!');
+		console.log('\nSummary:');
+		results.forEach((result) => {
+			console.log(`  - ${result.type}: ${result.message}`);
+		});
+		console.log(`\nTotal: ~${totalImages} images processed`);
+
+		return { success: true, results, totalImages };
+	} catch (error) {
+		console.error('\n💥 Phase 6 migration failed:', error);
+		return { success: false, error: error.message, results };
+	}
+}
+
 // Complete migration function
 async function runCompleteMigration() {
 	console.log('🚀 Starting Complete Migration (Phase 1 + 2 + 3 + 4 + 5)...\n');
@@ -1118,6 +1190,9 @@ if (import.meta.url.endsWith(process.argv[1])) {
 			break;
 		case 'phase5':
 			migrationFunction = runPhase5Migration;
+			break;
+		case 'phase6':
+			migrationFunction = runPhase6Migration;
 			break;
 		case 'complete':
 		default:

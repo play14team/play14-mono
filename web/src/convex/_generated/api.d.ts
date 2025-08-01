@@ -19,6 +19,8 @@ import type * as debugEventsOnly from "../debugEventsOnly.js";
 import type * as debugMigration from "../debugMigration.js";
 import type * as events from "../events.js";
 import type * as games from "../games.js";
+import type * as imageMigrationActions from "../imageMigrationActions.js";
+import type * as imageMigrationPhase from "../imageMigrationPhase.js";
 import type * as migrateEventsBatch from "../migrateEventsBatch.js";
 import type * as migration from "../migration.js";
 import type * as migrationHelpers from "../migrationHelpers.js";
@@ -46,6 +48,8 @@ declare const fullApi: ApiFromModules<{
   debugMigration: typeof debugMigration;
   events: typeof events;
   games: typeof games;
+  imageMigrationActions: typeof imageMigrationActions;
+  imageMigrationPhase: typeof imageMigrationPhase;
   migrateEventsBatch: typeof migrateEventsBatch;
   migration: typeof migration;
   migrationHelpers: typeof migrationHelpers;

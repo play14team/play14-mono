@@ -359,3 +359,28 @@ async function getPlayerMentoredEvents(ctx: QueryCtx, playerId: Id<'players'>) {
 
 	return eventsWithLocations;
 }
+
+// Helper query: Get player by strapiId for image migration
+export const getByStrapiId = query({
+	args: { strapiId: v.number() },
+	handler: async (ctx: QueryCtx, { strapiId }) => {
+		const records = await ctx.db
+			.query('players')
+			.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+			.collect();
+		return records.length > 0 ? records[0] : null;
+	}
+});
+
+// Helper mutation: Update player photo after migration
+export const updatePhoto = mutation({
+	args: {
+		playerId: v.id('players'),
+		photoId: v.string()
+	},
+	handler: async (ctx: MutationCtx, { playerId, photoId }) => {
+		await ctx.db.patch(playerId, {
+			avatarId: photoId as Id<'_storage'>
+		});
+	}
+});

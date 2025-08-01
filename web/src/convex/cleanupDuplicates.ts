@@ -57,7 +57,7 @@ export const cleanupDuplicateEvents = mutation({
 			// Verify the cleanup
 			const remainingEvents = await ctx.db.query('events').collect();
 			const remainingSlugs = remainingEvents.map((e) => e.slug);
-			const uniqueSlugs = [...new Set(remainingSlugs)];
+			const uniqueSlugs = Array.from(new Set(remainingSlugs));
 
 			console.log(
 				`📊 After cleanup: ${remainingEvents.length} events, ${uniqueSlugs.length} unique slugs`

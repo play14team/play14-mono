@@ -324,3 +324,39 @@ async function getArticleTags(ctx: QueryCtx, articleId: Id<'articles'>): Promise
 
 	return tags.filter((tag): tag is Doc<'tags'> => tag !== null);
 }
+
+// Helper query: Get article by strapiId for image migration
+export const getByStrapiId = query({
+	args: { strapiId: v.number() },
+	handler: async (ctx: QueryCtx, { strapiId }) => {
+		const records = await ctx.db
+			.query('articles')
+			.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+			.collect();
+		return records.length > 0 ? records[0] : null;
+	}
+});
+
+// Helper mutation: Update article images after migration
+export const updateImages = mutation({
+	args: {
+		articleId: v.id('articles'),
+		defaultImageId: v.optional(v.string()),
+		imageIds: v.array(v.string())
+	},
+	handler: async (ctx: MutationCtx, { articleId, defaultImageId, imageIds }) => {
+		const updates: Record<string, unknown> = {};
+
+		if (defaultImageId) {
+			updates.defaultImageId = defaultImageId as Id<'_storage'>;
+		}
+
+		if (imageIds.length > 0) {
+			updates.imageIds = imageIds as Id<'_storage'>[];
+		}
+
+		if (Object.keys(updates).length > 0) {
+			await ctx.db.patch(articleId, updates);
+		}
+	}
+});
