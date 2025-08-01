@@ -182,7 +182,7 @@ async function migrateHomeInternal(ctx: MutationCtx, homeData?: any) {
 		await Promise.all(existingHome.map((h) => ctx.db.delete(h._id)));
 
 		// Process images
-		const imageIds = await processImagesField(ctx, homeData.images);
+		const imageIds = await processImagesField(ctx, homeData.images, 'home', 'home-gallery');
 
 		await ctx.db.insert('home', {
 			imageIds
@@ -314,7 +314,12 @@ async function migrateSponsorsInternal(ctx: MutationCtx, sponsors?: any[]) {
 			const attrs = sponsor.attributes;
 
 			// Process logo
-			const logoId = await processImageField(ctx, attrs.logo);
+			const logoId = await processImageField(
+				ctx,
+				attrs.logo,
+				'sponsors',
+				attrs.name || `sponsor-${sponsor.id}`
+			);
 
 			await upsertRecord(ctx, 'sponsors', sponsor.id, {
 				name: attrs.name,
@@ -418,7 +423,12 @@ async function migratePlayersInternal(ctx: MutationCtx, players?: any[]) {
 			const attrs = player.attributes;
 
 			// Process avatar
-			const avatarId = await processImageField(ctx, attrs.avatar);
+			const avatarId = await processImageField(
+				ctx,
+				attrs.avatar,
+				'players',
+				attrs.name || `player-${player.id}`
+			);
 
 			await upsertRecord(ctx, 'players', player.id, {
 				name: attrs.name,

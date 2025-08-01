@@ -9,7 +9,7 @@ import { spawn } from 'child_process';
 
 // Load environment variables from .env.local
 import { config } from 'dotenv';
-import { join, dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -695,6 +695,49 @@ async function migrateHosting() {
 	}
 }
 
+// Migrate Events
+async function migrateEvents() {
+	console.log('📅 Starting Events migration...');
+
+	try {
+		const events = await fetchFromStrapi('events', {
+			populate: [
+				'image',
+				'images',
+				'location',
+				'venue'
+				// Skip heavy relations for now (hosts, mentors, attendees, etc.)
+			]
+		});
+		console.log(`📥 Fetched ${events.length} events from Strapi`);
+
+		// Process events in batches to avoid E2BIG error
+		const batchSize = 5; // Process 5 events at a time
+		let totalMigrated = 0;
+
+		console.log(`📊 Processing all ${events.length} events in batches of ${batchSize}`);
+
+		// Process all events using the new batch migration function
+		for (let i = 0; i < events.length; i += batchSize) {
+			const batch = events.slice(i, i + batchSize);
+			console.log(
+				`📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(events.length / batchSize)} (${batch.length} events)`
+			);
+
+			const args = JSON.stringify({ events: batch });
+			await runConvexCommand('run', ['migrationPart2:migrateEvents', args]);
+
+			totalMigrated += batch.length;
+		}
+
+		console.log(`🎉 Events migration completed: ${totalMigrated} events`);
+		return { success: true, count: totalMigrated };
+	} catch (error) {
+		console.error('❌ Events migration failed:', error);
+		throw error;
+	}
+}
+
 // Phase 1 migration function
 async function runPhase1Migration() {
 	console.log('🚀 Starting Phase 1 migration...');
@@ -760,7 +803,7 @@ async function runPhase2Migration() {
 async function runPhase3Migration() {
 	console.log('🚀 Starting Phase 3 migration...');
 	console.log('This will migrate: Expectations, Testimonials, Formats, History, Hosting');
-	console.log('Note: Images will be skipped in this version\n');
+	console.log('Note: Images will be migrated when available\n');
 
 	const results = [];
 
@@ -788,9 +831,201 @@ async function runPhase3Migration() {
 	}
 }
 
+// Migrate Event Relationships
+async function migrateEventRelationships() {
+	console.log('🔗 Starting Event Relationships migration...');
+
+	try {
+		const events = await fetchFromStrapi('events', {
+			populate: ['hosts', 'mentors', 'players'] // players = attendees
+		});
+		console.log(`📥 Fetched ${events.length} events with relationships from Strapi`);
+
+		// Process in batches to avoid oversized payloads (E2BIG error)
+		const batchSize = 3; // Reduced from 20 to 3 due to large relationship data
+
+		for (let i = 0; i < events.length; i += batchSize) {
+			const batch = events.slice(i, i + batchSize);
+			console.log(
+				`📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(events.length / batchSize)} (${batch.length} events)`
+			);
+
+			// Event Hosts
+			const hostArgs = JSON.stringify({ events: batch });
+			const hostResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateEventHosts',
+				hostArgs
+			]);
+			console.log(`✅ Hosts batch result: ${hostResult}`);
+
+			// Event Mentors
+			const mentorArgs = JSON.stringify({ events: batch });
+			const mentorResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateEventMentors',
+				mentorArgs
+			]);
+			console.log(`✅ Mentors batch result: ${mentorResult}`);
+
+			// Event Attendees
+			const attendeeArgs = JSON.stringify({ events: batch });
+			const attendeeResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateEventAttendees',
+				attendeeArgs
+			]);
+			console.log(`✅ Attendees batch result: ${attendeeResult}`);
+		}
+
+		console.log(`🎉 Event Relationships migration completed`);
+		return { success: true, count: events.length };
+	} catch (error) {
+		console.error('❌ Event Relationships migration failed:', error);
+		throw error;
+	}
+}
+
+// Migrate Game Relationships
+async function migrateGameRelationships() {
+	console.log('🎲 Starting Game Relationships migration...');
+
+	try {
+		const games = await fetchFromStrapi('games', {
+			populate: ['documentedBy', 'proposedBy']
+		});
+		console.log(`📥 Fetched ${games.length} games with relationships from Strapi`);
+
+		// Process in batches to avoid oversized payloads (E2BIG error)
+		const batchSize = 5; // Reduced from 50 to 5 due to large relationship data
+
+		for (let i = 0; i < games.length; i += batchSize) {
+			const batch = games.slice(i, i + batchSize);
+			console.log(
+				`📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(games.length / batchSize)} (${batch.length} games)`
+			);
+
+			// Game Documenters
+			const documenterArgs = JSON.stringify({ games: batch });
+			const documenterResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateGameDocumenters',
+				documenterArgs
+			]);
+			console.log(`✅ Documenters batch result: ${documenterResult}`);
+
+			// Game Proposers
+			const proposerArgs = JSON.stringify({ games: batch });
+			const proposerResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateGameProposers',
+				proposerArgs
+			]);
+			console.log(`✅ Proposers batch result: ${proposerResult}`);
+		}
+
+		console.log(`🎉 Game Relationships migration completed`);
+		return { success: true, count: games.length };
+	} catch (error) {
+		console.error('❌ Game Relationships migration failed:', error);
+		throw error;
+	}
+}
+
+// Migrate Article Relationships
+async function migrateArticleRelationships() {
+	console.log('📝 Starting Article Relationships migration...');
+
+	try {
+		const articles = await fetchFromStrapi('articles', {
+			populate: ['tags']
+		});
+		console.log(`📥 Fetched ${articles.length} articles with relationships from Strapi`);
+
+		// Process in batches to avoid oversized payloads (E2BIG error)
+		const batchSize = 10; // Reduced from 50 to 10 - articles have fewer relationships than games
+
+		for (let i = 0; i < articles.length; i += batchSize) {
+			const batch = articles.slice(i, i + batchSize);
+			console.log(
+				`📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(articles.length / batchSize)} (${batch.length} articles)`
+			);
+
+			// Article Tags
+			const tagArgs = JSON.stringify({ articles: batch });
+			const tagResult = await runConvexCommand('run', [
+				'relationshipMigration:migrateArticleTags',
+				tagArgs
+			]);
+			console.log(`✅ Article tags batch result: ${tagResult}`);
+		}
+
+		console.log(`🎉 Article Relationships migration completed`);
+		return { success: true, count: articles.length };
+	} catch (error) {
+		console.error('❌ Article Relationships migration failed:', error);
+		throw error;
+	}
+}
+
+// Phase 4 migration function (Events and relationships)
+async function runPhase4Migration() {
+	console.log('🚀 Starting Phase 4 migration...');
+	console.log('This will migrate: Events with images and basic relationships');
+	console.log('Note: Some complex relationships will be handled in future phases\n');
+
+	const results = [];
+
+	try {
+		// Run migrations in sequence
+		results.push({ type: 'Events', ...(await migrateEvents()) });
+
+		console.log('\n🎉 Phase 4 migration completed successfully!');
+		console.log('\nSummary:');
+		results.forEach((result) => {
+			console.log(`  ${result.type}: ${result.count} records migrated`);
+		});
+
+		const totalCount = results.reduce((sum, r) => sum + r.count, 0);
+		console.log(`\nTotal: ${totalCount} records migrated`);
+
+		return { success: true, results, totalCount };
+	} catch (error) {
+		console.error('\n💥 Phase 4 migration failed:', error);
+		return { success: false, error: error.message, results };
+	}
+}
+
+// Phase 5 migration function (All Relationships)
+async function runPhase5Migration() {
+	console.log('🚀 Starting Phase 5 migration...');
+	console.log(
+		'This will migrate: All relationship tables (event hosts/mentors/attendees, game documenters/proposers, article tags)'
+	);
+	console.log('Note: Relationships require the base data to be migrated first\n');
+
+	const results = [];
+
+	try {
+		// Run relationship migrations in sequence
+		results.push({ type: 'Event Relationships', ...(await migrateEventRelationships()) });
+		results.push({ type: 'Game Relationships', ...(await migrateGameRelationships()) });
+		results.push({ type: 'Article Relationships', ...(await migrateArticleRelationships()) });
+
+		console.log('\n🎉 Phase 5 migration completed successfully!');
+		console.log('\nSummary:');
+		results.forEach((result) => {
+			console.log(`  ${result.type}: ${result.count} records processed`);
+		});
+
+		const totalCount = results.reduce((sum, r) => sum + r.count, 0);
+		console.log(`\nTotal: ${totalCount} records processed`);
+
+		return { success: true, results, totalCount };
+	} catch (error) {
+		console.error('\n💥 Phase 5 migration failed:', error);
+		return { success: false, error: error.message, results };
+	}
+}
+
 // Complete migration function
 async function runCompleteMigration() {
-	console.log('🚀 Starting Complete Migration (Phase 1 + 2 + 3)...\n');
+	console.log('🚀 Starting Complete Migration (Phase 1 + 2 + 3 + 4 + 5)...\n');
 
 	const phase1Result = await runPhase1Migration();
 	if (!phase1Result.success) {
@@ -809,6 +1044,28 @@ async function runCompleteMigration() {
 	console.log('\n' + '='.repeat(50));
 
 	const phase3Result = await runPhase3Migration();
+	if (!phase3Result.success) {
+		console.log('\n❌ Stopping - Phase 3 failed');
+		return { phase1: phase1Result, phase2: phase2Result, phase3: phase3Result, success: false };
+	}
+
+	console.log('\n' + '='.repeat(50));
+
+	const phase4Result = await runPhase4Migration();
+	if (!phase4Result.success) {
+		console.log('\n❌ Stopping - Phase 4 failed');
+		return {
+			phase1: phase1Result,
+			phase2: phase2Result,
+			phase3: phase3Result,
+			phase4: phase4Result,
+			success: false
+		};
+	}
+
+	console.log('\n' + '='.repeat(50));
+
+	const phase5Result = await runPhase5Migration();
 
 	console.log('\n' + '='.repeat(50));
 	console.log('🎯 FINAL SUMMARY');
@@ -816,15 +1073,26 @@ async function runCompleteMigration() {
 	console.log(`Phase 1: ${phase1Result.totalCount} records migrated`);
 	console.log(`Phase 2: ${phase2Result.success ? phase2Result.totalCount : 0} records migrated`);
 	console.log(`Phase 3: ${phase3Result.success ? phase3Result.totalCount : 0} records migrated`);
+	console.log(`Phase 4: ${phase4Result.success ? phase4Result.totalCount : 0} records migrated`);
 	console.log(
-		`Total: ${phase1Result.totalCount + (phase2Result.success ? phase2Result.totalCount : 0) + (phase3Result.success ? phase3Result.totalCount : 0)} records migrated`
+		`Phase 5: ${phase5Result.success ? phase5Result.totalCount : 0} relationships migrated`
+	);
+	console.log(
+		`Total: ${phase1Result.totalCount + (phase2Result.success ? phase2Result.totalCount : 0) + (phase3Result.success ? phase3Result.totalCount : 0) + (phase4Result.success ? phase4Result.totalCount : 0) + (phase5Result.success ? phase5Result.totalCount : 0)} records migrated`
 	);
 
 	return {
-		success: phase1Result.success && phase2Result.success && phase3Result.success,
+		success:
+			phase1Result.success &&
+			phase2Result.success &&
+			phase3Result.success &&
+			phase4Result.success &&
+			phase5Result.success,
 		phase1: phase1Result,
 		phase2: phase2Result,
-		phase3: phase3Result
+		phase3: phase3Result,
+		phase4: phase4Result,
+		phase5: phase5Result
 	};
 }
 
@@ -844,6 +1112,12 @@ if (import.meta.url.endsWith(process.argv[1])) {
 			break;
 		case 'phase3':
 			migrationFunction = runPhase3Migration;
+			break;
+		case 'phase4':
+			migrationFunction = runPhase4Migration;
+			break;
+		case 'phase5':
+			migrationFunction = runPhase5Migration;
 			break;
 		case 'complete':
 		default:

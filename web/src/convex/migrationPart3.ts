@@ -157,7 +157,12 @@ export const migrateTestimonials = mutation({
 				const attrs = testimonial.attributes;
 
 				// Process avatar if present
-				const avatarId = await processImageField(ctx, attrs.avatar);
+				const avatarId = await processImageField(
+					ctx,
+					attrs.avatar,
+					'testimonials',
+					attrs.name || `testimonial-${testimonial.id}`
+				);
 
 				// Find related event if specified
 				let eventId: Id<'events'> | undefined;
@@ -256,7 +261,7 @@ export const migrateHistory = mutation({
 				const attrs = historyItem.attributes;
 
 				// Process image if present
-				const imageId = await processImageField(ctx, attrs.image);
+				const imageId = await processImageField(ctx, attrs.image, 'history', 'play14-history');
 
 				// Handle history single type data structure from Strapi
 				const title = '#play14 History';

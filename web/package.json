@@ -29,6 +29,8 @@
 		"migration:phase1": "node src/migration/external-migration.js phase1",
 		"migration:phase2": "node src/migration/external-migration.js phase2",
 		"migration:phase3": "node src/migration/external-migration.js phase3",
+		"migration:phase4": "node src/migration/external-migration.js phase4",
+		"migration:phase5": "node src/migration/external-migration.js phase5",
 		"migration:verify": "node src/migration/verify-migration.js"
 	},
 	"devDependencies": {

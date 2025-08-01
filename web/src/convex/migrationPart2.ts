@@ -7,6 +7,90 @@ import { processImageField, processImagesField } from './migrationHelpers';
 // Environment variables are configured in Convex Dashboard
 // and accessible in actions only (not in mutations)
 
+// Helper function to find existing record by strapiId
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function findByStrapiId(ctx: MutationCtx, table: string, strapiId: number): Promise<any> {
+	try {
+		switch (table) {
+			case 'events': {
+				const records = await ctx.db
+					.query('events')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'articles': {
+				const records = await ctx.db
+					.query('articles')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			case 'games': {
+				const records = await ctx.db
+					.query('games')
+					.withIndex('by_strapi_id', (q) => q.eq('strapiId', strapiId))
+					.collect();
+				return records.length > 0 ? records[0] : null;
+			}
+			default:
+				return null;
+		}
+	} catch (error) {
+		console.error(`Error finding record in ${table}:`, error);
+		return null;
+	}
+}
+
+// Helper function to upsert record (insert or update based on strapiId)
+async function upsertRecord(
+	ctx: MutationCtx,
+	table: string,
+	strapiId: number,
+	data: Record<string, unknown>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<Id<any> | null> {
+	console.log(`🔍 Upsert ${table} strapiId: ${strapiId}, name: ${data.name}`);
+
+	const existing = await findByStrapiId(ctx, table, strapiId);
+
+	if (existing) {
+		// Update existing record
+		await ctx.db.patch(existing._id, { ...data, strapiId });
+		console.log(`✏️ Updated existing ${table} record with strapiId ${strapiId}: ${data.name}`);
+		return existing._id;
+	} else {
+		// Insert new record with strapiId included
+		const recordData = { ...data, strapiId };
+		let newId;
+		switch (table) {
+			case 'events':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('events', recordData as any);
+				break;
+			case 'articles':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('articles', recordData as any);
+				break;
+			case 'games':
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				newId = await ctx.db.insert('games', recordData as any);
+				break;
+			default:
+				throw new Error(`Unsupported table: ${table}`);
+		}
+		console.log(
+			`➕ Created new ${table} record with strapiId ${strapiId}: ${data.name} -> ${newId}`
+		);
+
+		// Verify it was created
+		const allEvents = await ctx.db.query('events').collect();
+		console.log(`📊 Total events in DB after insert: ${allEvents.length}`);
+
+		return newId;
+	}
+}
+
 // Helper to find Convex record by name/slug
 
 async function findConvexRecord(
@@ -129,8 +213,18 @@ export const migrateArticles = mutation({
 				}
 
 				// Process images
-				const defaultImageId = await processImageField(ctx, attrs.defaultImage);
-				const imageIds = await processImagesField(ctx, attrs.images);
+				const defaultImageId = await processImageField(
+					ctx,
+					attrs.defaultImage,
+					'articles',
+					attrs.title || `article-${article.id}`
+				);
+				const imageIds = await processImagesField(
+					ctx,
+					attrs.images,
+					'articles',
+					attrs.title || `article-${article.id}`
+				);
 
 				await ctx.db.insert('articles', {
 					title: attrs.title,
@@ -190,9 +284,24 @@ export const migrateGames = mutation({
 				}
 
 				// Process images and resources
-				const defaultImageId = await processImageField(ctx, attrs.defaultImage);
-				const imageIds = await processImagesField(ctx, attrs.images);
-				const resourceIds = await processImagesField(ctx, attrs.resources); // Resources are stored as files in Strapi
+				const defaultImageId = await processImageField(
+					ctx,
+					attrs.defaultImage,
+					'games',
+					attrs.name || `game-${game.id}`
+				);
+				const imageIds = await processImagesField(
+					ctx,
+					attrs.images,
+					'games',
+					attrs.name || `game-${game.id}`
+				);
+				const resourceIds = await processImagesField(
+					ctx,
+					attrs.resources,
+					'games',
+					`${attrs.name || `game-${game.id}`}-resources`
+				); // Resources are stored as files in Strapi
 
 				await ctx.db.insert('games', {
 					name: attrs.name,
@@ -249,16 +358,14 @@ export const migrateEvents = mutation({
 	args: { events: v.any() },
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	handler: async (ctx: MutationCtx, args: { events?: any[] }) => {
-		console.log('📅 Starting Events migration...');
+		console.log('📅 Starting Events migration with UPSERT logic...');
 
 		try {
 			if (!args.events) {
 				throw new Error('Events data must be provided - mutations cannot fetch from external APIs');
 			}
 
-			// Clear existing events
-			const existingEvents = await ctx.db.query('events').collect();
-			await Promise.all(existingEvents.map((e) => ctx.db.delete(e._id)));
+			// Use upsert logic to avoid clearing events between batches
 
 			let migratedCount = 0;
 			for (const event of args.events) {
@@ -341,11 +448,39 @@ export const migrateEvents = mutation({
 					}
 				}
 
-				// Process images
-				const defaultImageId = await processImageField(ctx, attrs.defaultImage);
-				const imageIds = await processImagesField(ctx, attrs.images);
+				// Process images with error handling
+				let defaultImageId = undefined;
+				let imageIds: unknown[] = [];
+				try {
+					console.log(`🖼️ Processing images for event: ${attrs.name}`);
+					if (attrs.defaultImage?.data) {
+						defaultImageId = await processImageField(
+							ctx,
+							attrs.defaultImage,
+							'events',
+							attrs.name || `event-${event.id}`
+						);
+					}
+					if (attrs.images?.data) {
+						imageIds = await processImagesField(
+							ctx,
+							attrs.images,
+							'events',
+							attrs.name || `event-${event.id}`
+						);
+					}
+					console.log(
+						`✅ Images processed: default=${!!defaultImageId}, gallery=${imageIds.length}`
+					);
+				} catch (error) {
+					console.error(`⚠️ Image processing failed for ${attrs.name}:`, error);
+					// Continue with undefined/empty arrays - don't fail the whole migration
+					defaultImageId = undefined;
+					imageIds = [];
+				}
 
-				await ctx.db.insert('events', {
+				await upsertRecord(ctx, 'events', event.id, {
+					strapiId: event.id, // Explicitly add strapiId
 					name: attrs.name,
 					slug: attrs.slug,
 					start: new Date(attrs.start).getTime(),
