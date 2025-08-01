@@ -10,8 +10,11 @@
 
 import type { ApiFromModules, FilterApi, FunctionReference } from 'convex/server';
 import type * as articles from '../articles.js';
+import type * as clearData from '../clearData.js';
 import type * as events from '../events.js';
+import type * as fileMigration from '../fileMigration.js';
 import type * as games from '../games.js';
+import type * as imageMigration from '../imageMigration.js';
 import type * as players from '../players.js';
 import type * as search from '../search.js';
 import type * as supporting from '../supporting.js';
@@ -27,8 +30,11 @@ import type * as types from '../types.js';
  */
 declare const fullApi: ApiFromModules<{
 	articles: typeof articles;
+	clearData: typeof clearData;
 	events: typeof events;
+	fileMigration: typeof fileMigration;
 	games: typeof games;
+	imageMigration: typeof imageMigration;
 	players: typeof players;
 	search: typeof search;
 	supporting: typeof supporting;

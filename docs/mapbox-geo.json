@@ -1,0 +1,33 @@
+{
+  "id": "place.25821",
+  "bbox": [100.327975, 13.3905792, 100.93829, 13.954364],
+  "text": "Bangkok",
+  "type": "Feature",
+  "center": [100.4935089, 13.7524938],
+  "context": [
+    {
+      "id": "country.8925",
+      "text": "Thailand",
+      "language": "en",
+      "wikidata": "Q869",
+      "short_code": "th",
+      "text_en-US": "Thailand",
+      "language_en-US": "en"
+    }
+  ],
+  "geometry": {
+    "type": "Point",
+    "coordinates": [100.4935089, 13.7524938]
+  },
+  "language": "en",
+  "relevance": 1,
+  "place_name": "Bangkok, Thailand",
+  "place_type": ["region", "place"],
+  "properties": {
+    "wikidata": "Q1861",
+    "short_code": "TH-10"
+  },
+  "text_en-US": "Bangkok",
+  "language_en-US": "en",
+  "place_name_en-US": "Bangkok, Thailand"
+}
