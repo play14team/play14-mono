@@ -32,5 +32,6 @@
       }
       Use the avatar URL to download the file.
       The Srapi URL and secret are available in .env.local as STRAPI_API_URL and STRAPI_API_SECRET. To reach the graphql endpoint, you just need to append /graphql to the base URL.
-- Analyze the graphql queries in ui/src/graphql and define queries that will be used to retrieve all data against the Strapi GraphQL endpoint
+- [x] Analyze the graphql queries in ui/src/graphql and define queries that will be used to retrieve all data against the Strapi GraphQL endpoint. The ones called details.graphql usually return almost all the fields, but only one record. Whereas the ones called grid return many recoreds but not all the fields, and with filters. Be mindful of pagination that will limit the number of records returned. You can set it to a high number to return everything at once
 - implement the migration code one by one
+-
