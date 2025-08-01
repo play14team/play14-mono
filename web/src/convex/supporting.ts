@@ -80,7 +80,10 @@ export const createVenue = mutation({
 			addressDetails?: string;
 		}
 	) => {
-		return await ctx.db.insert('venues', args);
+		return await ctx.db.insert('venues', {
+			...args,
+			socialNetworks: []
+		});
 	}
 });
 
@@ -111,7 +114,7 @@ export const createSponsor = mutation({
 		args: {
 			name: string;
 			url?: string;
-			logoId?: Id<'_storage'>;
+			logo?: Id<'_storage'>;
 			socialNetworks?: {
 				type: string;
 				url: string;
@@ -206,17 +209,25 @@ export const getUserByEmail = query({
 
 export const createUser = mutation({
 	args: {
+		username: v.string(),
 		email: v.string(),
-		name: v.optional(v.string())
+		confirmed: v.optional(v.boolean()),
+		blocked: v.optional(v.boolean())
 	},
 	handler: async (
 		ctx: MutationCtx,
 		args: {
+			username: string;
 			email: string;
-			name?: string;
+			confirmed?: boolean;
+			blocked?: boolean;
 		}
 	) => {
-		return await ctx.db.insert('users', args);
+		return await ctx.db.insert('users', {
+			...args,
+			confirmed: args.confirmed ?? false,
+			blocked: args.blocked ?? false
+		});
 	}
 });
 
