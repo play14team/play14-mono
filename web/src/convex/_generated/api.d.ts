@@ -17,6 +17,8 @@ import type * as games from '../games.js';
 import type * as imageMigration from '../imageMigration.js';
 import type * as players from '../players.js';
 import type * as search from '../search.js';
+import type * as strapiMigration from '../strapiMigration.js';
+import type * as strapiMigrationQueries from '../strapiMigrationQueries.js';
 import type * as supporting from '../supporting.js';
 import type * as types from '../types.js';
 
@@ -37,6 +39,8 @@ declare const fullApi: ApiFromModules<{
 	imageMigration: typeof imageMigration;
 	players: typeof players;
 	search: typeof search;
+	strapiMigration: typeof strapiMigration;
+	strapiMigrationQueries: typeof strapiMigrationQueries;
 	supporting: typeof supporting;
 	types: typeof types;
 }>;
