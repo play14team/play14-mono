@@ -24,7 +24,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"verify": "pnpm format && pnpm lint --fix && pnpm check"
+		"verify": "pnpm format && pnpm lint --fix && pnpm lint:convex && pnpm check"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",

@@ -116,11 +116,11 @@ export default defineSchema({
 			v.literal('Retrospective'),
 			v.literal('CoolDown')
 		),
-		scale: v.string(),
+		scale: v.optional(v.string()),
 		timebox: v.string(),
 		summary: v.string(),
 		description: v.string(), // rich text as HTML
-		credits: v.string(),
+		credits: v.optional(v.string()),
 		defaultImageId: v.optional(v.id('_storage')),
 		imageIds: v.array(v.id('_storage')),
 		resourceIds: v.array(v.id('_storage')), // files, videos, audio
