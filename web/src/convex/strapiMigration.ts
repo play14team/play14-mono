@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { action, mutation, query, internalMutation, internalQuery } from './_generated/server';
-import { internal } from './_generated/api';
+import { internal, api } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { MIGRATION_QUERIES, type MigrationContentType } from './strapiMigrationQueries';
 
@@ -95,6 +95,270 @@ export const fetchStrapiData = action({
 		}
 	}
 });
+
+/**
+ * FILE MIGRATION HELPER FUNCTIONS
+ */
+
+/**
+ * Get the full URL for a file, handling relative URLs from Strapi
+ */
+function getFullFileUrl(url: string): string {
+	// If URL is already absolute, return as-is
+	if (url.startsWith('http://') || url.startsWith('https://')) {
+		return url;
+	}
+
+	// Otherwise, prepend Strapi URL
+	const strapiUrl = process.env.STRAPI_API_URL || 'https://community.play14.org';
+	return `${strapiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+/**
+ * Migrate a single image from Strapi format to Convex storage
+ * Handles both direct attributes format and StrapiFile format
+ */
+async function migrateSingleImage(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	ctx: { runAction: (action: any, args: any) => Promise<any> },
+	imageData: unknown
+): Promise<string | null> {
+	// Handle undefined or null
+	if (!imageData) {
+		return null;
+	}
+
+	// Extract attributes based on format
+	let attributes: { url: string; name?: string; mime?: string } | null = null;
+
+	// Type guard for imageData with data property
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const hasDataProperty = (obj: unknown): obj is { data?: any } => {
+		return typeof obj === 'object' && obj !== null && 'data' in obj;
+	};
+
+	if (hasDataProperty(imageData) && imageData.data?.attributes) {
+		// Standard format: { data: { attributes: {...} } }
+		attributes = imageData.data.attributes;
+	} else if (
+		hasDataProperty(imageData) &&
+		imageData.data &&
+		'id' in imageData.data &&
+		'attributes' in imageData.data
+	) {
+		// StrapiFile format: { data: { id: string, attributes: {...} } }
+		attributes = imageData.data.attributes;
+	}
+
+	if (!attributes?.url) {
+		return null;
+	}
+
+	try {
+		const fullUrl = getFullFileUrl(attributes.url);
+		const result = await ctx.runAction(api.fileMigration.migrateFile, {
+			fileUrl: fullUrl,
+			fileName: attributes.name,
+			mimeType: attributes.mime
+		});
+
+		if (result.success) {
+			console.log(`Successfully migrated image: ${result.fileName} -> ${result.storageId}`);
+			return result.storageId;
+		} else {
+			console.error(`Failed to migrate image: ${result.error}`);
+			return null;
+		}
+	} catch (error) {
+		console.error('Error during image migration:', error);
+		return null;
+	}
+}
+
+/**
+ * Migrate multiple images from Strapi format to Convex storage
+ * Handles both direct attributes format and StrapiFile format
+ */
+async function migrateMultipleImages(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	ctx: { runAction: (action: any, args: any) => Promise<any> },
+	imagesData: unknown
+): Promise<string[]> {
+	// Type guard for imagesData with data property
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const hasDataProperty = (obj: unknown): obj is { data?: any[] } => {
+		return typeof obj === 'object' && obj !== null && 'data' in obj;
+	};
+
+	// Handle undefined or null
+	if (
+		!hasDataProperty(imagesData) ||
+		!imagesData.data ||
+		!Array.isArray(imagesData.data) ||
+		imagesData.data.length === 0
+	) {
+		return [];
+	}
+
+	const storageIds: string[] = [];
+
+	for (const imageItem of imagesData.data) {
+		// Extract attributes based on format
+		let attributes: { url: string; name?: string; mime?: string } | null = null;
+
+		if (imageItem.attributes) {
+			// Direct attributes format or StrapiFile format
+			attributes = imageItem.attributes;
+		}
+
+		if (!attributes?.url) {
+			continue;
+		}
+
+		try {
+			const fullUrl = getFullFileUrl(attributes.url);
+			const result = await ctx.runAction(api.fileMigration.migrateFile, {
+				fileUrl: fullUrl,
+				fileName: attributes.name,
+				mimeType: attributes.mime
+			});
+
+			if (result.success) {
+				console.log(`Successfully migrated image: ${result.fileName} -> ${result.storageId}`);
+				storageIds.push(result.storageId);
+			} else {
+				console.error(`Failed to migrate image: ${result.error}`);
+			}
+		} catch (error) {
+			console.error('Error during image migration:', error);
+		}
+	}
+
+	return storageIds;
+}
+
+/**
+ * Migrate an audio file from Strapi format to Convex storage
+ * Handles both direct attributes format and StrapiFile format
+ */
+async function migrateAudioFile(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	ctx: { runAction: (action: any, args: any) => Promise<any> },
+	audioData: unknown
+): Promise<string | null> {
+	// Handle undefined or null
+	if (!audioData) {
+		return null;
+	}
+
+	// Extract attributes based on format
+	let attributes: { url: string; name?: string; mime?: string } | null = null;
+
+	// Type guard for audioData with data property
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const hasDataProperty = (obj: unknown): obj is { data?: any } => {
+		return typeof obj === 'object' && obj !== null && 'data' in obj;
+	};
+
+	if (hasDataProperty(audioData) && audioData.data?.attributes) {
+		// Standard format: { data: { attributes: {...} } }
+		attributes = audioData.data.attributes;
+	} else if (
+		hasDataProperty(audioData) &&
+		audioData.data &&
+		'id' in audioData.data &&
+		'attributes' in audioData.data
+	) {
+		// StrapiFile format: { data: { id: string, attributes: {...} } }
+		attributes = audioData.data.attributes;
+	}
+
+	if (!attributes?.url) {
+		return null;
+	}
+
+	try {
+		const fullUrl = getFullFileUrl(attributes.url);
+		const result = await ctx.runAction(api.fileMigration.migrateFile, {
+			fileUrl: fullUrl,
+			fileName: attributes.name,
+			mimeType: attributes.mime
+		});
+
+		if (result.success) {
+			console.log(`Successfully migrated audio: ${result.fileName} -> ${result.storageId}`);
+			return result.storageId;
+		} else {
+			console.error(`Failed to migrate audio: ${result.error}`);
+			return null;
+		}
+	} catch (error) {
+		console.error('Error during audio migration:', error);
+		return null;
+	}
+}
+
+/**
+ * Migrate resources (PDFs, videos, etc.) from Strapi format to Convex storage
+ * Handles both direct attributes format and StrapiFile format
+ */
+async function migrateResourceFiles(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	ctx: { runAction: (action: any, args: any) => Promise<any> },
+	resourcesData: unknown
+): Promise<string[]> {
+	// Type guard for resourcesData with data property
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const hasDataProperty = (obj: unknown): obj is { data?: any[] } => {
+		return typeof obj === 'object' && obj !== null && 'data' in obj;
+	};
+
+	// Handle undefined or null
+	if (
+		!hasDataProperty(resourcesData) ||
+		!resourcesData.data ||
+		!Array.isArray(resourcesData.data) ||
+		resourcesData.data.length === 0
+	) {
+		return [];
+	}
+
+	const storageIds: string[] = [];
+
+	for (const resourceItem of resourcesData.data) {
+		// Extract attributes based on format
+		let attributes: { url: string; name?: string; mime?: string } | null = null;
+
+		if (resourceItem.attributes) {
+			// Direct attributes format or StrapiFile format
+			attributes = resourceItem.attributes;
+		}
+
+		if (!attributes?.url) {
+			continue;
+		}
+
+		try {
+			const fullUrl = getFullFileUrl(attributes.url);
+			const result = await ctx.runAction(api.fileMigration.migrateFile, {
+				fileUrl: fullUrl,
+				fileName: attributes.name,
+				mimeType: attributes.mime
+			});
+
+			if (result.success) {
+				console.log(`Successfully migrated resource: ${result.fileName} -> ${result.storageId}`);
+				storageIds.push(result.storageId);
+			} else {
+				console.error(`Failed to migrate resource: ${result.error}`);
+			}
+		} catch (error) {
+			console.error('Error during resource migration:', error);
+		}
+	}
+
+	return storageIds;
+}
 
 /**
  * TAGS MIGRATION - Simple content type to start with
@@ -296,6 +560,8 @@ export const insertVenue = internalMutation({
 	args: {
 		strapiId: v.string(),
 		name: v.string(),
+		shortName: v.optional(v.string()),
+		logo: v.optional(v.string()),
 		website: v.optional(v.string()),
 		location: v.optional(
 			v.object({
@@ -317,6 +583,8 @@ export const insertVenue = internalMutation({
 		const venueId = await ctx.db.insert('venues', {
 			strapiId: args.strapiId,
 			name: args.name,
+			shortName: args.shortName,
+			logo: args.logo as Id<'_storage'> | undefined,
 			website: args.website,
 			location: args.location,
 			locationOriginal: args.locationOriginal,
@@ -483,8 +751,8 @@ export const migratePlayersData = action({
 
 				console.log(`Player ${player.attributes.name} does not exist, proceeding with migration`);
 
-				// Note: Avatar migration will be handled in a separate step
-				const avatarId = undefined;
+				// Migrate avatar image if present
+				const avatarId = await migrateSingleImage(ctx, player.attributes.avatar);
 
 				// Parse location (Mapbox format)
 				let location: { lat: number; lng: number; address?: string } | undefined;
@@ -533,17 +801,23 @@ export const migratePlayersData = action({
 					socialNetworksCount: socialNetworks.length
 				});
 
+				// Generate slug from name (players don't have slug field in Strapi)
+				const slug = player.attributes.name
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/(^-|-$)/g, '');
+
 				// Insert new player using internal mutation
 				const playerId: string = await ctx.runMutation(internal.strapiMigration.insertPlayer, {
 					strapiId: player.id,
 					name: player.attributes.name,
-					slug: player.attributes.slug,
+					slug,
 					position,
 					company: player.attributes.company || null,
 					tagline: player.attributes.tagline || null,
 					bio: player.attributes.bio || null,
 					website: player.attributes.website || null,
-					avatarId,
+					avatarId: avatarId || undefined,
 					location,
 					locationOriginal,
 					socialNetworks
@@ -580,6 +854,8 @@ export const migratePlayersData = action({
 
 interface StrapiVenue {
 	name: string;
+	shortName?: string;
+	logo?: { data?: StrapiFile };
 	website?: string;
 	location?: {
 		center?: [number, number];
@@ -587,7 +863,9 @@ interface StrapiVenue {
 		address?: string;
 		[key: string]: unknown;
 	};
+	locationOriginal?: string;
 	addressDetails?: string;
+	socialNetworks?: Array<{ type: string; url: string }>;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -643,15 +921,20 @@ export const migrateVenuesData = action({
 					}
 				}
 
+				// Migrate logo if present
+				const logo = await migrateSingleImage(ctx, venue.attributes.logo);
+
 				// Insert new venue using internal mutation
 				const venueId: string = await ctx.runMutation(internal.strapiMigration.insertVenue, {
 					strapiId: venue.id,
 					name: venue.attributes.name,
-					website: venue.attributes.website,
+					shortName: venue.attributes.shortName || undefined,
+					logo: logo || undefined,
+					website: venue.attributes.website || undefined,
 					location,
 					locationOriginal,
-					addressDetails: venue.attributes.addressDetails,
-					socialNetworks: [] // Venues don't seem to have social networks in the query
+					addressDetails: venue.attributes.addressDetails || undefined,
+					socialNetworks: venue.attributes.socialNetworks || []
 				});
 
 				results.push({ success: true, strapiId: venue.id, convexId: venueId });
@@ -718,8 +1001,8 @@ export const migrateSponsorsData = action({
 					continue;
 				}
 
-				// Note: Logo migration will be handled in a separate step
-				const logoId = undefined;
+				// Migrate logo if present
+				const logoId = await migrateSingleImage(ctx, sponsor.attributes.logo);
 
 				// Map social networks
 				const socialNetworks =
@@ -732,8 +1015,8 @@ export const migrateSponsorsData = action({
 				const sponsorId: string = await ctx.runMutation(internal.strapiMigration.insertSponsor, {
 					strapiId: sponsor.id,
 					name: sponsor.attributes.name,
-					url: sponsor.attributes.url,
-					logo: logoId,
+					url: sponsor.attributes.url || undefined,
+					logo: logoId || undefined,
 					socialNetworks
 				});
 
@@ -997,6 +1280,2031 @@ export const getContentCount = query({
 });
 
 /**
+ * HOME MIGRATION - Single type content for homepage
+ */
+
+interface StrapiHome {
+	images: { data: StrapiFile[] };
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkHomeExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('home')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertHome = internalMutation({
+	args: {
+		strapiId: v.string(),
+		imageIds: v.array(v.string())
+	},
+	handler: async (ctx, args) => {
+		const homeId = await ctx.db.insert('home', {
+			strapiId: args.strapiId,
+			imageIds: args.imageIds as Id<'_storage'>[]
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'home',
+			strapiId: args.strapiId,
+			convexId: homeId
+		});
+
+		return homeId;
+	}
+});
+
+export const migrateHomeData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const homeData = args.strapiData as { data?: { id: string; attributes: StrapiHome } };
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		// Home is a single type, so there's only one record
+		if (!homeData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		const home = homeData.data;
+
+		try {
+			// Check if already migrated
+			const existing = await ctx.runQuery(internal.strapiMigration.checkHomeExists, {
+				strapiId: home.id
+			});
+
+			if (existing) {
+				console.log(`Home already migrated with ID: ${existing._id}`);
+				results.push({ success: true, strapiId: home.id, convexId: existing._id });
+				return {
+					totalProcessed: 1,
+					successful: 1,
+					failed: 0,
+					results
+				};
+			}
+
+			// Migrate images for home page
+			const imageIds = await migrateMultipleImages(ctx, home.attributes.images);
+
+			// Insert home record
+			const homeId = await ctx.runMutation(internal.strapiMigration.insertHome, {
+				strapiId: home.id,
+				imageIds
+			});
+
+			results.push({ success: true, strapiId: home.id, convexId: homeId });
+			console.log(`Successfully migrated home page with ${imageIds.length} images`);
+		} catch (error) {
+			console.error(`Error migrating home:`, error);
+			results.push({
+				success: false,
+				strapiId: home.id,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			});
+		}
+
+		return {
+			totalProcessed: 1,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * HISTORY MIGRATION - Single type content with timeline items
+ */
+
+interface StrapiHistoryItem {
+	id: string;
+	date: string;
+	dateFormat: 'Year' | 'Month' | 'Day';
+	additionalText?: string;
+	title: string;
+	description: string;
+	image: { data?: StrapiFile };
+}
+
+interface StrapiHistory {
+	founders?: string;
+	intro?: string;
+	keyMoments?: string;
+	items: StrapiHistoryItem[];
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkHistoryExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('history')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertHistory = internalMutation({
+	args: {
+		strapiId: v.string(),
+		founders: v.union(v.string(), v.null()),
+		intro: v.union(v.string(), v.null()),
+		keyMoments: v.union(v.string(), v.null()),
+		items: v.array(
+			v.object({
+				date: v.number(),
+				dateFormat: v.union(v.literal('Year'), v.literal('Month'), v.literal('Day')),
+				additionalText: v.optional(v.string()),
+				title: v.string(),
+				description: v.string(),
+				imageId: v.union(v.string(), v.id('_storage'))
+			})
+		)
+	},
+	handler: async (ctx, args) => {
+		const historyId = await ctx.db.insert('history', {
+			strapiId: args.strapiId,
+			founders: args.founders || undefined,
+			intro: args.intro || undefined,
+			keyMoments: args.keyMoments || undefined,
+			items: args.items.map((item) => ({
+				...item,
+				imageId: item.imageId as Id<'_storage'>
+			}))
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'history',
+			strapiId: args.strapiId,
+			convexId: historyId
+		});
+
+		return historyId;
+	}
+});
+
+export const migrateHistoryData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const historyData = args.strapiData as { data?: { id: string; attributes: StrapiHistory } };
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		// History is a single type, so there's only one record
+		if (!historyData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		const history = historyData.data;
+
+		try {
+			// Check if already migrated
+			const existing = await ctx.runQuery(internal.strapiMigration.checkHistoryExists, {
+				strapiId: history.id
+			});
+
+			if (existing) {
+				console.log(`History already migrated with ID: ${existing._id}`);
+				results.push({ success: true, strapiId: history.id, convexId: existing._id });
+				return {
+					totalProcessed: 1,
+					successful: 1,
+					failed: 0,
+					results
+				};
+			}
+
+			// Process timeline items
+			const items = [];
+			for (const item of history.attributes.items || []) {
+				// Parse date based on format
+				let date: number;
+				if (item.dateFormat === 'Year') {
+					date = new Date(item.date).getTime();
+				} else if (item.dateFormat === 'Month') {
+					date = new Date(item.date).getTime();
+				} else {
+					date = new Date(item.date).getTime();
+				}
+
+				// Migrate image for this timeline item
+				const imageId = (await migrateSingleImage(ctx, item.image)) || 'placeholder';
+
+				items.push({
+					date,
+					dateFormat: item.dateFormat,
+					additionalText: item.additionalText || undefined,
+					title: item.title,
+					description: item.description,
+					imageId
+				});
+			}
+
+			// Insert history record
+			const historyId = await ctx.runMutation(internal.strapiMigration.insertHistory, {
+				strapiId: history.id,
+				founders: history.attributes.founders || null,
+				intro: history.attributes.intro || null,
+				keyMoments: history.attributes.keyMoments || null,
+				items
+			});
+
+			results.push({ success: true, strapiId: history.id, convexId: historyId });
+			console.log(`Successfully migrated history with ${items.length} timeline items`);
+		} catch (error) {
+			console.error(`Error migrating history:`, error);
+			results.push({
+				success: false,
+				strapiId: history.id,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			});
+		}
+
+		return {
+			totalProcessed: 1,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * FORMAT MIGRATION - Single type content with rich text fields
+ */
+
+interface StrapiFormat {
+	openspace?: string;
+	lawOfTwoFeet?: string;
+	butterfly?: string;
+	bumblebee?: string;
+	schedule?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkFormatExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('format')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertFormat = internalMutation({
+	args: {
+		strapiId: v.string(),
+		openspace: v.union(v.string(), v.null()),
+		lawOfTwoFeet: v.union(v.string(), v.null()),
+		butterfly: v.union(v.string(), v.null()),
+		bumblebee: v.union(v.string(), v.null()),
+		schedule: v.union(v.string(), v.null())
+	},
+	handler: async (ctx, args) => {
+		const formatId = await ctx.db.insert('format', {
+			strapiId: args.strapiId,
+			openspace: args.openspace || undefined,
+			lawOfTwoFeet: args.lawOfTwoFeet || undefined,
+			butterfly: args.butterfly || undefined,
+			bumblebee: args.bumblebee || undefined,
+			schedule: args.schedule || undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'format',
+			strapiId: args.strapiId,
+			convexId: formatId
+		});
+
+		return formatId;
+	}
+});
+
+export const migrateFormatData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const formatData = args.strapiData as { data?: { id: string; attributes: StrapiFormat } };
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		// Format is a single type, so there's only one record
+		if (!formatData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		const format = formatData.data;
+
+		try {
+			// Check if already migrated
+			const existing = await ctx.runQuery(internal.strapiMigration.checkFormatExists, {
+				strapiId: format.id
+			});
+
+			if (existing) {
+				console.log(`Format already migrated with ID: ${existing._id}`);
+				results.push({ success: true, strapiId: format.id, convexId: existing._id });
+				return {
+					totalProcessed: 1,
+					successful: 1,
+					failed: 0,
+					results
+				};
+			}
+
+			// Insert format record
+			const formatId = await ctx.runMutation(internal.strapiMigration.insertFormat, {
+				strapiId: format.id,
+				openspace: format.attributes.openspace || null,
+				lawOfTwoFeet: format.attributes.lawOfTwoFeet || null,
+				butterfly: format.attributes.butterfly || null,
+				bumblebee: format.attributes.bumblebee || null,
+				schedule: format.attributes.schedule || null
+			});
+
+			results.push({ success: true, strapiId: format.id, convexId: formatId });
+			console.log(`Successfully migrated format with rich text content`);
+		} catch (error) {
+			console.error(`Error migrating format:`, error);
+			results.push({
+				success: false,
+				strapiId: format.id,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			});
+		}
+
+		return {
+			totalProcessed: 1,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * HOSTING MIGRATION - Single type content with content field
+ */
+
+interface StrapiHosting {
+	content?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkHostingExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('hosting')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertHosting = internalMutation({
+	args: {
+		strapiId: v.string(),
+		content: v.union(v.string(), v.null())
+	},
+	handler: async (ctx, args) => {
+		const hostingId = await ctx.db.insert('hosting', {
+			strapiId: args.strapiId,
+			content: args.content || undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'hosting',
+			strapiId: args.strapiId,
+			convexId: hostingId
+		});
+
+		return hostingId;
+	}
+});
+
+export const migrateHostingData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const hostingData = args.strapiData as { data?: { id: string; attributes: StrapiHosting } };
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		// Hosting is a single type, so there's only one record
+		if (!hostingData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		const hosting = hostingData.data;
+
+		try {
+			// Check if already migrated
+			const existing = await ctx.runQuery(internal.strapiMigration.checkHostingExists, {
+				strapiId: hosting.id
+			});
+
+			if (existing) {
+				console.log(`Hosting already migrated with ID: ${existing._id}`);
+				results.push({ success: true, strapiId: hosting.id, convexId: existing._id });
+				return {
+					totalProcessed: 1,
+					successful: 1,
+					failed: 0,
+					results
+				};
+			}
+
+			// Insert hosting record
+			const hostingId = await ctx.runMutation(internal.strapiMigration.insertHosting, {
+				strapiId: hosting.id,
+				content: hosting.attributes.content || null
+			});
+
+			results.push({ success: true, strapiId: hosting.id, convexId: hostingId });
+			console.log(`Successfully migrated hosting content`);
+		} catch (error) {
+			console.error(`Error migrating hosting:`, error);
+			results.push({
+				success: false,
+				strapiId: hosting.id,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			});
+		}
+
+		return {
+			totalProcessed: 1,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * TESTIMONIALS MIGRATION - Content with optional audio files and author relationships
+ */
+
+interface StrapiTestimonial {
+	content: string;
+	url?: string;
+	audio?: { data?: StrapiFile };
+	author?: { data?: { id: string; attributes: { name: string; slug: string } } };
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const findIdMapping = internalQuery({
+	args: {
+		strapiType: v.string(),
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('idMappings')
+			.filter((q) =>
+				q.and(
+					q.eq(q.field('strapiType'), args.strapiType),
+					q.eq(q.field('strapiId'), args.strapiId)
+				)
+			)
+			.first();
+	}
+});
+
+export const checkTestimonialExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('testimonials')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertTestimonial = internalMutation({
+	args: {
+		strapiId: v.string(),
+		content: v.string(),
+		url: v.union(v.string(), v.null()),
+		audioId: v.union(v.string(), v.null()),
+		authorId: v.union(v.string(), v.null())
+	},
+	handler: async (ctx, args) => {
+		const testimonialId = await ctx.db.insert('testimonials', {
+			strapiId: args.strapiId,
+			content: args.content,
+			url: args.url || undefined,
+			audio: args.audioId ? (args.audioId as Id<'_storage'>) : undefined,
+			authorId: args.authorId ? (args.authorId as Id<'players'>) : undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'testimonial',
+			strapiId: args.strapiId,
+			convexId: testimonialId
+		});
+
+		return testimonialId;
+	}
+});
+
+export const migrateTestimonialsData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const testimonialsData = args.strapiData as {
+			data: Array<{ id: string; attributes: StrapiTestimonial }>;
+		};
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		if (!testimonialsData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		console.log(`Starting migration of ${testimonialsData.data.length} testimonials...`);
+
+		for (const testimonial of testimonialsData.data) {
+			try {
+				// Check if testimonial already exists
+				const existing = await ctx.runQuery(internal.strapiMigration.checkTestimonialExists, {
+					strapiId: testimonial.id
+				});
+
+				if (existing) {
+					console.log(`Testimonial ${testimonial.id} already exists, skipping`);
+					results.push({ success: true, strapiId: testimonial.id, convexId: existing._id });
+					continue;
+				}
+
+				// Find author if exists (need to look up by Strapi ID)
+				let authorId: string | null = null;
+				if (testimonial.attributes.author?.data?.id) {
+					const authorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+						strapiType: 'player',
+						strapiId: testimonial.attributes.author.data.id
+					});
+					if (authorMapping) {
+						authorId = authorMapping.convexId;
+					}
+				}
+
+				// Migrate audio file if present
+				const audioId = await migrateAudioFile(ctx, testimonial.attributes.audio);
+
+				// Insert testimonial record
+				const testimonialId = await ctx.runMutation(internal.strapiMigration.insertTestimonial, {
+					strapiId: testimonial.id,
+					content: testimonial.attributes.content,
+					url: testimonial.attributes.url || null,
+					audioId,
+					authorId
+				});
+
+				results.push({ success: true, strapiId: testimonial.id, convexId: testimonialId });
+				console.log(`Successfully migrated testimonial: ${testimonial.id}`);
+			} catch (error) {
+				console.error(`Error migrating testimonial ${testimonial.id}:`, error);
+				results.push({
+					success: false,
+					strapiId: testimonial.id,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				});
+			}
+		}
+
+		return {
+			totalProcessed: testimonialsData.data.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * EVENT LOCATIONS MIGRATION - Geographic locations for events
+ */
+
+interface StrapiEventLocation {
+	name: string;
+	country: string;
+	location?: string; // Mapbox GeoJSON string
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkEventLocationExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('eventLocations')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertEventLocation = internalMutation({
+	args: {
+		strapiId: v.string(),
+		name: v.string(),
+		slug: v.union(v.string(), v.null()),
+		country: v.string(),
+		location: v.optional(
+			v.object({
+				lat: v.number(),
+				lng: v.number(),
+				address: v.optional(v.string())
+			})
+		),
+		locationOriginal: v.union(v.string(), v.null())
+	},
+	handler: async (ctx, args) => {
+		const eventLocationId = await ctx.db.insert('eventLocations', {
+			strapiId: args.strapiId,
+			name: args.name,
+			slug: args.slug || undefined,
+			country: args.country,
+			location: args.location,
+			locationOriginal: args.locationOriginal || undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'eventLocation',
+			strapiId: args.strapiId,
+			convexId: eventLocationId
+		});
+
+		return eventLocationId;
+	}
+});
+
+export const migrateEventLocationsData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const eventLocationsData = args.strapiData as {
+			data: Array<{ id: string; attributes: StrapiEventLocation }>;
+		};
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		if (!eventLocationsData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		console.log(`Starting migration of ${eventLocationsData.data.length} event locations...`);
+
+		for (const eventLocation of eventLocationsData.data) {
+			try {
+				// Check if event location already exists
+				const existing = await ctx.runQuery(internal.strapiMigration.checkEventLocationExists, {
+					strapiId: eventLocation.id
+				});
+
+				if (existing) {
+					console.log(`Event location ${eventLocation.attributes.name} already exists, skipping`);
+					results.push({ success: true, strapiId: eventLocation.id, convexId: existing._id });
+					continue;
+				}
+
+				// Parse location data (same pattern as venues)
+				let location: { lat: number; lng: number; address?: string } | undefined;
+				let locationOriginal: string | undefined;
+
+				if (eventLocation.attributes.location) {
+					locationOriginal =
+						typeof eventLocation.attributes.location === 'string'
+							? eventLocation.attributes.location
+							: JSON.stringify(eventLocation.attributes.location);
+					try {
+						const locationData =
+							typeof eventLocation.attributes.location === 'string'
+								? JSON.parse(eventLocation.attributes.location)
+								: eventLocation.attributes.location;
+
+						// Handle Mapbox format with center array
+						if (
+							locationData.center &&
+							Array.isArray(locationData.center) &&
+							locationData.center.length >= 2
+						) {
+							location = {
+								lng: locationData.center[0], // longitude first in Mapbox
+								lat: locationData.center[1], // latitude second
+								address: locationData.place_name || locationData.text
+							};
+						}
+						// Handle GeoJSON Point format
+						else if (
+							locationData.geometry?.coordinates &&
+							Array.isArray(locationData.geometry.coordinates) &&
+							locationData.geometry.coordinates.length >= 2
+						) {
+							location = {
+								lng: locationData.geometry.coordinates[0],
+								lat: locationData.geometry.coordinates[1]
+							};
+						}
+					} catch (error) {
+						console.warn(`Failed to parse location for event location ${eventLocation.id}:`, error);
+					}
+				}
+
+				// Create slug from name (simple slugification)
+				const slug = eventLocation.attributes.name
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/(^-|-$)/g, '');
+
+				// Insert event location record
+				const eventLocationId = await ctx.runMutation(
+					internal.strapiMigration.insertEventLocation,
+					{
+						strapiId: eventLocation.id,
+						name: eventLocation.attributes.name,
+						slug,
+						country: eventLocation.attributes.country,
+						location,
+						locationOriginal: locationOriginal || null
+					}
+				);
+
+				results.push({ success: true, strapiId: eventLocation.id, convexId: eventLocationId });
+				console.log(`Successfully migrated event location: ${eventLocation.attributes.name}`);
+			} catch (error) {
+				console.error(`Error migrating event location ${eventLocation.id}:`, error);
+				results.push({
+					success: false,
+					strapiId: eventLocation.id,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				});
+			}
+		}
+
+		return {
+			totalProcessed: eventLocationsData.data.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * GAMES MIGRATION - Complex content with relationships, components, and files
+ */
+
+interface StrapiGame {
+	name: string;
+	slug: string;
+	category: 'Game' | 'IceBreaker' | 'WarmUp' | 'Facilitation' | 'Retrospective' | 'CoolDown';
+	scale: string;
+	timebox: string;
+	summary: string;
+	description: string;
+	credits: string;
+	publishedAt?: string;
+	defaultImage?: { data?: StrapiFile };
+	images?: { data: StrapiFile[] };
+	resources?: { data: StrapiFile[] };
+	firstPlayedAtEvent?: { data?: { id: string } };
+	tags: Array<{ id: string; value: string }>;
+	materials: Array<{ id: string; value: string }>;
+	preparationSteps: Array<{ id: string; value: string }>;
+	safety: Array<{ id: string; key: string; value: string }>;
+	ratings?: {
+		energy?: number;
+		connection?: number;
+		silliness?: number;
+	};
+	documentedBy?: { data: Array<{ id: string }> };
+	proposedBy?: { data: Array<{ id: string }> };
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkGameExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('games')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertGame = internalMutation({
+	args: {
+		strapiId: v.string(),
+		name: v.string(),
+		slug: v.string(),
+		category: v.union(
+			v.literal('Game'),
+			v.literal('IceBreaker'),
+			v.literal('WarmUp'),
+			v.literal('Facilitation'),
+			v.literal('Retrospective'),
+			v.literal('CoolDown')
+		),
+		scale: v.optional(v.string()),
+		timebox: v.string(),
+		summary: v.string(),
+		description: v.string(),
+		credits: v.optional(v.string()),
+		defaultImageId: v.union(v.string(), v.null()),
+		imageIds: v.array(v.string()),
+		resourceIds: v.array(v.string()),
+		firstPlayedAtEventId: v.union(v.string(), v.null()),
+		publishedAt: v.union(v.number(), v.null()),
+		updatedAt: v.number(),
+		materials: v.array(v.object({ value: v.string() })),
+		preparationSteps: v.array(v.object({ value: v.string() })),
+		safety: v.array(
+			v.object({
+				key: v.string(),
+				value: v.string()
+			})
+		),
+		tags: v.array(v.object({ value: v.string() })),
+		ratings: v.union(
+			v.object({
+				energy: v.union(v.number(), v.null()),
+				connection: v.union(v.number(), v.null()),
+				silliness: v.union(v.number(), v.null())
+			}),
+			v.null()
+		)
+	},
+	handler: async (ctx, args) => {
+		const gameId = await ctx.db.insert('games', {
+			strapiId: args.strapiId,
+			name: args.name,
+			slug: args.slug,
+			category: args.category,
+			scale: args.scale,
+			timebox: args.timebox,
+			summary: args.summary,
+			description: args.description,
+			credits: args.credits,
+			defaultImageId: args.defaultImageId ? (args.defaultImageId as Id<'_storage'>) : undefined,
+			imageIds: args.imageIds as Id<'_storage'>[],
+			resourceIds: args.resourceIds as Id<'_storage'>[],
+			firstPlayedAtEventId: args.firstPlayedAtEventId
+				? (args.firstPlayedAtEventId as Id<'events'>)
+				: undefined,
+			publishedAt: args.publishedAt || undefined,
+			updatedAt: args.updatedAt,
+			materials: args.materials,
+			preparationSteps: args.preparationSteps,
+			safety: args.safety,
+			tags: args.tags,
+			ratings: args.ratings
+				? {
+						energy: args.ratings.energy || undefined,
+						connection: args.ratings.connection || undefined,
+						silliness: args.ratings.silliness || undefined
+					}
+				: undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'game',
+			strapiId: args.strapiId,
+			convexId: gameId
+		});
+
+		return gameId;
+	}
+});
+
+export const insertGameDocumenter = internalMutation({
+	args: {
+		gameId: v.string(),
+		playerId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('gameDocumenters', {
+			gameId: args.gameId as Id<'games'>,
+			playerId: args.playerId as Id<'players'>
+		});
+	}
+});
+
+export const insertGameProposer = internalMutation({
+	args: {
+		gameId: v.string(),
+		playerId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('gameProposers', {
+			gameId: args.gameId as Id<'games'>,
+			playerId: args.playerId as Id<'players'>
+		});
+	}
+});
+
+export const migrateGamesData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const gamesData = args.strapiData as {
+			data: Array<{ id: string; attributes: StrapiGame }>;
+		};
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		if (!gamesData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		console.log(`Starting migration of ${gamesData.data.length} games...`);
+
+		for (const game of gamesData.data) {
+			try {
+				// Check if game already exists
+				const existing = await ctx.runQuery(internal.strapiMigration.checkGameExists, {
+					strapiId: game.id
+				});
+
+				if (existing) {
+					console.log(`Game ${game.attributes.name} already exists, skipping`);
+					results.push({ success: true, strapiId: game.id, convexId: existing._id });
+					continue;
+				}
+
+				// Find firstPlayedAtEvent if exists
+				let firstPlayedAtEventId: string | null = null;
+				if (game.attributes.firstPlayedAtEvent?.data?.id) {
+					const eventMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+						strapiType: 'event',
+						strapiId: game.attributes.firstPlayedAtEvent.data.id
+					});
+					if (eventMapping) {
+						firstPlayedAtEventId = eventMapping.convexId;
+					}
+				}
+
+				// Migrate files for game
+				const defaultImageId = await migrateSingleImage(ctx, game.attributes.defaultImage);
+				const imageIds = await migrateMultipleImages(ctx, game.attributes.images);
+				const resourceIds = await migrateResourceFiles(ctx, game.attributes.resources);
+
+				// Parse publishedAt
+				const publishedAt = game.attributes.publishedAt
+					? new Date(game.attributes.publishedAt).getTime()
+					: null;
+
+				// Generate slug from name (games don't have slug field in Strapi)
+				const slug = game.attributes.name
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/(^-|-$)/g, '');
+
+				// Insert game record
+				const gameId = await ctx.runMutation(internal.strapiMigration.insertGame, {
+					strapiId: game.id,
+					name: game.attributes.name,
+					slug,
+					category: game.attributes.category,
+					scale: game.attributes.scale || undefined,
+					timebox: game.attributes.timebox,
+					summary: game.attributes.summary,
+					description: game.attributes.description,
+					credits: game.attributes.credits || undefined,
+					defaultImageId,
+					imageIds,
+					resourceIds,
+					firstPlayedAtEventId,
+					publishedAt,
+					updatedAt: new Date(game.attributes.updatedAt).getTime(),
+					materials: (game.attributes.materials || []).map((m: { value: string }) => ({
+						value: m.value
+					})),
+					preparationSteps: (game.attributes.preparationSteps || []).map(
+						(p: { value: string }) => ({ value: p.value })
+					),
+					safety: (game.attributes.safety || []).map((s: { key: string; value: string }) => ({
+						key: s.key,
+						value: s.value
+					})),
+					tags: (game.attributes.tags || []).map((t: { value: string }) => ({ value: t.value })),
+					ratings: game.attributes.ratings
+						? {
+								energy: game.attributes.ratings.energy || null,
+								connection: game.attributes.ratings.connection || null,
+								silliness: game.attributes.ratings.silliness || null
+							}
+						: null
+				});
+
+				// Insert game relationships
+				if (game.attributes.documentedBy?.data) {
+					for (const documenter of game.attributes.documentedBy.data) {
+						const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'player',
+							strapiId: documenter.id
+						});
+						if (playerMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertGameDocumenter, {
+								gameId,
+								playerId: playerMapping.convexId
+							});
+						}
+					}
+				}
+
+				if (game.attributes.proposedBy?.data) {
+					for (const proposer of game.attributes.proposedBy.data) {
+						const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'player',
+							strapiId: proposer.id
+						});
+						if (playerMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertGameProposer, {
+								gameId,
+								playerId: playerMapping.convexId
+							});
+						}
+					}
+				}
+
+				results.push({ success: true, strapiId: game.id, convexId: gameId });
+				console.log(`Successfully migrated game: ${game.attributes.name}`);
+			} catch (error) {
+				console.error(`Error migrating game ${game.id}:`, error);
+				results.push({
+					success: false,
+					strapiId: game.id,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				});
+			}
+		}
+
+		return {
+			totalProcessed: gamesData.data.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * ARTICLES MIGRATION - Content with author relationships and tags
+ */
+
+interface StrapiArticle {
+	title: string;
+	slug: string;
+	category: 'Announcement' | 'Article' | 'Event' | 'Interview' | 'Meetup';
+	summary: string;
+	content: string;
+	cannonical?: string; // Note: typo in the query - should be "canonical"
+	publishedAt?: string;
+	defaultImage?: { data?: StrapiFile };
+	images?: { data: StrapiFile[] };
+	author?: { data?: { id: string; attributes: { name: string; slug: string } } };
+	tags?: { data: Array<{ id: string; attributes: { value: string } }> };
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkArticleExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('articles')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertArticle = internalMutation({
+	args: {
+		strapiId: v.string(),
+		title: v.string(),
+		slug: v.string(),
+		category: v.union(
+			v.literal('Announcement'),
+			v.literal('Article'),
+			v.literal('Event'),
+			v.literal('Interview'),
+			v.literal('Meetup')
+		),
+		summary: v.string(),
+		content: v.string(),
+		canonical: v.union(v.string(), v.null()),
+		defaultImageId: v.union(v.string(), v.null()),
+		imageIds: v.array(v.string()),
+		authorId: v.union(v.string(), v.null()),
+		publishedAt: v.union(v.number(), v.null()),
+		updatedAt: v.number()
+	},
+	handler: async (ctx, args) => {
+		const articleId = await ctx.db.insert('articles', {
+			strapiId: args.strapiId,
+			title: args.title,
+			slug: args.slug,
+			category: args.category,
+			summary: args.summary,
+			content: args.content,
+			canonical: args.canonical || undefined,
+			defaultImageId: args.defaultImageId ? (args.defaultImageId as Id<'_storage'>) : undefined,
+			imageIds: args.imageIds as Id<'_storage'>[],
+			authorId: args.authorId ? (args.authorId as Id<'players'>) : undefined,
+			publishedAt: args.publishedAt || undefined,
+			updatedAt: args.updatedAt
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'article',
+			strapiId: args.strapiId,
+			convexId: articleId
+		});
+
+		return articleId;
+	}
+});
+
+export const insertArticleTag = internalMutation({
+	args: {
+		articleId: v.string(),
+		tagId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('articleTags', {
+			articleId: args.articleId as Id<'articles'>,
+			tagId: args.tagId as Id<'tags'>
+		});
+	}
+});
+
+export const migrateArticlesData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const articlesData = args.strapiData as {
+			data: Array<{ id: string; attributes: StrapiArticle }>;
+		};
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		if (!articlesData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		console.log(`Starting migration of ${articlesData.data.length} articles...`);
+
+		for (const article of articlesData.data) {
+			try {
+				// Check if article already exists
+				const existing = await ctx.runQuery(internal.strapiMigration.checkArticleExists, {
+					strapiId: article.id
+				});
+
+				if (existing) {
+					console.log(`Article ${article.attributes.title} already exists, skipping`);
+					results.push({ success: true, strapiId: article.id, convexId: existing._id });
+					continue;
+				}
+
+				// Find author if exists
+				let authorId: string | null = null;
+				if (article.attributes.author?.data?.id) {
+					const authorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+						strapiType: 'player',
+						strapiId: article.attributes.author.data.id
+					});
+					if (authorMapping) {
+						authorId = authorMapping.convexId;
+					}
+				}
+
+				// Migrate images for article
+				const defaultImageId = await migrateSingleImage(ctx, article.attributes.defaultImage);
+				const imageIds = await migrateMultipleImages(ctx, article.attributes.images);
+
+				// Parse publishedAt
+				const publishedAt = article.attributes.publishedAt
+					? new Date(article.attributes.publishedAt).getTime()
+					: null;
+
+				// Generate slug from title (articles don't have slug field in Strapi)
+				const slug = article.attributes.title
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/(^-|-$)/g, '');
+
+				// Insert article record
+				const articleId = await ctx.runMutation(internal.strapiMigration.insertArticle, {
+					strapiId: article.id,
+					title: article.attributes.title,
+					slug,
+					category: article.attributes.category,
+					summary: article.attributes.summary,
+					content: article.attributes.content,
+					canonical: article.attributes.cannonical || null, // Note: handling the typo
+					defaultImageId,
+					imageIds,
+					authorId,
+					publishedAt,
+					updatedAt: new Date(article.attributes.updatedAt).getTime()
+				});
+
+				// Insert article tag relationships
+				if (article.attributes.tags?.data) {
+					for (const tag of article.attributes.tags.data) {
+						const tagMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'tag',
+							strapiId: tag.id
+						});
+						if (tagMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertArticleTag, {
+								articleId,
+								tagId: tagMapping.convexId
+							});
+						}
+					}
+				}
+
+				results.push({ success: true, strapiId: article.id, convexId: articleId });
+				console.log(`Successfully migrated article: ${article.attributes.title}`);
+			} catch (error) {
+				console.error(`Error migrating article ${article.id}:`, error);
+				results.push({
+					success: false,
+					strapiId: article.id,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				});
+			}
+		}
+
+		return {
+			totalProcessed: articlesData.data.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * EVENTS MIGRATION - Most complex content with multiple relationships and components
+ */
+
+interface StrapiEvent {
+	name: string;
+	slug: string;
+	start: string;
+	end: string;
+	timezone: string;
+	status: 'Announced' | 'Open' | 'Over' | 'Cancelled';
+	description: string;
+	contactEmail: string;
+	tagline?: string;
+	publishedAt?: string;
+	defaultImage?: { data?: StrapiFile };
+	images?: { data: StrapiFile[] };
+	location?: { data?: { id: string } };
+	venue?: { data?: { id: string } };
+	timetable?: Array<{
+		id: string;
+		day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+		description: string;
+		timeslots: Array<{
+			id: string;
+			time: string;
+			description: string;
+		}>;
+	}>;
+	registration?: {
+		id: string;
+		link?: string;
+		widgetCode?: string;
+	};
+	sponsorships?: Array<{
+		id: string;
+		category: string;
+		sponsors: { data: Array<{ id: string }> };
+	}>;
+	media?: Array<{
+		id: string;
+		url: string;
+		type: 'Photos' | 'Videos';
+	}>;
+	finance?: {
+		id: string;
+		revenue: number;
+		expenses: number;
+		destination: string;
+		result: 'Profit' | 'Loss';
+		resultAmount: number;
+	};
+	hosts?: { data: Array<{ id: string }> };
+	mentors?: { data: Array<{ id: string }> };
+	attendees?: { data: Array<{ id: string }> };
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const checkEventExists = internalQuery({
+	args: {
+		strapiId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query('events')
+			.filter((q) => q.eq(q.field('strapiId'), args.strapiId))
+			.first();
+	}
+});
+
+export const insertEvent = internalMutation({
+	args: {
+		strapiId: v.string(),
+		name: v.string(),
+		slug: v.string(),
+		start: v.number(),
+		end: v.number(),
+		timezone: v.string(),
+		status: v.union(
+			v.literal('Announced'),
+			v.literal('Open'),
+			v.literal('Over'),
+			v.literal('Cancelled')
+		),
+		description: v.string(),
+		contactEmail: v.string(),
+		tagline: v.union(v.string(), v.null()),
+		defaultImageId: v.union(v.string(), v.null()),
+		imageIds: v.array(v.string()),
+		locationId: v.union(v.string(), v.null()),
+		venueId: v.union(v.string(), v.null()),
+		publishedAt: v.union(v.number(), v.null()),
+		updatedAt: v.number(),
+		timetable: v.array(
+			v.object({
+				day: v.union(
+					v.literal('Monday'),
+					v.literal('Tuesday'),
+					v.literal('Wednesday'),
+					v.literal('Thursday'),
+					v.literal('Friday'),
+					v.literal('Saturday'),
+					v.literal('Sunday')
+				),
+				description: v.string(),
+				timeslots: v.array(
+					v.object({
+						time: v.string(),
+						description: v.string()
+					})
+				)
+			})
+		),
+		registration: v.union(
+			v.object({
+				link: v.union(v.string(), v.null()),
+				widgetCode: v.union(v.string(), v.null())
+			}),
+			v.null()
+		),
+		sponsorships: v.array(
+			v.object({
+				category: v.string(),
+				sponsorIds: v.array(v.string())
+			})
+		),
+		media: v.array(
+			v.object({
+				url: v.string(),
+				type: v.union(v.literal('Photos'), v.literal('Videos'))
+			})
+		),
+		finance: v.union(
+			v.object({
+				revenue: v.number(),
+				expenses: v.number(),
+				destination: v.string(),
+				result: v.union(v.literal('Profit'), v.literal('Loss')),
+				resultAmount: v.number()
+			}),
+			v.null()
+		)
+	},
+	handler: async (ctx, args) => {
+		const eventId = await ctx.db.insert('events', {
+			strapiId: args.strapiId,
+			name: args.name,
+			slug: args.slug,
+			start: args.start,
+			end: args.end,
+			timezone: args.timezone,
+			status: args.status,
+			description: args.description,
+			contactEmail: args.contactEmail,
+			tagline: args.tagline || undefined,
+			defaultImageId: args.defaultImageId ? (args.defaultImageId as Id<'_storage'>) : undefined,
+			imageIds: args.imageIds as Id<'_storage'>[],
+			locationId: args.locationId ? (args.locationId as Id<'eventLocations'>) : undefined,
+			venueId: args.venueId ? (args.venueId as Id<'venues'>) : undefined,
+			publishedAt: args.publishedAt || undefined,
+			updatedAt: args.updatedAt,
+			timetable: args.timetable,
+			registration: args.registration
+				? {
+						link: args.registration.link || undefined,
+						widgetCode: args.registration.widgetCode || undefined
+					}
+				: undefined,
+			sponsorships: args.sponsorships.map((s) => ({
+				category: s.category,
+				sponsorIds: s.sponsorIds as Id<'sponsors'>[]
+			})),
+			media: args.media,
+			finance: args.finance || undefined
+		});
+
+		await ctx.db.insert('idMappings', {
+			strapiType: 'event',
+			strapiId: args.strapiId,
+			convexId: eventId
+		});
+
+		return eventId;
+	}
+});
+
+export const insertEventHost = internalMutation({
+	args: {
+		eventId: v.string(),
+		playerId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('eventHosts', {
+			eventId: args.eventId as Id<'events'>,
+			playerId: args.playerId as Id<'players'>
+		});
+	}
+});
+
+export const insertEventMentor = internalMutation({
+	args: {
+		eventId: v.string(),
+		playerId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('eventMentors', {
+			eventId: args.eventId as Id<'events'>,
+			playerId: args.playerId as Id<'players'>
+		});
+	}
+});
+
+export const insertEventAttendee = internalMutation({
+	args: {
+		eventId: v.string(),
+		playerId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert('eventAttendees', {
+			eventId: args.eventId as Id<'events'>,
+			playerId: args.playerId as Id<'players'>
+		});
+	}
+});
+
+export const migrateEventsData = action({
+	args: {
+		strapiData: v.record(v.string(), v.any())
+	},
+	handler: async (
+		ctx,
+		args
+	): Promise<{
+		totalProcessed: number;
+		successful: number;
+		failed: number;
+		results: Array<{ success: boolean; strapiId: string; convexId?: string; error?: string }>;
+	}> => {
+		const eventsData = args.strapiData as {
+			data: Array<{ id: string; attributes: StrapiEvent }>;
+		};
+		const results: Array<{
+			success: boolean;
+			strapiId: string;
+			convexId?: string;
+			error?: string;
+		}> = [];
+
+		if (!eventsData.data) {
+			return {
+				totalProcessed: 0,
+				successful: 0,
+				failed: 0,
+				results: []
+			};
+		}
+
+		console.log(`Starting migration of ${eventsData.data.length} events...`);
+
+		for (const event of eventsData.data) {
+			try {
+				// Check if event already exists
+				const existing = await ctx.runQuery(internal.strapiMigration.checkEventExists, {
+					strapiId: event.id
+				});
+
+				if (existing) {
+					console.log(`Event ${event.attributes.name} already exists, skipping`);
+					results.push({ success: true, strapiId: event.id, convexId: existing._id });
+					continue;
+				}
+
+				// Find location if exists
+				let locationId: string | null = null;
+				if (event.attributes.location?.data?.id) {
+					const locationMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+						strapiType: 'eventLocation',
+						strapiId: event.attributes.location.data.id
+					});
+					if (locationMapping) {
+						locationId = locationMapping.convexId;
+					}
+				}
+
+				// Find venue if exists
+				let venueId: string | null = null;
+				if (event.attributes.venue?.data?.id) {
+					const venueMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+						strapiType: 'venue',
+						strapiId: event.attributes.venue.data.id
+					});
+					if (venueMapping) {
+						venueId = venueMapping.convexId;
+					}
+				}
+
+				// Process sponsorships
+				const sponsorships: Array<{ category: string; sponsorIds: string[] }> = [];
+				if (event.attributes.sponsorships) {
+					for (const sponsorship of event.attributes.sponsorships) {
+						const sponsorIds: string[] = [];
+						if (sponsorship.sponsors?.data) {
+							for (const sponsor of sponsorship.sponsors.data) {
+								const sponsorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+									strapiType: 'sponsor',
+									strapiId: sponsor.id
+								});
+								if (sponsorMapping) {
+									sponsorIds.push(sponsorMapping.convexId);
+								}
+							}
+						}
+						sponsorships.push({
+							category: sponsorship.category,
+							sponsorIds
+						});
+					}
+				}
+
+				// Migrate images for event
+				const defaultImageId = await migrateSingleImage(ctx, event.attributes.defaultImage);
+				const imageIds = await migrateMultipleImages(ctx, event.attributes.images);
+
+				// Parse publishedAt
+				const publishedAt = event.attributes.publishedAt
+					? new Date(event.attributes.publishedAt).getTime()
+					: null;
+
+				// Generate slug from name (events don't have slug field in Strapi)
+				const slug = event.attributes.name
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/(^-|-$)/g, '');
+
+				// Insert event record
+				const eventId = await ctx.runMutation(internal.strapiMigration.insertEvent, {
+					strapiId: event.id,
+					name: event.attributes.name,
+					slug,
+					start: new Date(event.attributes.start).getTime(),
+					end: new Date(event.attributes.end).getTime(),
+					timezone: event.attributes.timezone,
+					status: event.attributes.status,
+					description: event.attributes.description,
+					contactEmail: event.attributes.contactEmail,
+					tagline: event.attributes.tagline || null,
+					defaultImageId,
+					imageIds,
+					locationId,
+					venueId,
+					publishedAt,
+					updatedAt: new Date(event.attributes.updatedAt).getTime(),
+					timetable: event.attributes.timetable || [],
+					registration: event.attributes.registration
+						? {
+								link: event.attributes.registration.link || null,
+								widgetCode: event.attributes.registration.widgetCode || null
+							}
+						: null,
+					sponsorships,
+					media: event.attributes.media || [],
+					finance: event.attributes.finance || null
+				});
+
+				// Insert player relationships
+				if (event.attributes.hosts?.data) {
+					for (const host of event.attributes.hosts.data) {
+						const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'player',
+							strapiId: host.id
+						});
+						if (playerMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertEventHost, {
+								eventId,
+								playerId: playerMapping.convexId
+							});
+						}
+					}
+				}
+
+				if (event.attributes.mentors?.data) {
+					for (const mentor of event.attributes.mentors.data) {
+						const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'player',
+							strapiId: mentor.id
+						});
+						if (playerMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertEventMentor, {
+								eventId,
+								playerId: playerMapping.convexId
+							});
+						}
+					}
+				}
+
+				if (event.attributes.attendees?.data) {
+					for (const attendee of event.attributes.attendees.data) {
+						const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
+							strapiType: 'player',
+							strapiId: attendee.id
+						});
+						if (playerMapping) {
+							await ctx.runMutation(internal.strapiMigration.insertEventAttendee, {
+								eventId,
+								playerId: playerMapping.convexId
+							});
+						}
+					}
+				}
+
+				results.push({ success: true, strapiId: event.id, convexId: eventId });
+				console.log(`Successfully migrated event: ${event.attributes.name}`);
+			} catch (error) {
+				console.error(`Error migrating event ${event.id}:`, error);
+				results.push({
+					success: false,
+					strapiId: event.id,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				});
+			}
+		}
+
+		return {
+			totalProcessed: eventsData.data.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results
+		};
+	}
+});
+
+/**
+ * Clean up all files from Convex storage
+ * This removes orphaned files that may be left over from previous migrations
+ */
+export const cleanupAllFiles = action({
+	args: {},
+	handler: async (ctx) => {
+		try {
+			console.log('Starting cleanup of all files in Convex storage...');
+
+			// Get all files from storage (this will list all files)
+			// Note: Convex doesn't have a direct "list all files" API, so we'll need to
+			// collect file IDs from all content types that reference files
+
+			const filesToDelete: string[] = [];
+
+			// Collect file IDs from all content types
+			const contentTypes = [
+				'players',
+				'games',
+				'articles',
+				'events',
+				'home',
+				'history',
+				'testimonials',
+				'venues',
+				'sponsors'
+			];
+
+			for (const tableName of contentTypes) {
+				try {
+					const records = await ctx.runQuery(internal.strapiMigration.getAllRecordsForCleanup, {
+						tableName
+					});
+
+					for (const record of records) {
+						// Collect file IDs based on content type
+						if (tableName === 'players' && record.avatarId) {
+							filesToDelete.push(record.avatarId);
+						} else if (tableName === 'games') {
+							if (record.defaultImageId) filesToDelete.push(record.defaultImageId);
+							if (record.imageIds) filesToDelete.push(...record.imageIds);
+							if (record.resourceIds) filesToDelete.push(...record.resourceIds);
+						} else if (tableName === 'articles') {
+							if (record.defaultImageId) filesToDelete.push(record.defaultImageId);
+							if (record.imageIds) filesToDelete.push(...record.imageIds);
+						} else if (tableName === 'events') {
+							if (record.defaultImageId) filesToDelete.push(record.defaultImageId);
+							if (record.imageIds) filesToDelete.push(...record.imageIds);
+						} else if (tableName === 'home' && record.imageIds) {
+							filesToDelete.push(...record.imageIds);
+						} else if (tableName === 'history' && record.items) {
+							for (const item of record.items) {
+								if (item.imageId && item.imageId !== 'placeholder') {
+									filesToDelete.push(item.imageId);
+								}
+							}
+						} else if (tableName === 'testimonials' && record.audio) {
+							filesToDelete.push(record.audio);
+						} else if (tableName === 'venues' && record.logo) {
+							filesToDelete.push(record.logo);
+						} else if (tableName === 'sponsors' && record.logo) {
+							filesToDelete.push(record.logo);
+						}
+					}
+				} catch (error) {
+					console.log(`No records found in ${tableName} or error accessing: ${error}`);
+				}
+			}
+
+			// Remove duplicates
+			const uniqueFilesToDelete = Array.from(new Set(filesToDelete));
+			console.log(`Found ${uniqueFilesToDelete.length} files to delete from storage`);
+
+			// Delete each file from storage
+			let deletedCount = 0;
+			let errorCount = 0;
+
+			for (const fileId of uniqueFilesToDelete) {
+				try {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					await ctx.storage.delete(fileId as any);
+					deletedCount++;
+					console.log(`Deleted file: ${fileId}`);
+				} catch (error) {
+					errorCount++;
+					console.error(`Failed to delete file ${fileId}:`, error);
+				}
+			}
+
+			return {
+				success: true,
+				totalFiles: uniqueFilesToDelete.length,
+				deletedFiles: deletedCount,
+				errors: errorCount,
+				message: `Successfully deleted ${deletedCount} files, ${errorCount} errors`
+			};
+		} catch (error) {
+			console.error('Error during file cleanup:', error);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				message: 'File cleanup failed'
+			};
+		}
+	}
+});
+
+/**
+ * Get all records from a table for cleanup purposes
+ */
+export const getAllRecordsForCleanup = internalQuery({
+	args: {
+		tableName: v.string()
+	},
+	handler: async (ctx, args) => {
+		const validTables = [
+			'players',
+			'games',
+			'articles',
+			'events',
+			'home',
+			'history',
+			'testimonials',
+			'venues',
+			'sponsors',
+			'tags',
+			'expectations',
+			'eventLocations',
+			'format',
+			'hosting',
+			'eventHosts',
+			'eventMentors',
+			'eventAttendees',
+			'gameDocumenters',
+			'gameProposers',
+			'articleTags'
+		];
+
+		if (!validTables.includes(args.tableName)) {
+			return [];
+		}
+
+		// Cast to any to handle dynamic table names
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return await ctx.db.query(args.tableName as any).collect();
+	}
+});
+
+/**
  * Clear migration data for testing
  */
 export const clearMigrationData = mutation({
@@ -1004,7 +3312,22 @@ export const clearMigrationData = mutation({
 		contentType: v.string()
 	},
 	handler: async (ctx, args) => {
-		const validContentTypes = ['tags', 'expectations', 'players', 'venues', 'sponsors'] as const;
+		const validContentTypes = [
+			'tags',
+			'expectations',
+			'players',
+			'venues',
+			'sponsors',
+			'home',
+			'history',
+			'format',
+			'hosting',
+			'testimonials',
+			'eventLocations',
+			'games',
+			'articles',
+			'events'
+		] as const;
 		const tableName = validContentTypes.includes(
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			args.contentType as any
@@ -1031,6 +3354,497 @@ export const clearMigrationData = mutation({
 		return {
 			deletedItems: items.length,
 			deletedMappings: mappings.length
+		};
+	}
+});
+
+/**
+ * Complete cleanup before migration - removes all data AND files
+ * This should be run before starting a fresh migration
+ */
+export const cleanupAllMigrationData = action({
+	args: {},
+	handler: async (
+		ctx
+	): Promise<{
+		success: boolean;
+		totalDeletedItems: number;
+		totalDeletedMappings: number;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		contentTypeResults: any[];
+		message: string;
+		error?: string;
+	}> => {
+		console.log('🧹 Starting complete cleanup of all migration data and files...');
+
+		try {
+			// Step 1: Clean up all files from storage first
+			console.log('Step 1: Cleaning up files from Convex storage...');
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const fileCleanupResult: any = await ctx.runAction(api.strapiMigration.cleanupAllFiles, {});
+			console.log(`File cleanup result:`, fileCleanupResult);
+
+			// Step 2: Clear all content type tables
+			console.log('Step 2: Clearing all content type tables...');
+			const allContentTypes = [
+				'tags',
+				'expectations',
+				'players',
+				'venues',
+				'sponsors',
+				'home',
+				'history',
+				'format',
+				'hosting',
+				'testimonials',
+				'eventLocations',
+				'games',
+				'articles',
+				'events'
+			];
+
+			let totalDeletedItems = 0;
+			let totalDeletedMappings = 0;
+			const results = [];
+
+			for (const contentType of allContentTypes) {
+				try {
+					console.log(`Clearing ${contentType}...`);
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const result: any = await ctx.runMutation(api.strapiMigration.clearMigrationData, {
+						contentType
+					});
+					totalDeletedItems += result.deletedItems;
+					totalDeletedMappings += result.deletedMappings;
+					results.push({
+						contentType,
+						deletedItems: result.deletedItems,
+						deletedMappings: result.deletedMappings,
+						success: true
+					});
+					console.log(
+						`✅ Cleared ${contentType}: ${result.deletedItems} items, ${result.deletedMappings} mappings`
+					);
+				} catch (error) {
+					console.error(`❌ Error clearing ${contentType}:`, error);
+					results.push({
+						contentType,
+						success: false,
+						error: error instanceof Error ? error.message : 'Unknown error'
+					});
+				}
+			}
+
+			// Step 3: Clear relationship tables
+			console.log('Step 3: Clearing relationship tables...');
+			const relationshipTables = [
+				'eventHosts',
+				'eventMentors',
+				'eventAttendees',
+				'gameDocumenters',
+				'gameProposers',
+				'articleTags'
+			];
+
+			for (const tableName of relationshipTables) {
+				try {
+					const relationships = await ctx.runQuery(
+						internal.strapiMigration.getAllRecordsForCleanup,
+						{
+							tableName
+						}
+					);
+
+					for (const relationship of relationships) {
+						await ctx.runMutation(internal.strapiMigration.deleteRelationshipRecord, {
+							tableName,
+							recordId: relationship._id
+						});
+					}
+					console.log(`✅ Cleared ${tableName}: ${relationships.length} relationships`);
+				} catch (error) {
+					console.log(
+						`⚠️  Could not clear ${tableName} (table might not exist or be empty): ${error}`
+					);
+				}
+			}
+
+			// Step 4: Clear migration status table
+			console.log('Step 4: Clearing migration status...');
+			try {
+				const migrationStatuses = await ctx.runQuery(
+					internal.strapiMigration.getAllMigrationStatuses,
+					{}
+				);
+				for (const status of migrationStatuses) {
+					await ctx.runMutation(internal.strapiMigration.deleteMigrationStatus, {
+						statusId: status._id
+					});
+				}
+				console.log(`✅ Cleared migration status: ${migrationStatuses.length} records`);
+			} catch (error) {
+				console.log(`⚠️  Could not clear migration status: ${error}`);
+			}
+
+			console.log('🎉 Complete cleanup finished!');
+
+			return {
+				success: true,
+				totalDeletedItems,
+				totalDeletedMappings,
+				contentTypeResults: results,
+				message: `Successfully cleaned up ${totalDeletedItems} items, ${totalDeletedMappings} mappings, and ${fileCleanupResult.deletedFiles || 0} files`
+			};
+		} catch (error) {
+			console.error('❌ Error during complete cleanup:', error);
+			return {
+				success: false,
+				totalDeletedItems: 0,
+				totalDeletedMappings: 0,
+				contentTypeResults: [],
+				error: error instanceof Error ? error.message : 'Unknown error',
+				message: 'Complete cleanup failed'
+			};
+		}
+	}
+});
+
+/**
+ * Helper functions for cleanup
+ */
+export const deleteRelationshipRecord = internalMutation({
+	args: {
+		tableName: v.string(),
+		recordId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const validTables = [
+			'eventHosts',
+			'eventMentors',
+			'eventAttendees',
+			'gameDocumenters',
+			'gameProposers',
+			'articleTags'
+		];
+
+		if (validTables.includes(args.tableName)) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			await ctx.db.delete(args.recordId as any);
+		}
+	}
+});
+
+export const getAllMigrationStatuses = internalQuery({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.db.query('migrationStatus').collect();
+	}
+});
+
+export const deleteMigrationStatus = internalMutation({
+	args: {
+		statusId: v.string()
+	},
+	handler: async (ctx, args) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		await ctx.db.delete(args.statusId as any);
+	}
+});
+
+/**
+ * TEST FUNCTION: Test file migration with mock data
+ */
+export const testFileMigration = action({
+	args: {},
+	handler: async (ctx) => {
+		console.log('🧪 Starting file migration test...');
+
+		// Test with mock image data (using a known accessible image)
+		const mockImageData = {
+			data: {
+				attributes: {
+					url: '/uploads/test_avatar_123456.jpg',
+					name: 'test_avatar.jpg',
+					mime: 'image/jpeg'
+				}
+			}
+		};
+
+		try {
+			// Test single image migration
+			console.log('Testing single image migration...');
+			const imageResult = await migrateSingleImage(ctx, mockImageData);
+
+			if (imageResult) {
+				console.log(`✅ Single image migration successful: ${imageResult}`);
+			} else {
+				console.log('❌ Single image migration returned null');
+			}
+
+			// Test URL helper function
+			const testUrls = ['/uploads/test.jpg', 'uploads/test.jpg', 'https://example.com/test.jpg'];
+
+			console.log('Testing URL conversion:');
+			testUrls.forEach((url) => {
+				const fullUrl = getFullFileUrl(url);
+				console.log(`  ${url} → ${fullUrl}`);
+			});
+
+			return {
+				success: true,
+				message: 'File migration test completed',
+				imageResult,
+				urlTests: testUrls.map((url) => ({ original: url, converted: getFullFileUrl(url) }))
+			};
+		} catch (error) {
+			console.error('❌ File migration test failed:', error);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				message: 'File migration test failed'
+			};
+		}
+	}
+});
+
+/**
+ * COMPLETE MIGRATION ORCHESTRATOR
+ *
+ * Runs all content type migrations in proper dependency order
+ */
+export const runCompleteMigration = action({
+	args: {
+		includeFiles: v.optional(v.boolean()),
+		contentTypes: v.optional(v.array(v.string())),
+		batchSize: v.optional(v.number())
+	},
+	handler: async (ctx, args) => {
+		const includeFiles = args.includeFiles ?? true;
+		const batchSize = args.batchSize ?? 50;
+
+		console.log('🚀 STARTING COMPLETE MIGRATION');
+		console.log('================================');
+		console.log(`File migration: ${includeFiles ? 'ENABLED' : 'DISABLED'}`);
+		console.log(`Batch size: ${batchSize}`);
+
+		// Migration order respecting dependencies
+		const migrationOrder = [
+			// Phase 1: Foundation types (no dependencies)
+			'tags',
+			'expectations',
+
+			// Phase 2: Core entities
+			'players',
+			'venues',
+			'sponsors',
+
+			// Phase 3: Single types
+			'home',
+			'history',
+			'format',
+			'hosting',
+
+			// Phase 4: Complex types with minimal dependencies
+			'testimonials',
+			'eventLocations',
+
+			// Phase 5: Most complex types
+			'games', // Depends on tags
+			'articles', // Depends on tags
+
+			// Phase 6: Events (depends on everything)
+			'events'
+		];
+
+		const targetTypes = args.contentTypes || migrationOrder;
+		const orderedTypes = migrationOrder.filter((type) => targetTypes.includes(type));
+
+		console.log(`📋 Migration plan: ${orderedTypes.length} content types`);
+		console.log(`📊 Order: ${orderedTypes.join(' → ')}`);
+
+		const results = {
+			totalTypes: orderedTypes.length,
+			successful: 0,
+			failed: 0,
+			results: [] as Array<{
+				contentType: string;
+				success: boolean;
+				totalProcessed: number;
+				successful: number;
+				failed: number;
+				error?: string;
+			}>
+		};
+
+		// Run migrations in order
+		for (const contentType of orderedTypes) {
+			console.log(`\n🎯 MIGRATING: ${contentType.toUpperCase()}`);
+			console.log(`${'='.repeat(50)}`);
+
+			try {
+				// Fetch data from Strapi
+				console.log(`📡 Fetching ${contentType} data from Strapi...`);
+				const strapiResult = await ctx.runAction(api.strapiMigration.fetchStrapiData, {
+					contentType
+				});
+
+				if (!strapiResult.success) {
+					throw new Error(`Failed to fetch ${contentType}: ${strapiResult.error}`);
+				}
+
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const strapiData = (strapiResult.data as any)[contentType];
+				if (!strapiData || !strapiData.data) {
+					throw new Error(`No data found for ${contentType}`);
+				}
+
+				console.log(`✅ Fetched ${strapiData.data.length} ${contentType} records`);
+
+				// Run appropriate migration function
+				let migrationResult;
+				switch (contentType) {
+					case 'tags':
+						migrationResult = await ctx.runMutation(api.strapiMigration.migrateTagsData, {
+							strapiData
+						});
+						break;
+					case 'expectations':
+						migrationResult = await ctx.runMutation(api.strapiMigration.migrateExpectationsData, {
+							strapiData
+						});
+						break;
+					case 'players':
+						migrationResult = await ctx.runAction(api.strapiMigration.migratePlayersData, {
+							strapiData
+						});
+						break;
+					case 'venues':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateVenuesData, {
+							strapiData
+						});
+						break;
+					case 'sponsors':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateSponsorsData, {
+							strapiData
+						});
+						break;
+					case 'home':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateHomeData, {
+							strapiData
+						});
+						break;
+					case 'history':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateHistoryData, {
+							strapiData
+						});
+						break;
+					case 'format':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateFormatData, {
+							strapiData
+						});
+						break;
+					case 'hosting':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateHostingData, {
+							strapiData
+						});
+						break;
+					case 'testimonials':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateTestimonialsData, {
+							strapiData
+						});
+						break;
+					case 'eventLocations':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateEventLocationsData, {
+							strapiData
+						});
+						break;
+					case 'games':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateGamesData, {
+							strapiData
+						});
+						break;
+					case 'articles':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateArticlesData, {
+							strapiData
+						});
+						break;
+					case 'events':
+						migrationResult = await ctx.runAction(api.strapiMigration.migrateEventsData, {
+							strapiData
+						});
+						break;
+					default:
+						throw new Error(`Unknown content type: ${contentType}`);
+				}
+
+				console.log(`✅ ${contentType} migration completed:`);
+				console.log(`   Processed: ${migrationResult.totalProcessed}`);
+				console.log(`   Successful: ${migrationResult.successful}`);
+				console.log(`   Failed: ${migrationResult.failed}`);
+
+				results.results.push({
+					contentType,
+					success: true,
+					...migrationResult
+				});
+				results.successful++;
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				console.error(`❌ ${contentType} migration failed:`, errorMessage);
+
+				results.results.push({
+					contentType,
+					success: false,
+					totalProcessed: 0,
+					successful: 0,
+					failed: 1,
+					error: errorMessage
+				});
+				results.failed++;
+			}
+		}
+
+		// Summary
+		console.log('\n🎊 MIGRATION COMPLETE');
+		console.log('=====================');
+		console.log(`📊 Overall Results:`);
+		console.log(`   Content types: ${results.totalTypes}`);
+		console.log(`   Successful: ${results.successful}`);
+		console.log(`   Failed: ${results.failed}`);
+
+		if (results.successful > 0) {
+			console.log(`\n✅ Successful migrations:`);
+			results.results
+				.filter((r) => r.success)
+				.forEach((r) => {
+					console.log(`   ${r.contentType}: ${r.successful}/${r.totalProcessed} records`);
+				});
+		}
+
+		if (results.failed > 0) {
+			console.log(`\n❌ Failed migrations:`);
+			results.results
+				.filter((r) => !r.success)
+				.forEach((r) => {
+					console.log(`   ${r.contentType}: ${r.error}`);
+				});
+		}
+
+		const totalRecords = results.results.reduce((sum, r) => sum + r.totalProcessed, 0);
+		const totalSuccessful = results.results.reduce((sum, r) => sum + r.successful, 0);
+		const totalFailed = results.results.reduce((sum, r) => sum + r.failed, 0);
+
+		console.log(`\n📈 Total Records:`);
+		console.log(`   Processed: ${totalRecords}`);
+		console.log(`   Successful: ${totalSuccessful}`);
+		console.log(`   Failed: ${totalFailed}`);
+
+		return {
+			success: results.failed === 0,
+			summary: results,
+			totalRecords,
+			totalSuccessful,
+			totalFailed
 		};
 	}
 });
