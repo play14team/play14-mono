@@ -1,5 +1,11 @@
 packages:
-  - 'ui'
-  - 'web'
-  # Exclude api - it uses yarn
-  # - 'api'
+  - ui
+  - web
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - sharp
+  - sqlite3
+  - unrs-resolver
