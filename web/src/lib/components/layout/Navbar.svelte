@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import SearchBox from './SearchBox.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
+  import ThemeToggle from './ThemeToggle.svelte';
   import { t } from '$lib/i18n';
 
   let collapsed = true;
@@ -30,17 +31,26 @@
     : 'navbar-toggler navbar-toggler-right';
 </script>
 
-<div id="navbar" class="navbar-area {isSticky ? 'is-sticky' : ''}">
+<div id="navbar" class="navbar-area bg-gray-50 dark:bg-gray-900 {isSticky ? 'is-sticky' : ''}">
   <div class="tarn-nav">
     <div class="container">
       <nav class="navbar navbar-expand-lg navbar-light">
         <a href="/" on:click={closeNavbar} class="navbar-brand">
           <img
-            src="/logo/play14_white_bg_transparent.svg"
+            src="/logo/play14_white_bg_trans_600x200.png"
             alt="logo"
             height="60"
             width="180"
             style="height: auto;"
+            class="dark:hidden"
+          />
+          <img
+            src="/logo/play14_black_bg_trans_600x200.png"
+            alt="logo"
+            height="60"
+            width="180"
+            style="height: auto;"
+            class="hidden dark:block"
           />
         </a>
 
@@ -151,9 +161,10 @@
             </li>
           </ul>
 
-          <div class="d-flex align-items-center">
+          <div class="navbar-utilities d-flex align-items-center">
             <SearchBox />
             <LanguageSwitcher />
+            <ThemeToggle />
           </div>
         </div>
       </nav>
@@ -175,6 +186,21 @@
     left: 0;
     right: 0;
     box-shadow: 0 2px 28px 0 rgba(0, 0, 0, 0.06);
-    background-color: white;
+    animation: fadeInDown 0.3s;
+  }
+
+  :global(.dark) .navbar-area.is-sticky {
+    box-shadow: 0 2px 28px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -20px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
   }
 </style>

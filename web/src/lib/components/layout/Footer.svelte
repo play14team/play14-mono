@@ -22,28 +22,37 @@
   const currentYear = new Date().getFullYear();
 </script>
 
-<footer class="footer-area bg-color">
+<footer class="footer-area bg-gray-50 dark:bg-gray-800">
   <div class="container">
     <div class="row">
       <div class="col-lg-4 col-sm-6">
         <div class="single-footer-widget">
           <a href="/" class="logo">
             <img
-              src="/logo/play14_600x200_transparent.png"
+              src="/logo/play14_white_bg_full.svg"
               alt="logo"
               width="600"
               height="200"
               style="max-width: 100%; height: auto;"
+              class="dark:hidden"
+            />
+            <img
+              src="/logo/play14_black_bg_full.svg"
+              alt="logo"
+              width="600"
+              height="200"
+              style="max-width: 100%; height: auto;"
+              class="hidden dark:block"
             />
           </a>
-          <p>{$t('common.footer.playIsTheWay')}</p>
+          <p class="text-gray-600 dark:text-gray-400">{$t('common.footer.playIsTheWay')}</p>
 
           <ul class="social-link">
             {#each socialLinks as action (action.url)}
               <li>
                 <a
                   href={action.url}
-                  class="d-block"
+                  class="d-block bg-gray-200 text-gray-700 hover:bg-blue-600 hover:text-white dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-600"
                   target="_blank"
                   rel="noreferrer"
                   aria-label={`Visit our ${action.icon} page`}
@@ -58,17 +67,29 @@
 
       <div class="col-lg-2 col-sm-6">
         <div class="single-footer-widget pl-5">
-          <h3>{$t('common.footer.explore')}</h3>
+          <h3 class="text-gray-900 dark:text-gray-100">{$t('common.footer.explore')}</h3>
 
           <ul class="footer-links-list">
             <li>
-              <a href="/">{$t('common.home')}</a>
+              <a
+                href="/"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.home')}</a
+              >
             </li>
             <li>
-              <a href="/about/story">{$t('common.about')}</a>
+              <a
+                href="/about/story"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.about')}</a
+              >
             </li>
             <li>
-              <a href="/contact">{$t('common.contact')}</a>
+              <a
+                href="/contact"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.contact')}</a
+              >
             </li>
           </ul>
         </div>
@@ -76,20 +97,36 @@
 
       <div class="col-lg-2 col-sm-6">
         <div class="single-footer-widget">
-          <h3>{$t('common.footer.resources')}</h3>
+          <h3 class="text-gray-900 dark:text-gray-100">{$t('common.footer.resources')}</h3>
 
           <ul class="footer-links-list">
             <li>
-              <a href="/events">{$t('common.footer.ourEvents')}</a>
+              <a
+                href="/events"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.ourEvents')}</a
+              >
             </li>
             <li>
-              <a href="/players">{$t('common.footer.ourPlayers')}</a>
+              <a
+                href="/players"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.ourPlayers')}</a
+              >
             </li>
             <li>
-              <a href="/games">{$t('common.footer.ourGames')}</a>
+              <a
+                href="/games"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.ourGames')}</a
+              >
             </li>
             <li>
-              <a href="/articles">{$t('common.footer.ourArticles')}</a>
+              <a
+                href="/articles"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.ourArticles')}</a
+              >
             </li>
           </ul>
         </div>
@@ -97,11 +134,11 @@
 
       <div class="col-lg-4 col-sm-6">
         <div class="single-footer-widget">
-          <h3>{$t('common.footer.address')}</h3>
+          <h3 class="text-gray-900 dark:text-gray-100">{$t('common.footer.address')}</h3>
 
           <ul class="footer-contact-info">
-            <li>
-              <i class="bx bx-building"></i>
+            <li class="text-gray-600 dark:text-gray-400">
+              <i class="bx bx-building text-blue-600 dark:text-blue-400"></i>
               #play14 a.s.b.l.
               <br />
               46 boulevard Jules Salentiny
@@ -110,8 +147,8 @@
               <br />
               LUXEMBOURG
             </li>
-            <li>
-              <i class="bx bx-envelope"></i>
+            <li class="text-gray-600 dark:text-gray-400">
+              <i class="bx bx-envelope text-blue-600 dark:text-blue-400"></i>
               <a href="mailto:team@play14.org">team@play14.org</a>
             </li>
           </ul>
@@ -119,16 +156,17 @@
       </div>
     </div>
 
-    <div class="footer-bottom-area">
+    <div class="footer-bottom-area border-t border-gray-200 dark:border-gray-700">
       <div class="row align-items-center">
         <div class="col-lg-6 col-md-6">
-          <p>
+          <p class="text-gray-600 dark:text-gray-400">
             &copy; 2014 - {currentYear} <strong>#play14</strong>
             {$t('common.footer.developedBy')}
             <a
               href="https://www.linkedin.com/in/c%C3%A9dric-pontet/"
               target="_blank"
               rel="noreferrer"
+              class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
             >
               Cédric Pontet
             </a>
@@ -138,10 +176,18 @@
         <div class="col-lg-6 col-md-6">
           <ul>
             <li>
-              <a href="/privacy">{$t('common.footer.privacyPolicy')}</a>
+              <a
+                href="/privacy"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.privacyPolicy')}</a
+              >
             </li>
             <li>
-              <a href="/terms">{$t('common.footer.termsOfService')}</a>
+              <a
+                href="/terms"
+                class="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                >{$t('common.footer.termsOfService')}</a
+              >
             </li>
           </ul>
         </div>
@@ -157,7 +203,6 @@
 <style>
   /* Footer styles will be imported from the main stylesheet */
   .footer-area {
-    background-color: #f8f9fa;
     padding-top: 80px;
     position: relative;
   }
@@ -165,7 +210,6 @@
   .footer-bottom-area {
     margin-top: 50px;
     padding: 30px 0;
-    border-top: 1px solid #e0e0e0;
   }
 
   .footer-bottom-area ul {

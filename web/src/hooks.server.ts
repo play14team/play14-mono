@@ -34,7 +34,21 @@ export const getSession: GetSession = ({ locals }) => {
 
 export const transformPageChunk: TransformPageChunk = ({ html, done }) => {
   if (done) {
+    // Add theme initialization script to prevent flash
+    const themeScript = `
+      <script>
+        (function() {
+          const theme = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const activeTheme = theme || (prefersDark ? 'dark' : 'light');
+          if (activeTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        })();
+      </script>
+    `;
+
     // Default to English, but in a real app you'd get this from cookies/headers
-    return html.replace('%sveltekit.lang%', 'en');
+    return html.replace('%sveltekit.lang%', 'en').replace('</head>', themeScript + '</head>');
   }
 };

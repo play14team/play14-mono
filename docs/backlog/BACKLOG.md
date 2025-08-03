@@ -1,2 +1,3 @@
 - [x] Houdini in the home page
-- [ ] Is Houdini able to do SSR and static rendering?
+- [x] Is Houdini able to do SSR and static rendering? - Yes, confirmed working
+- [x] Dark mode - Implemented with theme toggle and proper logo handling

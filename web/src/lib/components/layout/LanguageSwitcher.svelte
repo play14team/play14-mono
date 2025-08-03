@@ -21,7 +21,7 @@
 
 <div class="language-switcher">
   <button class="language-button" aria-label="Change language" aria-haspopup="true">
-    <i class="bx bx-globe"></i>
+    <i class="bx bx-globe text-gray-600 dark:text-gray-400"></i>
     <span class="language-code">{currentLocale.toUpperCase()}</span>
   </button>
 
@@ -42,7 +42,6 @@
 <style>
   .language-switcher {
     position: relative;
-    margin-left: 1rem;
   }
 
   .language-button {
@@ -50,15 +49,26 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: none;
-    border: 1px solid #e0e0e0;
+    background-color: rgb(249 250 251); /* bg-gray-50 */
+    color: rgb(55 65 81); /* text-gray-700 */
+    border: 1px solid rgb(209 213 219); /* border-gray-300 */
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
   }
 
+  :global(.dark) .language-button {
+    background-color: rgb(31 41 55); /* bg-gray-800 */
+    color: rgb(209 213 219); /* text-gray-300 */
+    border-color: rgb(55 65 81); /* border-gray-700 */
+  }
+
   .language-button:hover {
-    border-color: #0056b3;
+    border-color: rgb(59 130 246); /* border-blue-500 */
+  }
+
+  :global(.dark) .language-button:hover {
+    border-color: rgb(96 165 250); /* border-blue-400 */
   }
 
   .language-code {
@@ -71,12 +81,22 @@
     top: 100%;
     right: 0;
     margin-top: 0.5rem;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background-color: white;
+    border: 1px solid rgb(209 213 219); /* border-gray-300 */
     border-radius: 4px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
     display: none;
     min-width: 150px;
+  }
+
+  :global(.dark) .language-dropdown {
+    background-color: rgb(31 41 55); /* bg-gray-800 */
+    border-color: rgb(55 65 81); /* border-gray-700 */
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.3),
+      0 4px 6px -4px rgb(0 0 0 / 0.2);
   }
 
   .language-switcher:hover .language-dropdown,
@@ -92,22 +112,34 @@
     border: none;
     text-align: left;
     cursor: pointer;
+    color: rgb(55 65 81); /* text-gray-700 */
     transition: background-color 0.2s ease;
   }
 
+  :global(.dark) .language-option {
+    color: rgb(209 213 219); /* text-gray-300 */
+  }
+
   .language-option:hover {
-    background-color: #f5f5f5;
+    background-color: rgb(243 244 246); /* bg-gray-100 */
+  }
+
+  :global(.dark) .language-option:hover {
+    background-color: rgb(55 65 81); /* bg-gray-700 */
   }
 
   .language-option.active {
-    background-color: #e3f2fd;
+    background-color: rgb(239 246 255); /* bg-blue-50 */
     font-weight: 600;
+  }
+
+  :global(.dark) .language-option.active {
+    background-color: rgb(30 58 138 / 0.3); /* bg-blue-900/30 */
   }
 
   @media (max-width: 768px) {
     .language-switcher {
-      margin-left: 0;
-      margin-top: 1rem;
+      margin-top: 0;
     }
   }
 </style>
