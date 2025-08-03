@@ -1,6 +1,7 @@
 import { STRAPI_API_SECRET } from '$env/static/private';
+import type { Handle, GetSession, TransformPageChunk } from '@sveltejs/kit';
 
-export async function handle({ event, resolve }) {
+export const handle: Handle = async ({ event, resolve }) => {
   // Add the API token to locals so it can be passed to the session
   event.locals.token = STRAPI_API_SECRET;
 
@@ -22,11 +23,18 @@ export async function handle({ event, resolve }) {
 
   const response = await resolve(event);
   return response;
-}
+};
 
-export function getSession({ locals }) {
+export const getSession: GetSession = ({ locals }) => {
   // Pass the token to the client through the session
   return {
     token: locals.token
   };
-}
+};
+
+export const transformPageChunk: TransformPageChunk = ({ html, done }) => {
+  if (done) {
+    // Default to English, but in a real app you'd get this from cookies/headers
+    return html.replace('%sveltekit.lang%', 'en');
+  }
+};

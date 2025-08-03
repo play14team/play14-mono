@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import 'boxicons/css/boxicons.min.css';
+@import '$lib/styles/play14.css';
 
 @import 'tw-animate-css';
 
