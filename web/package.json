@@ -42,6 +42,7 @@
 		"clsx": "^2.1.1",
 		"convex": "^1.25.4",
 		"convex-svelte": "^0.0.11",
+		"convex-test": "^0.0.38",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",

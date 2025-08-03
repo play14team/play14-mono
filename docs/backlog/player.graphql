@@ -1,0 +1,22 @@
+query Player($slug: String!) {
+  players(filters: { slug: { eq: $slug } }) {
+    data {
+      attributes {
+        slug
+        name
+        avatar {
+          data {
+            id
+            attributes {
+              name
+              url
+              blurhash
+              width
+              height
+            }
+          }
+        }
+      }
+    }
+  }
+}

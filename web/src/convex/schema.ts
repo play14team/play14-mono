@@ -39,7 +39,7 @@ export default defineSchema({
 			v.literal('Over'),
 			v.literal('Cancelled')
 		),
-		description: v.string(), // rich text as HTML
+		description: v.optional(v.string()), // rich text as HTML
 		contactEmail: v.string(),
 		tagline: v.optional(v.string()),
 		defaultImageId: v.optional(v.id('_storage')),
@@ -51,6 +51,7 @@ export default defineSchema({
 		// Components as embedded objects
 		timetable: v.array(
 			v.object({
+				id: v.string(), // Strapi component ID
 				day: v.union(
 					v.literal('Monday'),
 					v.literal('Tuesday'),
@@ -63,6 +64,7 @@ export default defineSchema({
 				description: v.string(),
 				timeslots: v.array(
 					v.object({
+						id: v.string(), // Strapi component ID
 						time: v.string(), // HH:MM format
 						description: v.string()
 					})
@@ -83,6 +85,7 @@ export default defineSchema({
 		),
 		media: v.array(
 			v.object({
+				id: v.string(), // Strapi component ID
 				url: v.string(),
 				type: v.union(v.literal('Photos'), v.literal('Videos'))
 			})
@@ -175,7 +178,7 @@ export default defineSchema({
 		locationOriginal: v.optional(v.string()), // Full Mapbox GeoJSON preserved
 		socialNetworks: v.array(
 			v.object({
-				type: v.string(), // Keep flexible for now
+				type: v.union(v.string(), v.null()), // Allow null types
 				url: v.string()
 			})
 		),
@@ -291,8 +294,8 @@ export default defineSchema({
 		addressDetails: v.optional(v.string()),
 		socialNetworks: v.array(
 			v.object({
-				type: v.string(),
-				url: v.string()
+				type: v.union(v.string(), v.null()),
+				url: v.union(v.string(), v.null())
 			})
 		)
 	}).index('by_strapi_id', ['strapiId']),
@@ -304,8 +307,8 @@ export default defineSchema({
 		logo: v.optional(v.id('_storage')),
 		socialNetworks: v.array(
 			v.object({
-				type: v.string(),
-				url: v.string()
+				type: v.union(v.string(), v.null()),
+				url: v.union(v.string(), v.null())
 			})
 		)
 	}).index('by_strapi_id', ['strapiId']),
