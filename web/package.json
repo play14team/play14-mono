@@ -19,12 +19,13 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"lint:convex": "tsc --noEmit --project src/convex/tsconfig.json",
+		"lint:convex": "npx convex dev --once && tsc --noEmit --project src/convex/tsconfig.json",
 		"lint:all": "pnpm lint && pnpm lint:convex",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"verify": "pnpm format && pnpm lint --fix && pnpm lint:convex && pnpm check"
+		"verify": "pnpm format && pnpm lint --fix && pnpm lint:convex && pnpm check",
+		"env:inject": "node scripts/inject-env.js"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
