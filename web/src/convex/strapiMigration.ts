@@ -1180,12 +1180,16 @@ export const migratePlayersData = action({
           }
         }
 
-        // Map social networks
+        // Map social networks, filtering out null/invalid entries
         const socialNetworks =
-          player.attributes.socialNetworks?.map((sn) => ({
-            type: sn.type,
-            url: sn.url
-          })) || [];
+          player.attributes.socialNetworks
+            ?.filter(
+              (sn: { type: string | null; url: string | null }) => sn.url && sn.url.trim() !== ''
+            )
+            .map((sn: { type: string | null; url: string | null }) => ({
+              type: sn.type,
+              url: sn.url! // Non-null assertion since we filtered out nulls
+            })) || [];
 
         // Validate and map position
         const validPositions = ['Player', 'Host', 'Mentor', 'Founder'] as const;
@@ -1203,11 +1207,13 @@ export const migratePlayersData = action({
           socialNetworksCount: socialNetworks.length
         });
 
-        // Generate slug from name (players don't have slug field in Strapi)
-        const slug = player.attributes.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
+        // Use actual slug from Strapi or generate from name as fallback
+        const slug =
+          player.attributes.slug ||
+          player.attributes.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
 
         // Insert new player using internal mutation
         const playerId: string = await ctx.runMutation(internal.strapiMigration.insertPlayer, {
@@ -1406,12 +1412,16 @@ export const migrateSponsorsData = action({
         // Migrate logo if present
         const logoId = await migrateSingleImage(ctx, sponsor.attributes.logo);
 
-        // Map social networks
+        // Map social networks, filtering out null/invalid entries
         const socialNetworks =
-          sponsor.attributes.socialNetworks?.map((sn) => ({
-            type: sn.type,
-            url: sn.url
-          })) || [];
+          sponsor.attributes.socialNetworks
+            ?.filter(
+              (sn: { type: string | null; url: string | null }) => sn.url && sn.url.trim() !== ''
+            )
+            .map((sn: { type: string | null; url: string | null }) => ({
+              type: sn.type,
+              url: sn.url! // Non-null assertion since we filtered out nulls
+            })) || [];
 
         // Insert new sponsor using internal mutation
         const sponsorId: string = await ctx.runMutation(internal.strapiMigration.insertSponsor, {
@@ -4141,21 +4151,25 @@ export const fixMissingIdMappings = mutation({
         if (records.length === 0) break;
 
         for (const record of records) {
-          if (!record.strapiId) continue;
+          const rec = record as { _id: string; strapiId?: string | number };
+          if (!rec.strapiId) continue;
 
           // Check if mapping already exists
           const existing = await ctx.db
             .query('idMappings')
             .filter((q) =>
-              q.and(q.eq(q.field('strapiType'), type), q.eq(q.field('strapiId'), record.strapiId))
+              q.and(
+                q.eq(q.field('strapiType'), type),
+                q.eq(q.field('strapiId'), String(rec.strapiId))
+              )
             )
             .first();
 
           if (!existing) {
             await ctx.db.insert('idMappings', {
               strapiType: type,
-              strapiId: record.strapiId,
-              convexId: record._id
+              strapiId: String(rec.strapiId),
+              convexId: rec._id
             });
             created++;
           } else {
