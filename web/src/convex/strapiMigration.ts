@@ -1467,22 +1467,42 @@ export const migrateSingleContentType = action({
       // Step 1: Fetch data from Strapi
       let fetchResult;
 
-      if (args.contentType === 'events') {
-        // Use batched fetch for events to avoid timeouts
-        console.log('🔄 Using batched fetch for events...');
-        fetchResult = await ctx.runAction(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (internal as any).strapiMigration.fetchEventsBatched,
-          {
-            strapiUrl: args.strapiUrl,
-            strapiSecret: args.strapiSecret
-          }
-        );
+      // Content types that need batched fetching due to large datasets
+      const batchedContentTypes = ['events', 'players', 'tags', 'expectations', 'eventLocations', 'venues', 'games', 'sponsors'];
+
+      if (batchedContentTypes.includes(args.contentType)) {
+        // Use batched fetch for content types with many records
+        console.log(`🔄 Using batched fetch for ${args.contentType}...`);
+        
+        if (args.contentType === 'events') {
+          // Use existing events-specific batched fetch
+          fetchResult = await ctx.runAction(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (internal as any).strapiMigration.fetchEventsBatched,
+            {
+              strapiUrl: args.strapiUrl,
+              strapiSecret: args.strapiSecret
+            }
+          );
+        } else {
+          // Use generic batched fetch for other content types
+          fetchResult = await ctx.runAction(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (internal as any).strapiMigrationBatched.fetchStrapiDataBatched,
+            {
+              contentType: args.contentType,
+              strapiUrl: args.strapiUrl,
+              strapiSecret: args.strapiSecret,
+              pageSize: 100 // Reasonable page size to avoid timeouts
+            }
+          );
+        }
+        
         console.log(
-          `📊 Batched fetch result: ${fetchResult.totalFetched} events from ${fetchResult.totalPages} pages`
+          `📊 Batched fetch result: ${fetchResult.totalFetched} ${args.contentType} from ${fetchResult.totalPages} pages`
         );
       } else {
-        // Use regular fetch for other content types
+        // Use regular fetch for singleton content types
         fetchResult = await ctx.runAction(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (internal as any).strapiMigration.fetchStrapiData,
@@ -4035,6 +4055,139 @@ export const testFileMigration = action({
  *
  * Runs all content type migrations in proper dependency order
  */
+/**
+ * Get count of idMappings by type
+ */
+export const getIdMappingCounts = query({
+  handler: async (ctx) => {
+    const mappings = await ctx.db.query('idMappings').collect();
+    const counts: Record<string, number> = {};
+    
+    for (const mapping of mappings) {
+      counts[mapping.strapiType] = (counts[mapping.strapiType] || 0) + 1;
+    }
+    
+    return counts;
+  }
+});
+
+/**
+ * Fix missing idMappings by scanning all tables
+ */
+export const fixMissingIdMappings = mutation({
+  args: {
+    tableName: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const tables = args.tableName 
+      ? [{ 
+          name: args.tableName, 
+          type: args.tableName.endsWith('s') 
+            ? args.tableName.slice(0, -1) 
+            : args.tableName 
+        }]
+      : [
+          { name: 'tags', type: 'tag' },
+          { name: 'expectations', type: 'expectation' },
+          { name: 'venues', type: 'venue' },
+          { name: 'sponsors', type: 'sponsor' },
+          { name: 'eventLocations', type: 'eventLocation' },
+          { name: 'home', type: 'home' },
+          { name: 'history', type: 'history' },
+          { name: 'format', type: 'format' },
+          { name: 'hosting', type: 'hosting' },
+          { name: 'testimonials', type: 'testimonial' },
+          { name: 'players', type: 'player' },
+          { name: 'games', type: 'game' },
+          { name: 'articles', type: 'article' },
+          { name: 'events', type: 'event' }
+        ];
+
+    // Map proper singular types
+    const typeMap: Record<string, string> = {
+      tags: 'tag',
+      expectations: 'expectation',
+      venues: 'venue',
+      sponsors: 'sponsor',
+      eventLocations: 'eventLocation',
+      testimonials: 'testimonial',
+      players: 'player',
+      games: 'game',
+      articles: 'article',
+      events: 'event',
+      home: 'home',
+      history: 'history',
+      format: 'format',
+      hosting: 'hosting'
+    };
+
+    const results = [];
+
+    for (const { name } of tables) {
+      const type = typeMap[name] || name;
+      let created = 0;
+      let skipped = 0;
+      let processed = 0;
+      const batchSize = 100;
+      
+      // Process in batches to avoid reading too many documents
+      while (true) {
+        const records = await ctx.db
+          .query(name as any)
+          .order('desc')
+          .take(batchSize);
+        
+        if (records.length === 0) break;
+        
+        for (const record of records) {
+          if (!record.strapiId) continue;
+          
+          // Check if mapping already exists
+          const existing = await ctx.db
+            .query('idMappings')
+            .filter((q) =>
+              q.and(
+                q.eq(q.field('strapiType'), type),
+                q.eq(q.field('strapiId'), record.strapiId)
+              )
+            )
+            .first();
+          
+          if (!existing) {
+            await ctx.db.insert('idMappings', {
+              strapiType: type,
+              strapiId: record.strapiId,
+              convexId: record._id
+            });
+            created++;
+          } else {
+            skipped++;
+          }
+        }
+        
+        processed += records.length;
+        
+        // If we got fewer than batchSize, we've reached the end
+        if (records.length < batchSize) break;
+        
+        // For pagination, we'd need to implement cursor-based pagination
+        // For now, let's just process what we can
+        break;
+      }
+      
+      results.push({ 
+        table: name, 
+        type,
+        processed,
+        created, 
+        skipped 
+      });
+    }
+    
+    return results;
+  }
+});
+
 export const runCompleteMigration = action({
   args: {
     includeFiles: v.optional(v.boolean()),

@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "powershell.exe -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\notify.wav').PlaySync()\"",
+        "timeout": 5
+      }
+    ]
+  }
+}
