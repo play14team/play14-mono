@@ -9,7 +9,7 @@ console.log('Run this command:');
 console.log('runCompleteMigration({ contentTypes: ["venues"] })');
 console.log('');
 console.log(
-	'Expected result: Most/all venues should succeed (no more addressDetails/website null errors)'
+  'Expected result: Most/all venues should succeed (no more addressDetails/website null errors)'
 );
 
 console.log('\n🏆 STEP 2: Test sponsors migration (8 failed previously)');
@@ -29,7 +29,7 @@ console.log('Run this command:');
 console.log('runCompleteMigration({ contentTypes: ["games"] })');
 console.log('');
 console.log(
-	'Expected result: All games should succeed (no more credits null or materials/tags id errors)'
+  'Expected result: All games should succeed (no more credits null or materials/tags id errors)'
 );
 
 console.log('\n📍 STEP 5: Test eventLocations migration (44 failed previously)');
@@ -37,7 +37,7 @@ console.log('Run this command:');
 console.log('runCompleteMigration({ contentTypes: ["eventLocations"] })');
 console.log('');
 console.log(
-	'Expected result: All eventLocations should succeed (no more locationOriginal object errors)'
+  'Expected result: All eventLocations should succeed (no more locationOriginal object errors)'
 );
 
 console.log('\n✅ SUCCESS INDICATORS:');

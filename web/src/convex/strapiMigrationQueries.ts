@@ -927,20 +927,20 @@ export const HOSTING_MIGRATION_QUERY = `
  * All migration queries in a single object for easy access
  */
 export const MIGRATION_QUERIES = {
-	events: EVENTS_MIGRATION_QUERY,
-	games: GAMES_MIGRATION_QUERY,
-	players: PLAYERS_MIGRATION_QUERY,
-	articles: ARTICLES_MIGRATION_QUERY,
-	testimonials: TESTIMONIALS_MIGRATION_QUERY,
-	venues: VENUES_MIGRATION_QUERY,
-	eventLocations: EVENT_LOCATIONS_MIGRATION_QUERY,
-	sponsors: SPONSORS_MIGRATION_QUERY,
-	tags: TAGS_MIGRATION_QUERY,
-	home: HOME_MIGRATION_QUERY,
-	history: HISTORY_MIGRATION_QUERY,
-	expectations: EXPECTATIONS_MIGRATION_QUERY,
-	format: FORMAT_MIGRATION_QUERY,
-	hosting: HOSTING_MIGRATION_QUERY
+  events: EVENTS_MIGRATION_QUERY,
+  games: GAMES_MIGRATION_QUERY,
+  players: PLAYERS_MIGRATION_QUERY,
+  articles: ARTICLES_MIGRATION_QUERY,
+  testimonials: TESTIMONIALS_MIGRATION_QUERY,
+  venues: VENUES_MIGRATION_QUERY,
+  eventLocations: EVENT_LOCATIONS_MIGRATION_QUERY,
+  sponsors: SPONSORS_MIGRATION_QUERY,
+  tags: TAGS_MIGRATION_QUERY,
+  home: HOME_MIGRATION_QUERY,
+  history: HISTORY_MIGRATION_QUERY,
+  expectations: EXPECTATIONS_MIGRATION_QUERY,
+  format: FORMAT_MIGRATION_QUERY,
+  hosting: HOSTING_MIGRATION_QUERY
 } as const;
 
 /**
@@ -952,14 +952,14 @@ export type MigrationContentType = keyof typeof MIGRATION_QUERIES;
  * Get the migration query for a specific content type
  */
 export function getMigrationQuery(contentType: MigrationContentType): string {
-	return MIGRATION_QUERIES[contentType];
+  return MIGRATION_QUERIES[contentType];
 }
 
 /**
  * Get all content types available for migration
  */
 export function getMigrationContentTypes(): MigrationContentType[] {
-	return Object.keys(MIGRATION_QUERIES) as MigrationContentType[];
+  return Object.keys(MIGRATION_QUERIES) as MigrationContentType[];
 }
 
 /**
@@ -967,10 +967,10 @@ export function getMigrationContentTypes(): MigrationContentType[] {
  * Uses smaller batch size to avoid timeouts
  */
 export function getEventsBatchQuery(
-	page: number = 1,
-	pageSize: number = EVENTS_BATCH_SIZE
+  page: number = 1,
+  pageSize: number = EVENTS_BATCH_SIZE
 ): string {
-	return `
+  return `
 		query EventsBatchMigration {
 			events(
 				sort: "start:desc"
@@ -1215,5 +1215,5 @@ export function getEventsBatchQuery(
  * Get the default batch size for events migration
  */
 export function getEventsBatchSize(): number {
-	return EVENTS_BATCH_SIZE;
+  return EVENTS_BATCH_SIZE;
 }
