@@ -1,0 +1,29 @@
+fragment EventItem on Event {
+  slug
+  name
+  start
+  end
+  timezone
+  status
+  description
+  defaultImage {
+    data {
+      id
+      attributes {
+        name
+        url
+        blurhash
+        width
+        height
+      }
+    }
+  }
+  location {
+    data {
+      attributes {
+        name
+        country
+      }
+    }
+  }
+}

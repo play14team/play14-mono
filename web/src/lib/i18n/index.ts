@@ -110,7 +110,56 @@ const enTranslations: Translations = {
     upcomingEvents: 'Upcoming Events',
     latestArticles: 'Latest Articles',
     loading: 'Loading...',
-    error: 'Error'
+    error: 'Error',
+    whatIsPlay14: 'What is #play14?',
+    welcomeText:
+      'Welcome to #play14, a global movement that believes in the transformative power of play!',
+    movementDescription:
+      'We are a worldwide gathering of like-minded people who believe that playing is the best way to learn, share and get creative! We are a movement started in 2014, we are a global series of events organized in different cities on all five continents, we are an unconference following the principles of open-space technology, but above all we are a family whose members share common values and interests.',
+    discoverPowerOfPlay: 'Discover the power of play',
+    playDescription:
+      'Play is a better way to learn because it engages both mind and body, making learning an active, immersive experience. Through play, individuals explore, experiment, and discover concepts in a hands-on way, which enhances understanding and retention. It encourages creativity, problem-solving, and collaboration, helping learners develop critical thinking skills.',
+    franklinQuote: 'Tell me and I forget, teach me and I may remember, involve me and I learn',
+    playBenefits:
+      'Play also reduces stress and increases motivation, making the learning process enjoyable and effective. By creating a safe space for trial and error, play fosters a deeper, more meaningful connection to the material being learned.',
+    whyAttend: 'Why attend?',
+    whyAttendDescription:
+      'Whether you are a facilitator, educator, or curious mind, our events are designed to spark creativity, foster collaboration, and ignite new ideas. Join us in cities worldwide to connect with like-minded individuals and dive into a world of playful experimentation.',
+    globalCommunity: 'Global community',
+    globalCommunityDesc: 'Connect with a diverse network of innovators',
+    endlessFun: 'Endless fun',
+    endlessFunDesc: 'Engage in hands-on, playful activities',
+    inspireBeInspired: 'Inspire & be inspired',
+    inspireBeInspiredDesc: 'Share and discover new games, tools, and techniques',
+    unconferenceDescription:
+      "#play14 is an unconference, where all attendees are also contributors. Just show up with an open mind, and you'll have the chance to propose your own games or dive into the games suggested by others. It's all about participation, creativity, and shared fun!",
+    whatToExpect: 'What to expect?',
+    whatToExpectDescription:
+      'For two and a half days, people with many different profiles and experiences are invited to share serious games and fun activities, experiences and tips, knowledge and insights, laughs and smiles. Everyone is welcome to join.',
+    platoQuote:
+      'You can discover more about a person in an hour of play than a year of conversation',
+    activitiesIntro:
+      'If you feel like joining but wonder what is going to happen, here are some examples of activities we engage in:',
+    activitySeriousGame:
+      'A serious game that you use as a metaphor in order to understand a new concept',
+    activityIceBreaker: 'An ice breaker game where people learn more about one another',
+    activityWarmUp:
+      'A warm up or an energizer that you can use to raise the level of awareness and energy',
+    activityFacilitation: 'A facilitation technique that you can use in your daily work',
+    activityTeamBuilding:
+      'A team building exercise that fosters collaboration and self organization',
+    activityGameDesign: 'A game design session where you invent a new game to teach something new',
+    activityIntrospection:
+      'A soul searching, deep-dive introspection session where you learn about yourself',
+    activityCoaching:
+      'A one-on-one coaching session where you will find some answers with the help of a friend',
+    activityBrainstorming:
+      'A brainstorming session on a question or problem that wakes you up at night',
+    activityCreative: 'A creative session where you sketch, doodle, or build something together',
+    activityFun: 'An fun and energetic time with dancing, singing or being silly together',
+    developSkills:
+      'Join us in order to develop your facilitation skills, increase your ability to accompany change in your organization, foster your creativity and improve your capacity to innovate.',
+    gallery: 'Gallery'
   },
   events: {
     calendar: 'Calendar',
@@ -161,7 +210,60 @@ const frTranslations: Translations = {
     upcomingEvents: 'Événements à venir',
     latestArticles: 'Derniers articles',
     loading: 'Chargement...',
-    error: 'Erreur'
+    error: 'Erreur',
+    whatIsPlay14: "Qu'est-ce que #play14 ?",
+    welcomeText:
+      'Bienvenue à #play14, un mouvement mondial qui croit au pouvoir transformateur du jeu !',
+    movementDescription:
+      "Nous sommes un rassemblement mondial de personnes partageant les mêmes idées qui croient que jouer est la meilleure façon d'apprendre, de partager et d'être créatif ! Nous sommes un mouvement lancé en 2014, nous sommes une série mondiale d'événements organisés dans différentes villes sur les cinq continents, nous sommes une non-conférence suivant les principes de la technologie open-space, mais avant tout nous sommes une famille dont les membres partagent des valeurs et des intérêts communs.",
+    discoverPowerOfPlay: 'Découvrez le pouvoir du jeu',
+    playDescription:
+      "Le jeu est une meilleure façon d'apprendre car il engage à la fois l'esprit et le corps, faisant de l'apprentissage une expérience active et immersive. À travers le jeu, les individus explorent, expérimentent et découvrent des concepts de manière pratique, ce qui améliore la compréhension et la rétention. Il encourage la créativité, la résolution de problèmes et la collaboration, aidant les apprenants à développer des compétences de pensée critique.",
+    franklinQuote:
+      "Dis-moi et j'oublie, enseigne-moi et je peux me souvenir, implique-moi et j'apprends",
+    playBenefits:
+      "Le jeu réduit également le stress et augmente la motivation, rendant le processus d'apprentissage agréable et efficace. En créant un espace sûr pour l'essai et l'erreur, le jeu favorise une connexion plus profonde et plus significative avec le matériel appris.",
+    whyAttend: 'Pourquoi participer ?',
+    whyAttendDescription:
+      "Que vous soyez facilitateur, éducateur ou esprit curieux, nos événements sont conçus pour stimuler la créativité, favoriser la collaboration et susciter de nouvelles idées. Rejoignez-nous dans des villes du monde entier pour vous connecter avec des personnes partageant les mêmes idées et plonger dans un monde d'expérimentation ludique.",
+    globalCommunity: 'Communauté mondiale',
+    globalCommunityDesc: "Connectez-vous avec un réseau diversifié d'innovateurs",
+    endlessFun: 'Plaisir sans fin',
+    endlessFunDesc: 'Participez à des activités pratiques et ludiques',
+    inspireBeInspired: 'Inspirer et être inspiré',
+    inspireBeInspiredDesc: 'Partagez et découvrez de nouveaux jeux, outils et techniques',
+    unconferenceDescription:
+      "#play14 est une non-conférence, où tous les participants sont aussi des contributeurs. Présentez-vous simplement avec un esprit ouvert, et vous aurez la chance de proposer vos propres jeux ou de plonger dans les jeux suggérés par d'autres. Il s'agit de participation, de créativité et de plaisir partagé !",
+    whatToExpect: "À quoi s'attendre ?",
+    whatToExpectDescription:
+      'Pendant deux jours et demi, des personnes aux profils et expériences très différents sont invitées à partager des jeux sérieux et des activités amusantes, des expériences et des conseils, des connaissances et des idées, des rires et des sourires. Tout le monde est le bienvenu.',
+    platoQuote:
+      "Vous pouvez en découvrir plus sur une personne en une heure de jeu qu'en un an de conversation",
+    activitiesIntro:
+      "Si vous avez envie de nous rejoindre mais vous vous demandez ce qui va se passer, voici quelques exemples d'activités auxquelles nous participons :",
+    activitySeriousGame:
+      'Un jeu sérieux que vous utilisez comme métaphore pour comprendre un nouveau concept',
+    activityIceBreaker: 'Un jeu brise-glace où les gens en apprennent plus les uns sur les autres',
+    activityWarmUp:
+      "Un échauffement ou un énergisant que vous pouvez utiliser pour augmenter le niveau de conscience et d'énergie",
+    activityFacilitation:
+      'Une technique de facilitation que vous pouvez utiliser dans votre travail quotidien',
+    activityTeamBuilding:
+      "Un exercice de team building qui favorise la collaboration et l'auto-organisation",
+    activityGameDesign:
+      'Une session de conception de jeu où vous inventez un nouveau jeu pour enseigner quelque chose de nouveau',
+    activityIntrospection: "Une session d'introspection profonde où vous apprenez sur vous-même",
+    activityCoaching:
+      "Une session de coaching individuel où vous trouverez des réponses avec l'aide d'un ami",
+    activityBrainstorming:
+      'Une session de brainstorming sur une question ou un problème qui vous réveille la nuit',
+    activityCreative:
+      'Une session créative où vous esquissez, gribouillez ou construisez quelque chose ensemble',
+    activityFun:
+      'Un moment amusant et énergique avec de la danse, du chant ou des bêtises ensemble',
+    developSkills:
+      'Rejoignez-nous pour développer vos compétences de facilitation, augmenter votre capacité à accompagner le changement dans votre organisation, favoriser votre créativité et améliorer votre capacité à innover.',
+    gallery: 'Galerie'
   },
   events: {
     calendar: 'Calendrier',

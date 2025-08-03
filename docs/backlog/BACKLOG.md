@@ -1,3 +1,5 @@
 - [x] Houdini in the home page
 - [x] Is Houdini able to do SSR and static rendering? - Yes, confirmed working
 - [x] Dark mode - Implemented with theme toggle and proper logo handling
+- [ ] Finish the rest of the home page by getting Strapi data from Home single
+- [ ] CI Lint, Check, Build

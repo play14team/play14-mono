@@ -21,7 +21,12 @@ export const handle: Handle = async ({ event, resolve }) => {
     return originalFetch(input, init);
   };
 
-  const response = await resolve(event);
+  const response = await resolve(event, {
+    filterSerializedResponseHeaders: (name) => {
+      // Allow content-type and other headers needed by Houdini
+      return name === 'content-type' || name === 'authorization' || name.startsWith('x-');
+    }
+  });
   return response;
 };
 

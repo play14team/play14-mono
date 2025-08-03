@@ -1,50 +1,97 @@
 query HomePage {
-  events(pagination: { limit: 3 }, sort: "start:desc") {
+  home {
     data {
-      id
       attributes {
-        name
-        slug
-        start
-        end
-        description
-        status
-        location {
+        images(pagination: { limit: 10000 }) {
           data {
-            id
             attributes {
               name
-              country
-            }
-          }
-        }
-        defaultImage {
-          data {
-            id
-            attributes {
               url
-              alternativeText
+              width
+              height
+              hash
+              mime
+              provider
+              size
             }
           }
         }
       }
     }
   }
-  articles(pagination: { limit: 3 }, sort: "publishedAt:desc") {
+  upcomingEvents: events(sort: "start:desc", pagination: { limit: 6 }) {
     data {
       id
       attributes {
-        title
         slug
-        summary
-        publishedAt
-        category
+        name
+        start
+        end
+        timezone
+        status
+        description
         defaultImage {
           data {
             id
             attributes {
+              name
               url
-              alternativeText
+              blurhash
+              width
+              height
+            }
+          }
+        }
+        location {
+          data {
+            attributes {
+              name
+              country
+            }
+          }
+        }
+      }
+    }
+  }
+  latestArticles: articles(sort: "publishedAt:desc", pagination: { limit: 3 }) {
+    data {
+      id
+      attributes {
+        slug
+        title
+        summary
+        category
+        publishedAt
+        defaultImage {
+          data {
+            id
+            attributes {
+              name
+              url
+              blurhash
+              width
+              height
+            }
+          }
+        }
+        author {
+          data {
+            id
+            attributes {
+              slug
+              name
+              avatar {
+                data {
+                  id
+                  attributes {
+                    name
+                    url
+                    blurhash
+                    width
+                    height
+                  }
+                }
+              }
             }
           }
         }
