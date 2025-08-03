@@ -48,27 +48,7 @@ Validator: v.string()
 Object: {}
 Validator: v.object({confirmDelete: v.literal("DELETE_ALL_DATA")})
 
-8/3/2025, 2:19:03 AM [CONVEX M(strapiMigration:insertPlayer)] ArgumentValidationError: Value does not match validator.
-Path: .socialNetworks[1].url
-Value: null
-Validator: v.string()
-
-8/3/2025, 2:19:25 AM [CONVEX M(strapiMigration:insertPlayer)] ArgumentValidationError: Value does not match validator.
-Path: .socialNetworks[1].url
-Value: null
-Validator: v.string()
-
 8/3/2025, 2:20:40 AM [CONVEX A(strapiMigration:runCompleteMigration)] [ERROR] '❌ games migration failed:' 'Failed to fetch games: GraphQL errors: [{"message":"Cannot return null for non-nullable field Game.category.","locations":[{"line":13,"column":11}],"path":["games","data",46,"attributes","category"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}},{"message":"Cannot return null for non-nullable field Game.category.","locations":[{"line":13,"column":11}],"path":["games","data",66,"attributes","category"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}},{"message":"Cannot return null for non-nullable field Game.category.","locations":[{"line":13,"column":11}],"path":["games","data",85,"attributes","category"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}},{"message":"Cannot return null for non-nullable field Game.category.","locations":[{"line":13,"column":11}],"path":["games","data",107,"attributes","category"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}},{"message":"Cannot return null for non-nullable field ComponentSharedList.value.","locations":[{"line":24,"column":13}],"path":["games","data",11,"attributes","tags",5,"value"],"extensions":{"code":"INTERNAL_SERVER_ERROR"}}]'
-
-8/3/2025, 2:34:47 AM [CONVEX M(strapiMigration:insertGame)] ArgumentValidationError: Value does not match validator.
-Path: .summary
-Value: null
-Validator: v.string()
-
-8/3/2025, 2:34:49 AM [CONVEX M(strapiMigration:insertGame)] ArgumentValidationError: Value does not match validator.
-Path: .timebox
-Value: null
-Validator: v.string()
 
 - [ ] Do not remove fields without asking
 
@@ -77,3 +57,6 @@ Validator: v.string()
   - [ ] Remove one by one any file that is not linked to a record
   - [ ] Reset the whole convex project
     - [ ] Beware of environment variables
+- [ ] Cleanup @web/tests
+
+https://docs.convex.dev/cli
