@@ -16,10 +16,10 @@ export const fetchStrapiDataBatched = action({
     const strapiUrl = args.strapiUrl || process.env.STRAPI_API_URL;
     const strapiSecret = args.strapiSecret || process.env.STRAPI_API_SECRET;
     const pageSize = args.pageSize || 100;
-    
+
     if (!strapiUrl || !strapiSecret) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: 'Strapi URL and secret must be configured',
         data: null,
         totalFetched: 0,
@@ -37,7 +37,7 @@ export const fetchStrapiDataBatched = action({
     while (hasMore) {
       // Build query based on content type
       const query = buildPaginatedQuery(args.contentType, currentPage, pageSize);
-      
+
       try {
         const response = await fetch(`${strapiUrl}/graphql`, {
           method: 'POST',
@@ -59,7 +59,7 @@ export const fetchStrapiDataBatched = action({
         }
 
         const result = await response.json();
-        
+
         if (result.errors) {
           return {
             success: false,
@@ -76,11 +76,13 @@ export const fetchStrapiDataBatched = action({
         const pagination = contentData.meta?.pagination;
 
         allData = allData.concat(pageData);
-        
+
         if (pagination) {
           totalCount = pagination.total;
           hasMore = currentPage < pagination.pageCount;
-          console.log(`📊 Fetched page ${currentPage}/${pagination.pageCount} (${pageData.length} items, total: ${allData.length}/${totalCount})`);
+          console.log(
+            `📊 Fetched page ${currentPage}/${pagination.pageCount} (${pageData.length} items, total: ${allData.length}/${totalCount})`
+          );
         } else {
           // No pagination info, assume this is the only page
           hasMore = false;
@@ -129,10 +131,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
   // Base query structure for all content types
   const queryTemplates: Record<string, string> = {
     players: `
-      query PlayersPaginated($page: Int!, $pageSize: Int!) {
+      query PlayersPaginated {
         players(
           sort: "name:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -182,10 +184,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     tags: `
-      query TagsPaginated($page: Int!, $pageSize: Int!) {
+      query TagsPaginated {
         tags(
           sort: "value:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -207,10 +209,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     expectations: `
-      query ExpectationsPaginated($page: Int!, $pageSize: Int!) {
+      query ExpectationsPaginated {
         expectations(
           sort: "title:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -233,10 +235,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     eventLocations: `
-      query EventLocationsPaginated($page: Int!, $pageSize: Int!) {
+      query EventLocationsPaginated {
         eventLocations(
           sort: "name:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -263,10 +265,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     venues: `
-      query VenuesPaginated($page: Int!, $pageSize: Int!) {
+      query VenuesPaginated {
         venues(
           sort: "name:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -298,10 +300,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     games: `
-      query GamesPaginated($page: Int!, $pageSize: Int!) {
+      query GamesPaginated {
         games(
           sort: "name:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -352,10 +354,10 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
       }
     `,
     sponsors: `
-      query SponsorsPaginated($page: Int!, $pageSize: Int!) {
+      query SponsorsPaginated {
         sponsors(
           sort: "name:asc"
-          pagination: { page: $page, pageSize: $pageSize }
+          pagination: { page: PAGE_VALUE, pageSize: PAGESIZE_VALUE }
         ) {
           data {
             id
@@ -401,10 +403,6 @@ function buildPaginatedQuery(contentType: string, page: number, pageSize: number
     throw new Error(`No query template for content type: ${contentType}`);
   }
 
-  // Replace variables with actual values
-  return template
-    .replace('$page: Int!', `page: ${page}`)
-    .replace('$pageSize: Int!', `pageSize: ${pageSize}`)
-    .replace('$page', `${page}`)
-    .replace('$pageSize', `${pageSize}`);
+  // Replace placeholders with actual values
+  return template.replace(/PAGE_VALUE/g, `${page}`).replace(/PAGESIZE_VALUE/g, `${pageSize}`);
 }

@@ -1468,12 +1468,13 @@ export const migrateSingleContentType = action({
       let fetchResult;
 
       // Content types that need batched fetching due to large datasets
-      const batchedContentTypes = ['events', 'players', 'tags', 'expectations', 'eventLocations', 'venues', 'games', 'sponsors'];
+      // Temporarily disabled until strapiMigrationBatched is properly deployed
+      const batchedContentTypes = ['events']; // ['events', 'players', 'tags', 'expectations', 'eventLocations', 'venues', 'games', 'sponsors'];
 
       if (batchedContentTypes.includes(args.contentType)) {
         // Use batched fetch for content types with many records
         console.log(`🔄 Using batched fetch for ${args.contentType}...`);
-        
+
         if (args.contentType === 'events') {
           // Use existing events-specific batched fetch
           fetchResult = await ctx.runAction(
@@ -1497,7 +1498,7 @@ export const migrateSingleContentType = action({
             }
           );
         }
-        
+
         console.log(
           `📊 Batched fetch result: ${fetchResult.totalFetched} ${args.contentType} from ${fetchResult.totalPages} pages`
         );
@@ -4062,11 +4063,11 @@ export const getIdMappingCounts = query({
   handler: async (ctx) => {
     const mappings = await ctx.db.query('idMappings').collect();
     const counts: Record<string, number> = {};
-    
+
     for (const mapping of mappings) {
       counts[mapping.strapiType] = (counts[mapping.strapiType] || 0) + 1;
     }
-    
+
     return counts;
   }
 });
@@ -4079,13 +4080,13 @@ export const fixMissingIdMappings = mutation({
     tableName: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    const tables = args.tableName 
-      ? [{ 
-          name: args.tableName, 
-          type: args.tableName.endsWith('s') 
-            ? args.tableName.slice(0, -1) 
-            : args.tableName 
-        }]
+    const tables = args.tableName
+      ? [
+          {
+            name: args.tableName,
+            type: args.tableName.endsWith('s') ? args.tableName.slice(0, -1) : args.tableName
+          }
+        ]
       : [
           { name: 'tags', type: 'tag' },
           { name: 'expectations', type: 'expectation' },
@@ -4129,30 +4130,27 @@ export const fixMissingIdMappings = mutation({
       let skipped = 0;
       let processed = 0;
       const batchSize = 100;
-      
+
       // Process in batches to avoid reading too many documents
       while (true) {
         const records = await ctx.db
-          .query(name as any)
+          .query(name as Parameters<typeof ctx.db.query>[0])
           .order('desc')
           .take(batchSize);
-        
+
         if (records.length === 0) break;
-        
+
         for (const record of records) {
           if (!record.strapiId) continue;
-          
+
           // Check if mapping already exists
           const existing = await ctx.db
             .query('idMappings')
             .filter((q) =>
-              q.and(
-                q.eq(q.field('strapiType'), type),
-                q.eq(q.field('strapiId'), record.strapiId)
-              )
+              q.and(q.eq(q.field('strapiType'), type), q.eq(q.field('strapiId'), record.strapiId))
             )
             .first();
-          
+
           if (!existing) {
             await ctx.db.insert('idMappings', {
               strapiType: type,
@@ -4164,26 +4162,26 @@ export const fixMissingIdMappings = mutation({
             skipped++;
           }
         }
-        
+
         processed += records.length;
-        
+
         // If we got fewer than batchSize, we've reached the end
         if (records.length < batchSize) break;
-        
+
         // For pagination, we'd need to implement cursor-based pagination
         // For now, let's just process what we can
         break;
       }
-      
-      results.push({ 
-        table: name, 
+
+      results.push({
+        table: name,
         type,
         processed,
-        created, 
-        skipped 
+        created,
+        skipped
       });
     }
-    
+
     return results;
   }
 });

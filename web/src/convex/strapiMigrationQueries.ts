@@ -20,6 +20,7 @@ const EVENTS_BATCH_SIZE = 15;
 export const EVENTS_MIGRATION_QUERY = `
   query EventsMigration {
     events(
+      publicationState: PREVIEW
       sort: "start:desc"
       pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
     ) {
@@ -482,6 +483,7 @@ export const PLAYERS_MIGRATION_QUERY = `
 export const ARTICLES_MIGRATION_QUERY = `
   query ArticlesMigration {
     articles(
+      publicationState: PREVIEW
       sort: "publishedAt:desc"
       pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
     ) {
@@ -583,7 +585,9 @@ export const ARTICLES_MIGRATION_QUERY = `
  */
 export const TESTIMONIALS_MIGRATION_QUERY = `
   query TestimonialsMigration {
-    testimonials(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    testimonials(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -650,7 +654,9 @@ export const TESTIMONIALS_MIGRATION_QUERY = `
  */
 export const VENUES_MIGRATION_QUERY = `
   query VenuesMigration {
-    venues(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    venues(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -680,7 +686,9 @@ export const VENUES_MIGRATION_QUERY = `
  */
 export const EVENT_LOCATIONS_MIGRATION_QUERY = `
   query EventLocationsMigration {
-    eventLocations(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    eventLocations(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -708,7 +716,9 @@ export const EVENT_LOCATIONS_MIGRATION_QUERY = `
  */
 export const SPONSORS_MIGRATION_QUERY = `
   query SponsorsMigration {
-    sponsors(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    sponsors(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -756,7 +766,9 @@ export const SPONSORS_MIGRATION_QUERY = `
  */
 export const TAGS_MIGRATION_QUERY = `
   query TagsMigration {
-    tags(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    tags(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -859,7 +871,9 @@ export const HISTORY_MIGRATION_QUERY = `
  */
 export const EXPECTATIONS_MIGRATION_QUERY = `
   query ExpectationsMigration {
-    expectations(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+    expectations(
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+    ) {
       data {
         id
         attributes {
@@ -973,6 +987,7 @@ export function getEventsBatchQuery(
   return `
 		query EventsBatchMigration {
 			events(
+				publicationState: PREVIEW
 				sort: "start:desc"
 				pagination: { page: ${page}, pageSize: ${pageSize} }
 			) {

@@ -1,11 +1,29 @@
 {
-  "hooks": {
-    "Stop": [
-      {
-        "type": "command",
-        "command": "powershell.exe -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\notify.wav').PlaySync()\"",
-        "timeout": 5
-      }
-    ]
+  "permissions": {
+    "allow": [
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__list_directory_with_sizes",
+      "mcp__filesystem__read_multiple_files",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__create_relations",
+      "mcp__memory__add_observations",
+      "mcp__strapi__strapi_list_servers",
+      "mcp__convex__status",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm vitest run:*)",
+      "WebFetch(domain:play14.org)",
+      "WebFetch(domain:community.play14.org)",
+      "Bash(ls:*)",
+      "Bash(npx convex data:*)",
+      "Bash(npx convex logs:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(pnpm verify:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm run:*)"
+    ],
+    "deny": []
   }
 }

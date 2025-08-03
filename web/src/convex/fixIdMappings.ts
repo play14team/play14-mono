@@ -32,19 +32,31 @@ export const getRecordsWithStrapiId = query({
 
     // Get all records from the specified table
     const records = await ctx.db.query(args.tableName as (typeof validTables)[number]).collect();
-    
+
     // Filter to only those with strapiId
-    const recordsWithStrapiId = records.filter((record: { strapiId?: string }) => record.strapiId);
-    
+    const recordsWithStrapiId = records.filter(
+      (record) => record && typeof record === 'object' && 'strapiId' in record && record.strapiId
+    );
+
     return {
       tableName: args.tableName,
       totalRecords: records.length,
       recordsWithStrapiId: recordsWithStrapiId.length,
-      records: recordsWithStrapiId.map((record: { _id: string; strapiId?: string; name?: string; slug?: string; value?: string; title?: string }) => ({
-        _id: record._id,
-        strapiId: record.strapiId,
-        name: record.name || record.slug || record.value || record.title || 'N/A'
-      }))
+      records: recordsWithStrapiId.map((record) => {
+        const r = record as {
+          _id: string;
+          strapiId?: string | number;
+          name?: string;
+          slug?: string;
+          value?: string;
+          title?: string;
+        };
+        return {
+          _id: r._id,
+          strapiId: String(r.strapiId),
+          name: r.name || r.slug || r.value || r.title || 'N/A'
+        };
+      })
     };
   }
 });
@@ -61,7 +73,7 @@ export const checkExistingMappings = query({
       .query('idMappings')
       .filter((q) => q.eq(q.field('strapiType'), args.strapiType))
       .collect();
-    
+
     return {
       strapiType: args.strapiType,
       count: mappings.length,
@@ -124,13 +136,14 @@ export const createMissingIdMappings = mutation({
 
     // Get all records from the table
     const records = await ctx.db.query(args.tableName as (typeof validTables)[number]).collect();
-    
+
     let created = 0;
     let skipped = 0;
     let errors = 0;
 
     for (const record of records) {
-      if (!record.strapiId) {
+      const rec = record as { _id: string; strapiId?: string | number };
+      if (!rec.strapiId) {
         skipped++;
         continue;
       }
@@ -142,7 +155,7 @@ export const createMissingIdMappings = mutation({
           .filter((q) =>
             q.and(
               q.eq(q.field('strapiType'), strapiType),
-              q.eq(q.field('strapiId'), record.strapiId)
+              q.eq(q.field('strapiId'), String(rec.strapiId))
             )
           )
           .first();
@@ -151,15 +164,15 @@ export const createMissingIdMappings = mutation({
           // Create the mapping
           await ctx.db.insert('idMappings', {
             strapiType,
-            strapiId: record.strapiId,
-            convexId: record._id
+            strapiId: String(rec.strapiId),
+            convexId: rec._id
           });
           created++;
         } else {
           skipped++;
         }
       } catch (error) {
-        console.error(`Error creating mapping for ${strapiType} ${record.strapiId}:`, error);
+        console.error(`Error creating mapping for ${strapiType} ${rec.strapiId}:`, error);
         errors++;
       }
     }
@@ -202,8 +215,13 @@ export const fixAllIdMappings = mutation({
     for (const tableName of tables) {
       try {
         // First, count records
-        const records = await ctx.db.query(tableName as (typeof tables)[number]).collect();
-        const recordsWithStrapiId = records.filter((r: { strapiId?: string }) => r.strapiId);
+        const records = await ctx.db
+          .query(tableName as Parameters<typeof ctx.db.query>[0])
+          .collect();
+        const recordsWithStrapiId = records.filter((r) => {
+          const record = r as { strapiId?: string | number };
+          return record && record.strapiId;
+        });
 
         // Map table names to strapiType
         const tableToStrapiType: Record<string, string> = {
@@ -224,18 +242,19 @@ export const fixAllIdMappings = mutation({
         };
 
         const strapiType = tableToStrapiType[tableName];
-        
+
         let created = 0;
         let skipped = 0;
 
         for (const record of recordsWithStrapiId) {
+          const rec = record as { _id: string; strapiId?: string | number };
           // Check if mapping already exists
           const existingMapping = await ctx.db
             .query('idMappings')
             .filter((q) =>
               q.and(
                 q.eq(q.field('strapiType'), strapiType),
-                q.eq(q.field('strapiId'), record.strapiId)
+                q.eq(q.field('strapiId'), String(rec.strapiId))
               )
             )
             .first();
@@ -244,8 +263,8 @@ export const fixAllIdMappings = mutation({
             // Create the mapping
             await ctx.db.insert('idMappings', {
               strapiType,
-              strapiId: record.strapiId,
-              convexId: record._id
+              strapiId: String(rec.strapiId),
+              convexId: rec._id
             });
             created++;
           } else {
