@@ -10,20 +10,35 @@
       "mcp__memory__add_observations",
       "mcp__strapi__strapi_list_servers",
       "mcp__convex__status",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm exec:*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm check*)",
+      "Bash(pnpm verify*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm dev*)",
       "Bash(pnpm vitest run:*)",
-      "WebFetch(domain:play14.org)",
-      "WebFetch(domain:community.play14.org)",
-      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
       "Bash(npx convex data:*)",
       "Bash(npx convex logs:*)",
-      "Bash(grep:*)",
+      "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(pnpm verify:*)",
-      "Bash(npx tsc:*)",
-      "Bash(pnpm run:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:play14.org)",
+      "WebFetch(domain:community.play14.org)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_FILENAME\" =~ \\\\.(js|ts|jsx|tsx)$ ]]; then eslint --fix \"$CLAUDE_FILENAME\"; fi"
+          }
+        ]
+      }
+    ]
   }
 }
