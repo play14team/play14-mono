@@ -151,3 +151,4 @@ Key content types powering https://play14.org:
 ## Best Practices
 
 - Always lint and check before you consider a task done
+- Use `pnpm verify` to lint and check everything

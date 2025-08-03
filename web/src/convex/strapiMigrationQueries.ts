@@ -10,6 +10,9 @@
 // High pagination limit to retrieve all records at once
 const MIGRATION_PAGINATION_LIMIT = 50000;
 
+// Batch size for events migration to avoid timeouts
+const EVENTS_BATCH_SIZE = 15;
+
 /**
  * EVENTS - Complete migration query
  * Combines all fields from EventDetails fragment with high pagination
@@ -230,6 +233,13 @@ export const EVENTS_MIGRATION_QUERY = `
             url
             type
           }
+          finance {
+            revenue
+            expenses
+            destination
+            result
+            resultAmount
+          }
           publishedAt
           createdAt
           updatedAt
@@ -256,13 +266,13 @@ export const GAMES_MIGRATION_QUERY = `
     games(
       sort: "name:asc"
       pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+      publicationState: PREVIEW
     ) {
       data {
         id
         attributes {
           slug
           name
-          category
           scale
           timebox
           summary
@@ -271,10 +281,6 @@ export const GAMES_MIGRATION_QUERY = `
           publishedAt
           createdAt
           updatedAt
-          tags(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
-            id
-            value
-          }
           materials(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
             id
             value
@@ -419,7 +425,7 @@ export const PLAYERS_MIGRATION_QUERY = `
   query PlayersMigration {
     players(
       sort: "name:asc"
-      pagination: { limit: 10 }
+      pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
     ) {
       data {
         id
@@ -954,4 +960,260 @@ export function getMigrationQuery(contentType: MigrationContentType): string {
  */
 export function getMigrationContentTypes(): MigrationContentType[] {
 	return Object.keys(MIGRATION_QUERIES) as MigrationContentType[];
+}
+
+/**
+ * EVENTS - Batched migration query for pagination
+ * Uses smaller batch size to avoid timeouts
+ */
+export function getEventsBatchQuery(
+	page: number = 1,
+	pageSize: number = EVENTS_BATCH_SIZE
+): string {
+	return `
+		query EventsBatchMigration {
+			events(
+				sort: "start:desc"
+				pagination: { page: ${page}, pageSize: ${pageSize} }
+			) {
+				data {
+					id
+					attributes {
+						slug
+						name
+						start
+						end
+						timezone
+						status
+						description
+						contactEmail
+						defaultImage {
+							data {
+								id
+								attributes {
+									name
+									url
+									blurhash
+									width
+									height
+									hash
+									mime
+									provider
+									size
+								}
+							}
+						}
+						images(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+							data {
+								id
+								attributes {
+									name
+									url
+									blurhash
+									width
+									height
+									hash
+									mime
+									provider
+									size
+								}
+							}
+						}
+						location {
+							data {
+								id
+								attributes {
+									name
+									country
+									location
+								}
+							}
+						}
+						venue {
+							data {
+								id
+								attributes {
+									name
+									website
+									location
+									addressDetails
+								}
+							}
+						}
+						timetable {
+							id
+							day
+							description
+							timeslots(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+								id
+								time
+								description
+							}
+						}
+						registration {
+							link
+							widgetCode
+						}
+						sponsorships(pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+							id
+							category
+							sponsors {
+								data {
+									id
+									attributes {
+										name
+										url
+										logo {
+											data {
+												id
+												attributes {
+													name
+													url
+													blurhash
+													width
+													height
+													hash
+													mime
+													provider
+													size
+												}
+											}
+										}
+										socialNetworks {
+											id
+											type
+											url
+										}
+									}
+								}
+							}
+						}
+						hosts(sort: "name", pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+							data {
+								id
+								attributes {
+									slug
+									name
+									position
+									avatar {
+										data {
+											id
+											attributes {
+												name
+												url
+												blurhash
+												width
+												height
+												hash
+												mime
+												provider
+												size
+											}
+										}
+									}
+									socialNetworks {
+										id
+										url
+										type
+									}
+								}
+							}
+						}
+						mentors(sort: "name", pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+							data {
+								id
+								attributes {
+									slug
+									name
+									position
+									avatar {
+										data {
+											id
+											attributes {
+												name
+												url
+												blurhash
+												width
+												height
+												hash
+												mime
+												provider
+												size
+											}
+										}
+									}
+									socialNetworks {
+										id
+										url
+										type
+									}
+								}
+							}
+						}
+						players(sort: "name", pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }) {
+							data {
+								id
+								attributes {
+									slug
+									name
+									position
+									avatar {
+										data {
+											id
+											attributes {
+												name
+												url
+												blurhash
+												width
+												height
+												hash
+												mime
+												provider
+												size
+											}
+										}
+									}
+									socialNetworks {
+										id
+										url
+										type
+									}
+								}
+							}
+						}
+						media {
+							id
+							url
+							type
+						}
+						finance {
+							revenue
+							expenses
+							destination
+							result
+							resultAmount
+						}
+						publishedAt
+						createdAt
+						updatedAt
+					}
+				}
+				meta {
+					pagination {
+						page
+						pageSize
+						total
+						pageCount
+					}
+				}
+			}
+		}
+	`;
+}
+
+/**
+ * Get the default batch size for events migration
+ */
+export function getEventsBatchSize(): number {
+	return EVENTS_BATCH_SIZE;
 }
