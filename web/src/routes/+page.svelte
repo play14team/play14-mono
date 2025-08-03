@@ -3,22 +3,36 @@
 
   export let data: PageData;
 
-  $: events = data.events?.data || [];
-  $: articles = data.articles?.data || [];
+  // HomePage is a Houdini store, so we need to access it with $
+  const { HomePage } = data;
+
+  // Use the data directly from the store
+  $: events = $HomePage.data?.events?.data || [];
+  $: articles = $HomePage.data?.articles?.data || [];
 </script>
 
 <div class="container mx-auto px-4 py-8">
   <h1 class="mb-8 text-center text-4xl font-bold">Welcome to #play14</h1>
 
-  {#if data.error}
+  <!-- Loading state -->
+  {#if $HomePage.fetching}
+    <div class="py-8 text-center">
+      <p class="text-gray-500">Loading...</p>
+    </div>
+  {/if}
+
+  <!-- Error state -->
+  {#if $HomePage.errors}
     <div class="mb-8 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
       <strong>Error:</strong>
-      {data.error}
+      {#each $HomePage.errors as error (error.message)}
+        <p>{error.message}</p>
+      {/each}
     </div>
   {/if}
 
   <!-- Events Section -->
-  {#if events.length > 0}
+  {#if events.length > 0 && !$HomePage.fetching}
     <section class="mb-12">
       <h2 class="mb-6 text-3xl font-bold">Upcoming Events</h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -56,9 +70,10 @@
                   </p>
                 {/if}
                 {#if event.attributes.description}
-                  <p class="line-clamp-3 text-gray-700">
-                    {event.attributes.description}
-                  </p>
+                  <div class="line-clamp-3 text-gray-700">
+                    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                    {@html event.attributes.description}
+                  </div>
                 {/if}
               </div>
             </article>
@@ -69,7 +84,7 @@
   {/if}
 
   <!-- Articles Section -->
-  {#if articles.length > 0}
+  {#if articles.length > 0 && !$HomePage.fetching}
     <section class="mb-12">
       <h2 class="mb-6 text-3xl font-bold">Latest Articles</h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

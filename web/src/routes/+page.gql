@@ -1,0 +1,54 @@
+query HomePage {
+  events(pagination: { limit: 3 }, sort: "start:desc") {
+    data {
+      id
+      attributes {
+        name
+        slug
+        start
+        end
+        description
+        status
+        location {
+          data {
+            id
+            attributes {
+              name
+              country
+            }
+          }
+        }
+        defaultImage {
+          data {
+            id
+            attributes {
+              url
+              alternativeText
+            }
+          }
+        }
+      }
+    }
+  }
+  articles(pagination: { limit: 3 }, sort: "publishedAt:desc") {
+    data {
+      id
+      attributes {
+        title
+        slug
+        summary
+        publishedAt
+        category
+        defaultImage {
+          data {
+            id
+            attributes {
+              url
+              alternativeText
+            }
+          }
+        }
+      }
+    }
+  }
+}
