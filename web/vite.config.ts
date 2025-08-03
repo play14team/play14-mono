@@ -1,9 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import houdini from 'houdini/vite';
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [houdini(), tailwindcss(), sveltekit()],
+  server: {
+    port: 5174
+  },
   test: {
     projects: [
       {
