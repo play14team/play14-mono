@@ -3292,7 +3292,7 @@ interface StrapiEvent {
   };
   hosts?: { data: Array<{ id: string }> };
   mentors?: { data: Array<{ id: string }> };
-  attendees?: { data: Array<{ id: string }> };
+  players?: { data: Array<{ id: string }> }; // attendees in Strapi
   createdAt: string;
   updatedAt: string;
 }
@@ -3653,11 +3653,11 @@ export const migrateEventsData = action({
           }
         }
 
-        if (event.attributes.attendees?.data) {
-          for (const attendee of event.attributes.attendees.data) {
+        if (event.attributes.players?.data) {
+          for (const player of event.attributes.players.data) {
             const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
               strapiType: 'player',
-              strapiId: attendee.id
+              strapiId: player.id
             });
             if (playerMapping) {
               await ctx.runMutation(internal.strapiMigration.insertEventAttendee, {
