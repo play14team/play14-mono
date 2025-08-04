@@ -7,6 +7,25 @@
   let selectedImage: Media | null = null;
   let modal: HTMLDivElement;
 
+  // Define mosaic pattern for different image sizes
+  // Pattern repeats every 10 images for variety
+  const getMosaicClass = (index: number): string => {
+    const patterns = [
+      'col-span-2 row-span-2', // Large square
+      'col-span-1 row-span-1', // Small square
+      'col-span-2 row-span-1', // Wide rectangle
+      'col-span-1 row-span-2', // Tall rectangle
+      'col-span-1 row-span-1', // Small square
+      'col-span-1 row-span-1', // Small square
+      'col-span-2 row-span-2', // Large square
+      'col-span-1 row-span-1', // Small square
+      'col-span-2 row-span-1', // Wide rectangle
+      'col-span-1 row-span-1' // Small square
+    ];
+
+    return patterns[index % patterns.length];
+  };
+
   const openImage = async (image: Media) => {
     selectedImage = image;
     await tick();
@@ -41,23 +60,26 @@
 
 {#if images.length > 0}
   <!-- Mosaic Grid -->
-  <div class="mb-12 grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+  <div
+    class="mb-12 grid auto-rows-[200px] grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+  >
     {#each images as image, index (image.attributes?.name || index)}
       {#if image.attributes}
         <button
           on:click={() => openImage(image)}
-          class="group relative overflow-hidden rounded-lg bg-gray-100 transition-transform hover:scale-105 dark:bg-gray-800 {index ===
-          0
-            ? 'col-span-2 row-span-2'
-            : ''}"
+          class="group relative overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:bg-gray-800 {getMosaicClass(
+            index
+          )}"
           aria-label="View {image.attributes.alternativeText || 'image'}"
         >
           <img
             src={image.attributes.url}
             alt={image.attributes.alternativeText || ''}
-            class="h-full w-full object-cover"
+            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
-          <div class="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20"></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          ></div>
         </button>
       {/if}
     {/each}
@@ -99,3 +121,23 @@
     </div>
   {/if}
 {/if}
+
+<style>
+  /* Ensure consistent aspect ratios for different image sizes */
+  :global(.auto-rows-\[200px\]) {
+    grid-auto-rows: 200px;
+  }
+
+  /* Add some variety to the grid on different screen sizes */
+  @media (max-width: 640px) {
+    :global(.auto-rows-\[200px\]) {
+      grid-auto-rows: 150px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :global(.auto-rows-\[200px\]) {
+      grid-auto-rows: 180px;
+    }
+  }
+</style>

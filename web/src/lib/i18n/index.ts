@@ -159,7 +159,43 @@ const enTranslations: Translations = {
     activityFun: 'An fun and energetic time with dancing, singing or being silly together',
     developSkills:
       'Join us in order to develop your facilitation skills, increase your ability to accompany change in your organization, foster your creativity and improve your capacity to innovate.',
-    gallery: 'Gallery'
+    gallery: 'Gallery',
+    expectations: 'What can you expect?',
+    expectationsSubtitle: 'Join us and discover all the benefits of learning through play',
+    additionalExpectations: 'And also...',
+    globalReach: 'Our Global Reach',
+    eventsMapDescription:
+      '#play14 events have been organized all around the world, bringing together people from diverse backgrounds and cultures united by the power of play.',
+    eventsMapAlt: 'World map showing all #play14 events',
+    publishedEvents: 'Published Events',
+    announcedEvents: 'Announced Events',
+    cancelledEvents: 'Cancelled Events'
+  },
+  manifesto: {
+    title: 'Manifesto',
+    intro: 'is and always will be',
+    shareKnowledge:
+      'a place to share knowledge & practices more than a place to sell services & goods',
+    openToAll: 'open to all people or communities with an interest on learning with fun',
+    physicalWorld:
+      'focused on games & activities in the physical world more than in the virtual world',
+    unconference: 'an unconference based on the Open Space Technology',
+    nonProfit:
+      'non profit, which means that when we do make a profit on a given event, we reinvest everything into the next'
+  },
+  codeOfConduct: {
+    title: 'Code of conduct',
+    openMinded: 'You shall be open minded and ready to listen and learn from others',
+    feelFree: 'You shall feel free to propose, experiment and explain what you have in mind',
+    notHijack: 'You shall not high-jack, sabotage or ruin the learning experience of others',
+    manageTimebox:
+      'You shall manage your own timebox when facilitating so that other sessions can start on time',
+    behaveAppropriately: 'You shall behave appropriately and be a decent human being',
+    leaveClean:
+      'You shall always leave the playground clean (boy scout rule), avoid waste and try to reduce your carbon footprint',
+    getSeriousFun:
+      'You shall be ready to get serious fun and good laughs and should try not be shy about that',
+    summary: 'To summarize : "You shall not be an a**hole".'
   },
   events: {
     calendar: 'Calendar',
@@ -263,7 +299,48 @@ const frTranslations: Translations = {
       'Un moment amusant et énergique avec de la danse, du chant ou des bêtises ensemble',
     developSkills:
       'Rejoignez-nous pour développer vos compétences de facilitation, augmenter votre capacité à accompagner le changement dans votre organisation, favoriser votre créativité et améliorer votre capacité à innover.',
-    gallery: 'Galerie'
+    gallery: 'Galerie',
+    expectations: 'À quoi pouvez-vous vous attendre ?',
+    expectationsSubtitle:
+      "Rejoignez-nous et découvrez tous les avantages de l'apprentissage par le jeu",
+    additionalExpectations: 'Et aussi...',
+    globalReach: 'Notre Portée Mondiale',
+    eventsMapDescription:
+      'Les événements #play14 ont été organisés dans le monde entier, rassemblant des personnes de divers horizons et cultures unies par le pouvoir du jeu.',
+    eventsMapAlt: 'Carte du monde montrant tous les événements #play14',
+    publishedEvents: 'Événements Publiés',
+    announcedEvents: 'Événements Annoncés',
+    cancelledEvents: 'Événements Annulés'
+  },
+  manifesto: {
+    title: 'Manifeste',
+    intro: 'est et sera toujours',
+    shareKnowledge:
+      "un lieu de partage de connaissances et de pratiques plus qu'un lieu de vente de services et de biens",
+    openToAll:
+      "ouvert à toutes les personnes ou communautés intéressées par l'apprentissage ludique",
+    physicalWorld:
+      'axé sur les jeux et activités dans le monde physique plus que dans le monde virtuel',
+    unconference: 'une non-conférence basée sur la technologie Open Space',
+    nonProfit:
+      'à but non lucratif, ce qui signifie que lorsque nous réalisons un bénéfice sur un événement donné, nous réinvestissons tout dans le suivant'
+  },
+  codeOfConduct: {
+    title: 'Code de conduite',
+    openMinded: "Vous devez être ouvert d'esprit et prêt à écouter et apprendre des autres",
+    feelFree:
+      'Vous devez vous sentir libre de proposer, expérimenter et expliquer ce que vous avez en tête',
+    notHijack:
+      "Vous ne devez pas détourner, saboter ou ruiner l'expérience d'apprentissage des autres",
+    manageTimebox:
+      "Vous devez gérer votre propre temps lors de la facilitation afin que les autres sessions puissent commencer à l'heure",
+    behaveAppropriately:
+      'Vous devez vous comporter de manière appropriée et être un être humain décent',
+    leaveClean:
+      'Vous devez toujours laisser le terrain de jeu propre (règle du scout), éviter le gaspillage et essayer de réduire votre empreinte carbone',
+    getSeriousFun:
+      "Vous devez être prêt à avoir du plaisir sérieux et de bons rires et ne devriez pas essayer d'être timide à ce sujet",
+    summary: 'Pour résumer : "Vous ne devez pas être un c**nard".'
   },
   events: {
     calendar: 'Calendrier',

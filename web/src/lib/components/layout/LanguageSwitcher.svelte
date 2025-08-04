@@ -1,8 +1,12 @@
 <script lang="ts">
   import { locale, locales, type Locale } from '$lib/i18n';
   import { onMount } from 'svelte';
+  import { invalidateAll } from '$app/navigation';
 
   let currentLocale: Locale = 'en';
+  let isOpen = false;
+  let dropdownElement: HTMLDivElement;
+  let buttonElement: HTMLButtonElement;
 
   // Subscribe to locale changes
   locale.subscribe((value) => {
@@ -12,20 +16,50 @@
   // Initialize locale from localStorage
   onMount(() => {
     locale.initialize();
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        !dropdownElement?.contains(event.target as Node) &&
+        !buttonElement?.contains(event.target as Node)
+      ) {
+        isOpen = false;
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
   });
 
-  function changeLocale(newLocale: Locale) {
+  async function changeLocale(newLocale: Locale) {
     locale.set(newLocale);
+    isOpen = false;
+    // Invalidate all load functions to refetch data with new locale
+    await invalidateAll();
+  }
+
+  function toggleDropdown() {
+    isOpen = !isOpen;
   }
 </script>
 
 <div class="language-switcher">
-  <button class="language-button" aria-label="Change language" aria-haspopup="true">
+  <button
+    bind:this={buttonElement}
+    class="language-button"
+    aria-label="Change language"
+    aria-haspopup="true"
+    aria-expanded={isOpen}
+    on:click={toggleDropdown}
+  >
     <i class="bx bx-globe text-gray-600 dark:text-gray-400"></i>
     <span class="language-code">{currentLocale.toUpperCase()}</span>
   </button>
 
-  <div class="language-dropdown">
+  <div bind:this={dropdownElement} class="language-dropdown" class:open={isOpen}>
     {#each locales as lang (lang)}
       <button
         class="language-option {currentLocale === lang ? 'active' : ''}"
@@ -78,17 +112,20 @@
 
   .language-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     right: 0;
-    margin-top: 0.5rem;
     background-color: white;
     border: 1px solid rgb(209 213 219); /* border-gray-300 */
     border-radius: 4px;
     box-shadow:
       0 10px 15px -3px rgb(0 0 0 / 0.1),
       0 4px 6px -4px rgb(0 0 0 / 0.1);
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
     min-width: 150px;
+    z-index: 50;
   }
 
   :global(.dark) .language-dropdown {
@@ -99,9 +136,10 @@
       0 4px 6px -4px rgb(0 0 0 / 0.2);
   }
 
-  .language-switcher:hover .language-dropdown,
-  .language-switcher:focus-within .language-dropdown {
-    display: block;
+  .language-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
 
   .language-option {

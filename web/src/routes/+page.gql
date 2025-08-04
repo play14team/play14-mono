@@ -1,5 +1,5 @@
-query HomePage {
-  home {
+query HomePage($locale: I18NLocaleCode!) {
+  home(locale: $locale) {
     data {
       attributes {
         images(pagination: { limit: 10000 }) {
@@ -19,7 +19,7 @@ query HomePage {
       }
     }
   }
-  upcomingEvents: events(sort: "start:desc", pagination: { limit: 6 }) {
+  upcomingEvents: events(sort: "start:desc", pagination: { limit: 6 }, locale: $locale) {
     data {
       id
       attributes {
@@ -95,6 +95,17 @@ query HomePage {
             }
           }
         }
+      }
+    }
+  }
+  expectations(sort: "type:asc,title:asc", locale: $locale) {
+    data {
+      id
+      attributes {
+        title
+        type
+        icon
+        content
       }
     }
   }

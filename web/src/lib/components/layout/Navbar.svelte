@@ -21,6 +21,9 @@
       isSticky = window.scrollY > 170;
     };
 
+    // Check initial scroll position
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   });
@@ -39,16 +42,16 @@
           <img
             src="/logo/play14_white_bg_trans_600x200.png"
             alt="logo"
-            height="60"
-            width="180"
+            height="75"
+            width="225"
             style="height: auto;"
             class="dark:hidden"
           />
           <img
             src="/logo/play14_black_bg_trans_600x200.png"
             alt="logo"
-            height="60"
-            width="180"
+            height="75"
+            width="225"
             style="height: auto;"
             class="hidden dark:block"
           />
@@ -173,19 +176,8 @@
 </div>
 
 <style>
-  /* Navigation styles will be imported from the main stylesheet */
-  .navbar-area {
-    position: relative;
-    z-index: 9999;
-    transition: all 0.3s ease;
-  }
-
+  /* Sticky navbar animation */
   .navbar-area.is-sticky {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    box-shadow: 0 2px 28px 0 rgba(0, 0, 0, 0.06);
     animation: fadeInDown 0.3s;
   }
 

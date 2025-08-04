@@ -1,9 +1,12 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import { t } from '$lib/i18n';
-  import EventCard from '$lib/components/cards/EventCard.svelte';
   import ArticleCard from '$lib/components/cards/ArticleCard.svelte';
+  import EventCard from '$lib/components/cards/EventCard.svelte';
+  import CodeOfConduct from '$lib/components/CodeOfConduct.svelte';
+  import Expectations from '$lib/components/Expectations.svelte';
   import HeroMosaic from '$lib/components/HeroMosaic.svelte';
+  import Manifesto from '$lib/components/Manifesto.svelte';
+  import { t } from '$lib/i18n';
+  import type { PageData } from './$types';
 
   export let data: PageData;
 
@@ -14,6 +17,7 @@
   $: upcomingEvents = $HomePage.data?.upcomingEvents?.data || [];
   $: latestArticles = $HomePage.data?.latestArticles?.data || [];
   $: homeImages = $HomePage.data?.home?.data?.attributes?.images?.data || [];
+  $: expectations = $HomePage.data?.expectations?.data || [];
 </script>
 
 <div>
@@ -90,7 +94,7 @@
   {#if $HomePage.errors}
     <div class="mb-8 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
       <strong>{$t('home.error')}:</strong>
-      {#each $HomePage.errors as error (error.message)}
+      {#each $HomePage.errors as error, index (index)}
         <p>{error.message}</p>
       {/each}
     </div>
@@ -157,6 +161,18 @@
     </section>
   {/if}
 
+  <!-- Manifesto and Code of Conduct Section -->
+  <section class="mb-16 pt-24">
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div>
+        <Manifesto />
+      </div>
+      <div>
+        <CodeOfConduct />
+      </div>
+    </div>
+  </section>
+
   <!-- Articles Section -->
   {#if latestArticles.length > 0}
     <section class="mb-16">
@@ -168,6 +184,26 @@
           <ArticleCard {article} />
         {/each}
       </div>
+    </section>
+  {/if}
+
+  <!-- Expectations Section -->
+  {#if expectations.length > 0}
+    <section class="mb-16 pt-24">
+      <Expectations
+        expectations={expectations
+          .filter((exp) => exp.id && exp.attributes)
+          .map((exp) => ({
+            id: exp.id!,
+            attributes: {
+              title: exp.attributes!.title,
+              type: exp.attributes!.type as 'Main' | 'Secondary',
+              icon: exp.attributes!.icon,
+              content: exp.attributes!.content
+            }
+          }))}
+        category="main"
+      />
     </section>
   {/if}
 </div>

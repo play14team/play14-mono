@@ -12,7 +12,7 @@
 <Navbar />
 
 <main>
-  <div class="container mx-auto">
+  <div class="container mx-auto px-4">
     <div class="pb-16 pt-24">
       {@render children()}
     </div>
@@ -25,6 +25,5 @@
   /* Main layout styles */
   main {
     min-height: calc(100vh - 60px - 400px); /* Adjust based on navbar and footer height */
-    padding-top: 70px; /* Account for navbar height */
   }
 </style>

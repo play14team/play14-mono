@@ -2,4 +2,24 @@
 - [x] Is Houdini able to do SSR and static rendering? - Yes, confirmed working
 - [x] Dark mode - Implemented with theme toggle and proper logo handling
 - [ ] Finish the rest of the home page by getting Strapi data from Home single
-- [ ] CI Lint, Check, Build
+  - [x] We are missing the Manifesto
+  - [x] We are missing the Code of Conduct
+  - [ ] We are missing expectations
+    - [x] Move the expectations to the bottom of the page to respect the original page order
+    - [x] We need to fix the fa fa-image icons that are missing
+    - [x] We need to improve the layout and make it more attractive
+    - [x] We need to find a solution for internationalization
+- [ ] static map
+- [ ] Images
+  - [ ] progressive loading https://svelte.dev/docs/kit/images
+  - [ ] WepP conversion
+- [ ] https://www.npmjs.com/package/svelte-gallery/v/1.1.1
+- [ ] logo at the top that disapears with animation when scrolling
+- Fix the tests (Lint)
+- [ ] Create a CI
+  - [ ] Lint
+  - [ ] Check,
+  - [ ] Build
+  - [ ] Test
+  - [ ] pnpm i -D @bundle-analyzer-plugin
+  - [ ] pnpm i -D lighthouse-ci

@@ -1,42 +1,11 @@
 /* Play14 Theme Styles */
 @import 'tailwindcss' reference;
 
-/* Font declarations */
-@font-face {
-  font-family: 'Luciole';
-  src: url('/fonts/Luciole/Luciole-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Luciole';
-  src: url('/fonts/Luciole/Luciole-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Luciole';
-  src: url('/fonts/Luciole/Luciole-Regular-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Luciole';
-  src: url('/fonts/Luciole/Luciole-Bold-Italic.ttf') format('truetype');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
+/* Font declarations - Using Nunito from Google Fonts */
 
 /* Base typography */
 body {
-  font-family: 'Luciole', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'DM Sans', sans-serif;
   font-size: 16px;
   line-height: 1.6;
   font-weight: 400;
@@ -49,7 +18,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Luciole', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'DM Sans', sans-serif;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -399,17 +368,17 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 35px;
-  height: 35px;
-  @apply bg-gray-200 dark:bg-gray-700;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  @apply bg-gray-300 dark:bg-gray-600;
+  border-radius: 4px;
   @apply text-gray-700 dark:text-gray-300;
   transition: all 0.3s ease;
 }
 
 .social-link a:hover {
-  background: #0056b3;
-  color: white;
+  @apply bg-gray-700 dark:bg-gray-400;
+  @apply text-white dark:text-gray-900;
   transform: translateY(-3px);
 }
 
