@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [[ \"$CLAUDE_FILENAME\" =~ \\\\.(js|ts|jsx|tsx)$ ]]; then eslint --fix \"$CLAUDE_FILENAME\"; fi"
+            "command": "case \"$CLAUDE_FILENAME\" in *.js|*.ts|*.jsx|*.tsx) eslint --fix \"$CLAUDE_FILENAME\" ;; esac"
           }
         ]
       }
