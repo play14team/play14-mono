@@ -10,11 +10,10 @@
     - [x] We need to improve the layout and make it more attractive
     - [x] We need to find a solution for internationalization
     - [x] Fix translations not switching
-- [ ] https://www.npmjs.com/package/svelte-gallery/v/1.1.1
-- [ ] Images
-  - [ ] progressive loading https://svelte.dev/docs/kit/images
+- [x] Images
+  - [x] progressive loading https://svelte.dev/docs/kit/images
   - [ ] WepP conversion
-- [ ] logo at the top that disapears with animation when scrolling
+- [x] logo at the top that disapears with animation when scrolling
 - [ ] Home page design
   - [ ] Fancier design
   - [ ] More colors

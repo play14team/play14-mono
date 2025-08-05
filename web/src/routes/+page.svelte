@@ -30,7 +30,18 @@
 <div>
   <!-- Title Section -->
   <section class="mb-12 text-center">
-    <h1 class="mb-4 text-5xl font-bold text-gray-900 dark:text-gray-100">#play14</h1>
+    <div class="mb-4 flex justify-center">
+      <img
+        src="/logo/play14_white_bg_full_4800x1506.png"
+        alt="#play14"
+        class="h-auto w-full max-w-2xl dark:hidden"
+      />
+      <img
+        src="/logo/play14_black_bg_full_4800x1506.png"
+        alt="#play14"
+        class="hidden h-auto w-full max-w-2xl dark:block"
+      />
+    </div>
     <p class="text-xl font-semibold text-blue-600 dark:text-blue-400">play is the way</p>
   </section>
 
