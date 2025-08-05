@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Article } from '$lib/types';
+  import ProgressiveImage from '../ProgressiveImage.svelte';
+  import { generateSrcSet, getSizes, generateBlurDataURL } from '$lib/utils/image';
 
   export let article: Article;
 </script>
@@ -9,12 +11,18 @@
     class="overflow-hidden rounded-lg bg-white shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900/50 dark:hover:shadow-gray-900/70"
   >
     {#if article.attributes.defaultImage?.data?.attributes?.url}
-      <img
-        src={article.attributes.defaultImage.data.attributes.url}
-        alt={article.attributes.defaultImage.data.attributes.alternativeText ||
-          article.attributes.title}
-        class="h-48 w-full object-cover"
-      />
+      <div class="h-48 w-full">
+        <ProgressiveImage
+          src={article.attributes.defaultImage.data.attributes.url}
+          alt={article.attributes.defaultImage.data.attributes.alternativeText ||
+            article.attributes.title}
+          className="h-48 w-full object-cover"
+          loading="lazy"
+          srcset={generateSrcSet(article.attributes.defaultImage.data.attributes.url)}
+          sizes={getSizes('100vw', '50vw', '33vw')}
+          blurDataURL={generateBlurDataURL()}
+        />
+      </div>
     {/if}
     <div class="p-6">
       {#if article.attributes.category}

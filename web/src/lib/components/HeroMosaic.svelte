@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Media } from '$lib/types';
   import { onMount, tick } from 'svelte';
+  import ProgressiveImage from './ProgressiveImage.svelte';
+  import { generateSrcSet, getSizes, generateBlurDataURL } from '$lib/utils/image';
 
   export let images: Media[] = [];
 
@@ -72,10 +74,14 @@
           )}"
           aria-label="View {image.attributes.alternativeText || 'image'}"
         >
-          <img
+          <ProgressiveImage
             src={image.attributes.url}
             alt={image.attributes.alternativeText || ''}
-            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+            srcset={generateSrcSet(image.attributes.url)}
+            sizes={getSizes('50vw', '33vw', '20vw')}
+            blurDataURL={generateBlurDataURL()}
           />
           <div
             class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
