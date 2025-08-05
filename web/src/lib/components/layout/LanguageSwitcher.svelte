@@ -37,7 +37,7 @@
   async function changeLocale(newLocale: Locale) {
     locale.set(newLocale);
     isOpen = false;
-    // Invalidate all load functions to refetch data with new locale
+    // Invalidate all load functions to trigger data reload
     await invalidateAll();
   }
 

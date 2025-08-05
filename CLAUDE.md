@@ -152,3 +152,7 @@ Key content types powering https://play14.org:
 
 - Always lint and check before you consider a task done
 - Use `pnpm verify` to lint and check everything
+
+## Memory of Development Strategies
+
+- It seems you regularly get timeouts on pnpm verify. Why don't you run pnpm format, pnpm lint and pnpm check separately from now on

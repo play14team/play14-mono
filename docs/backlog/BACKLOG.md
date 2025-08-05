@@ -9,16 +9,23 @@
     - [x] We need to fix the fa fa-image icons that are missing
     - [x] We need to improve the layout and make it more attractive
     - [x] We need to find a solution for internationalization
-- [ ] static map
+    - [x] Fix translations not switching
+- [ ] https://www.npmjs.com/package/svelte-gallery/v/1.1.1
 - [ ] Images
   - [ ] progressive loading https://svelte.dev/docs/kit/images
   - [ ] WepP conversion
-- [ ] https://www.npmjs.com/package/svelte-gallery/v/1.1.1
 - [ ] logo at the top that disapears with animation when scrolling
+- [ ] Home page design
+  - [ ] Fancier design
+  - [ ] More colors
+  - [ ] Event cards to be reviewed
+  - [ ] More spacing
+- [ ] Check breaking because of migration tests
+- [ ] Event map
 - Fix the tests (Lint)
 - [ ] Create a CI
   - [ ] Lint
-  - [ ] Check,
+  - [ ] Check
   - [ ] Build
   - [ ] Test
   - [ ] pnpm i -D @bundle-analyzer-plugin

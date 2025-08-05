@@ -9,9 +9,6 @@ declare global {
     // interface PageData {}
     // interface PageState {}
     // interface Platform {}
-    interface Session {
-      token: string;
-    }
   }
 }
 

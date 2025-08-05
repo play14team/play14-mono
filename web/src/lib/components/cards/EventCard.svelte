@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Event } from '$lib/graphql';
+  import type { Event } from '$lib/types';
 
   export let event: Event;
 </script>

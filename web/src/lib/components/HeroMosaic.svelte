@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Media } from '$lib/graphql';
+  import type { Media } from '$lib/types';
   import { onMount, tick } from 'svelte';
 
   export let images: Media[] = [];

@@ -5,13 +5,20 @@
   import Expectations from '$lib/components/Expectations.svelte';
   import HeroMosaic from '$lib/components/HeroMosaic.svelte';
   import Manifesto from '$lib/components/Manifesto.svelte';
-  import { t } from '$lib/i18n';
+  import { t, locale } from '$lib/i18n';
   import type { PageData } from './$types';
 
   export let data: PageData;
 
   // Use the HomePage store from the automatic route load
   const { HomePage } = data;
+
+  // Watch for locale changes and refetch
+  let previousLocale = $locale;
+  $: if ($locale && $locale !== previousLocale && HomePage.fetch) {
+    previousLocale = $locale;
+    HomePage.fetch({ variables: { locale: $locale } });
+  }
 
   // Use the data directly from the store
   $: upcomingEvents = $HomePage.data?.upcomingEvents?.data || [];

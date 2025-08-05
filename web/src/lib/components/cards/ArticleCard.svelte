@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Article } from '$lib/graphql';
+  import type { Article } from '$lib/types';
 
   export let article: Article;
 </script>
