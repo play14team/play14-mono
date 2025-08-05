@@ -17,7 +17,7 @@ export default ts.config(
   prettier,
   ...svelte.configs.prettier,
   {
-    ignores: ['src/convex/_generated/**/*']
+    ignores: ['src/convex/_generated/**/*', '$houdini/**/*']
   },
   {
     languageOptions: {
