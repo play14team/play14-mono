@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "case \"$CLAUDE_FILENAME\" in *.js|*.ts|*.jsx|*.tsx) eslint --fix \"$CLAUDE_FILENAME\" ;; esac"
+            "command": "node .claude/eslint-hook.mjs"
           }
         ]
       }
