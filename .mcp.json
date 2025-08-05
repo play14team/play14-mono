@@ -2,14 +2,14 @@
   "mcpServers": {
     "convex": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "convex@latest", "mcp", "start"],
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "convex@latest", "mcp", "start"],
       "env": {}
     },
     "strapi": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "strapi-mcp"],
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "strapi-mcp"],
       "env": {
         "STRAPI_URL": "$STRAPI_API_URL",
         "STRAPI_API_TOKEN": "$STRAPI_API_SECRET"
