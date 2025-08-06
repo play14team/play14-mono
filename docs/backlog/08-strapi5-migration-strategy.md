@@ -6,7 +6,10 @@
 
 - **Current Version**: Strapi 4.25.23
 - **Target Version**: Strapi 5.20.0 (latest)
-- **Package Manager**: Yarn 1.22.22
+- **Package Manager**: Yarn 1.22.22 (keeping for consistency)
+- **Node.js Version**: 18.19.0 (✅ Compatible with Strapi 5 requirement: v18.0.0+)
+- **Migration Environment**: Non-production database restored from backup
+- **Branch Status**: Already on new migration branch
 
 ### Project Structure
 
@@ -50,9 +53,41 @@ The API follows a standard Strapi 4 structure with:
 - `react-router-dom`: ^5.3.4 (DO NOT UPDATE per CLAUDE.md)
 - `styled-components`: 5.3.11 (DO NOT UPDATE per CLAUDE.md)
 
+## Official Migration Approach (Using Strapi Codemods)
+
+Based on the official Strapi migration guide, the recommended approach is to use the **Strapi Upgrade Tool** which automates many migration tasks:
+
+### Step 1: Run the Upgrade Tool
+
+```bash
+cd api
+npx @strapi/upgrade major
+```
+
+This tool will:
+
+- Update dependency versions in package.json
+- Apply code transformations for breaking changes
+- Update configuration files
+- Generate a migration report
+
+### Step 2: Manual Review Required
+
+After running the upgrade tool, manually review:
+
+- Custom plugin compatibility
+- Lifecycle hooks syntax
+- API endpoint changes
+- Frontend integration points
+
 ## Migration Strategy
 
-### Phase 1: Pre-Migration Preparation (Week 1)
+### Phase 1: Pre-Migration Preparation ✅ COMPLETED
+
+- ✅ Database backup created
+- ✅ Migration branch created (strapi5)
+- ✅ Non-production database restored
+- ✅ Node.js version verified (18.19.0 - compatible)
 
 #### 1.1 Environment Setup
 

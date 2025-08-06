@@ -3,19 +3,19 @@ module.exports = {
     task: async ({ strapi }) => {
       const now = new Date();
 
-      console.log("Running event status job");
-      const apiName = "api::event.event";
-      const events = await strapi.entityService.findMany(apiName, {
-        fields: ["id, name, end"],
+      console.log('Running event status job');
+      const apiName = 'api::event.event';
+      const events = await strapi.documents(apiName).findMany({
+        fields: ['id, name, end'],
         filters: {
           $and: [
             {
               $or: [
                 {
-                  status: "Open",
+                  status: 'Open',
                 },
                 {
-                  status: "Announced",
+                  status: 'Announced',
                 },
               ],
             },
@@ -26,83 +26,67 @@ module.exports = {
         },
       });
 
-      console.log(
-        "'Open' or 'Announced' events in the past found:",
-        events.length
-      );
+      console.log("'Open' or 'Announced' events in the past found:", events.length);
 
       events.map(async (event) => {
         console.log("Changing status of event to 'Over'", event);
-        await strapi.entityService.update(apiName, event.id, {
-          data: { status: "Over" },
+        await strapi.documents(apiName).update({
+          documentId: event.documentId || event.id,
+          data: { status: 'Over' },
         });
       });
     },
     options: {
       // everyday at 00:00
-      rule: "0 0 0 * * *",
+      rule: '0 0 0 * * *',
     },
   },
   playerPosition: {
     task: async ({ strapi }) => {
-      const now = new Date();
-
-      console.log("Running player position job");
-      const apiName = "api::player.player";
-      const players = await strapi.entityService.findMany(apiName, {
-        fields: ["id, name, position"],
-        populate: ["hosted", "mentored"],
+      console.log('Running player position job');
+      const apiName = 'api::player.player';
+      const players = await strapi.documents(apiName).findMany({
+        fields: ['id, name, position'],
+        populate: ['hosted', 'mentored'],
         filters: {
-          position: { $nei: "Founder" },
+          position: { $nei: 'Founder' },
         },
       });
 
-      console.log("Players found:", players.length);
+      console.log('Players found:', players.length);
 
       players.map(async (player) => {
         if (isPlayer(player) && hasHosted(player)) {
-          console.log(
-            `Changing postion of ${player.name} from "Player" to "Host"`
-          );
-          await setPosition(apiName, player, "Host");
+          console.log(`Changing postion of ${player.name} from "Player" to "Host"`);
+          await setPosition(apiName, player, 'Host');
         }
         if (isHost(player) && hasNeverHosted(player)) {
-          console.log(
-            `Changing postion of ${player.name} from "Host" to "Player"`
-          );
-          await setPosition(apiName, player, "Player");
+          console.log(`Changing postion of ${player.name} from "Host" to "Player"`);
+          await setPosition(apiName, player, 'Player');
         }
         if (isHost(player) && hasMentored(player)) {
-          console.log(
-            `Changing postion of ${player.name} from "Host" to "Mentor"`
-          );
-          await setPosition(apiName, player, "Mentor");
+          console.log(`Changing postion of ${player.name} from "Host" to "Mentor"`);
+          await setPosition(apiName, player, 'Mentor');
         }
       });
     },
     options: {
       // everyday at 00:05
-      rule: "0 5 0 * * *",
+      rule: '0 5 0 * * *',
     },
   },
 };
 
 function isHost(player) {
-  return player.position === "Host";
+  return player.position === 'Host';
 }
 
 function isPlayer(player) {
-  return player.position === "Player";
+  return player.position === 'Player';
 }
 
 function hasHosted(player) {
   return player.hosted && notCancelled(player.hosted).length > 0;
-}
-
-function hasHosted4(player) {
-  return (
-    player.hosted && player.hosted.filter((e) => e.status == "Over").length > 3
-  );
 }
 
 function hasNeverHosted(player) {
@@ -114,11 +98,12 @@ function hasMentored(player) {
 }
 
 function notCancelled(events) {
-  return events.filter((e) => e.status != "Cancelled");
+  return events.filter((e) => e.status != 'Cancelled');
 }
 
 async function setPosition(apiName, player, position) {
-  await strapi.entityService.update(apiName, player.id, {
+  await strapi.documents(apiName).update({
+    documentId: player.documentId || player.id,
     data: { position: position },
   });
 }
