@@ -1,22 +1,23 @@
 # Creating multi-stage build for production
-FROM node:18-alpine as build
+FROM node:22-alpine as build
 RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git > /dev/null 2>&1
+RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 ARG STRAPI_ADMIN_MAPBOX_ACCESS_TOKEN
 ENV STRAPI_ADMIN_MAPBOX_ACCESS_TOKEN ${STRAPI_ADMIN_MAPBOX_ACCESS_TOKEN}
 WORKDIR /opt/
-COPY package.json yarn.lock ./
-RUN yarn global add node-gyp
-RUN yarn install --production  --network-timeout 600000
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 ENV PATH /opt/node_modules/.bin:$PATH
 WORKDIR /opt/app
 COPY . .
-RUN yarn build
+RUN pnpm build
 
 # Creating final production image
-FROM node:18-alpine
+FROM node:22-alpine
 RUN apk add --no-cache vips-dev
+RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 ARG STRAPI_ADMIN_MAPBOX_ACCESS_TOKEN
@@ -31,4 +32,4 @@ ENV PATH /opt/node_modules/.bin:$PATH
 RUN chown -R node:node /opt/app
 USER node
 EXPOSE 1337
-CMD ["yarn", "start"]
+CMD ["pnpm", "start"]

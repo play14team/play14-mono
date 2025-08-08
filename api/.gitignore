@@ -116,3 +116,5 @@ build
 appSettings.json
 **/bootstrap/json
 src/extensions/documentation/documentation
+
+/dist

@@ -16,12 +16,12 @@ This is a monorepo containing three main applications for the #play14 platform:
 
 ```bash
 cd api
-yarn install
-yarn dev          # Start development server with auto-reload
-yarn build        # Build admin panel
-yarn start        # Start production server
-yarn export       # Export database backup
-yarn import       # Import database backup
+pnpm install
+pnpm dev          # Start development server with auto-reload
+pnpm build        # Build admin panel
+pnpm start        # Start production server
+pnpm export       # Export database backup
+pnpm import       # Import database backup
 ```
 
 ### UI (Next.js Frontend)
@@ -123,7 +123,7 @@ Key content types powering https://play14.org:
 
 ## Package Management
 
-- **API**: Yarn (locked to v1.22.22)
+- **API**: PNPM (v10.13.1)
 - **UI**: PNPM (v10.13.1)
 - **Web**: PNPM (v10.13.1)
 
@@ -146,13 +146,11 @@ Key content types powering https://play14.org:
 - Convex functions located in `src/convex/` directory
 - Uses shadcn/ui component library with Tailwind CSS v4
 - Convex requires authentication and project setup for deployment
-- Package managers: API (Yarn), UI (PNPM), Web (PNPM)
+- All applications now use PNPM as package manager
 
 ## Best Practices
 
-- Always lint and check before you consider a task done
-- Use `pnpm verify` to lint and check everything
-
-## Memory of Development Strategies
-
-- It seems you regularly get timeouts on pnpm verify. Why don't you run pnpm format, pnpm lint and pnpm check separately from now on
+- **IMPORTANT** I will ALWAYS run the server myself. So unless explicitly requested to, you don't need to run `pnpm dev` yourself.
+- **IMPORTANT** Always lint and check before you consider a task done
+- **IMPORTANT** Use run `pnpm format`, `pnpm lint` and `pnpm check` before you attempt to commit
+- **IMPORTANT** In Svelte, ALWAYS set a key when using the each block syntax https://svelte.dev/docs/svelte/each e.g. `{#each expression as name (key)}...{/each}` or `{#each expression as name, index (key)}...{/each}`
