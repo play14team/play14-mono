@@ -43,7 +43,12 @@
     },
     "status": {
       "type": "enumeration",
-      "enum": ["Announced", "Open", "Over", "Cancelled"],
+      "enum": [
+        "Announced",
+        "Open",
+        "Over",
+        "Cancelled"
+      ],
       "default": "Announced",
       "required": true
     },
@@ -51,7 +56,9 @@
       "type": "media",
       "multiple": false,
       "required": true,
-      "allowedTypes": ["images"],
+      "allowedTypes": [
+        "images"
+      ],
       "pluginOptions": {
         "i18n": {
           "localized": false
@@ -62,7 +69,9 @@
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "contactEmail": {
       "type": "email",
@@ -83,10 +92,10 @@
     },
     "description": {
       "type": "customField",
-      "options": {
-        "preset": "toolbar"
-      },
       "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      },
       "pluginOptions": {
         "i18n": {
           "localized": true

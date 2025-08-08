@@ -24,7 +24,12 @@
     },
     "position": {
       "type": "enumeration",
-      "enum": ["Player", "Host", "Mentor", "Founder"],
+      "enum": [
+        "Player",
+        "Host",
+        "Mentor",
+        "Founder"
+      ],
       "required": true
     },
     "company": {
@@ -37,7 +42,7 @@
     "bio": {
       "type": "customField",
       "options": {
-        "preset": "toolbar"
+        "preset": "defaultHtml"
       },
       "customField": "plugin::ckeditor5.CKEditor"
     },
@@ -48,7 +53,9 @@
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "socialNetworks": {
       "type": "component",

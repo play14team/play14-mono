@@ -7,7 +7,9 @@ module.exports = ({ env }) => ({
       },
     },
   },
-  ckeditor5: true,
+  ckeditor5: {
+    enabled: true,
+  },
   'timezone-select': {
     enabled: true,
   },
