@@ -25,6 +25,23 @@ export default defineSchema({
     completedAt: v.optional(v.number())
   }).index('by_phase', ['phase']),
 
+  // Orchestrator runs for long migrations
+  migrationRuns: defineTable({
+    includeFiles: v.boolean(),
+    orderedTypes: v.array(v.string()),
+    currentIndex: v.number(),
+    // Free-form results summary per step
+    results: v.optional(v.any()),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('in_progress'),
+      v.literal('completed'),
+      v.literal('failed')
+    ),
+    startedAt: v.number(),
+    updatedAt: v.number()
+  }).index('by_status', ['status']),
+
   // Core content tables
   events: defineTable({
     strapiId: v.optional(v.union(v.string(), v.number())), // Preserved from Strapi

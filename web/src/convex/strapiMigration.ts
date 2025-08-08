@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
-import { action, mutation, query, internalMutation, internalQuery } from './_generated/server';
-import { internal, api } from './_generated/api';
+import { api, internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import {
   MIGRATION_QUERIES,
   type MigrationContentType,
@@ -1487,14 +1487,10 @@ export const migrateSingleContentType = action({
 
         if (args.contentType === 'events') {
           // Use existing events-specific batched fetch
-          fetchResult = await ctx.runAction(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.fetchEventsBatched,
-            {
-              strapiUrl: args.strapiUrl,
-              strapiSecret: args.strapiSecret
-            }
-          );
+          fetchResult = await ctx.runAction(api.strapiMigration.fetchEventsBatched, {
+            strapiUrl: args.strapiUrl,
+            strapiSecret: args.strapiSecret
+          });
         } else {
           // Use generic batched fetch for other content types
           fetchResult = await ctx.runAction(
@@ -1514,15 +1510,11 @@ export const migrateSingleContentType = action({
         );
       } else {
         // Use regular fetch for singleton content types
-        fetchResult = await ctx.runAction(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (internal as any).strapiMigration.fetchStrapiData,
-          {
-            contentType: args.contentType,
-            strapiUrl: args.strapiUrl,
-            strapiSecret: args.strapiSecret
-          }
-        );
+        fetchResult = await ctx.runAction(api.strapiMigration.fetchStrapiData, {
+          contentType: args.contentType,
+          strapiUrl: args.strapiUrl,
+          strapiSecret: args.strapiSecret
+        });
       }
 
       if (!fetchResult.success || !fetchResult.data) {
@@ -1531,146 +1523,109 @@ export const migrateSingleContentType = action({
       }
 
       // Step 2: Process based on content type
+      // Extract the content-specific data blob once
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const contentMap = fetchResult.data as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const strapiData: any = contentMap[args.contentType];
       let migrationResult;
       switch (args.contentType) {
         case 'tags':
-          migrationResult = await ctx.runMutation(
+          migrationResult = await ctx.runMutation(api.strapiMigration.migrateTagsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateTagsData,
-            {
-              strapiData: (fetchResult.data as { tags: unknown }).tags
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'expectations':
-          migrationResult = await ctx.runMutation(
+          migrationResult = await ctx.runMutation(api.strapiMigration.migrateExpectationsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateExpectationsData,
-            {
-              strapiData: (fetchResult.data as { expectations: unknown }).expectations
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'players':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migratePlayersData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migratePlayersData,
-            {
-              strapiData: (fetchResult.data as { players: unknown }).players
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'venues':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateVenuesData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateVenuesData,
-            {
-              strapiData: (fetchResult.data as { venues: unknown }).venues
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'sponsors':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateSponsorsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateSponsorsData,
-            {
-              strapiData: (fetchResult.data as { sponsors: unknown }).sponsors
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'eventLocations':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateEventLocationsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateEventLocationsData,
-            {
-              strapiData: (fetchResult.data as { eventLocations: unknown }).eventLocations
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'testimonials':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateTestimonialsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateTestimonialsData,
-            {
-              strapiData: (fetchResult.data as { testimonials: unknown }).testimonials
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'home':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateHomeData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateHomeData,
-            {
-              strapiData: (fetchResult.data as { home: unknown }).home
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'history':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateHistoryData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateHistoryData,
-            {
-              strapiData: (fetchResult.data as { history: unknown }).history
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'format':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateFormatData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateFormatData,
-            {
-              strapiData: (fetchResult.data as { format: unknown }).format
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'hosting':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateHostingData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateHostingData,
-            {
-              strapiData: (fetchResult.data as { hosting: unknown }).hosting
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'articles':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateArticlesData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateArticlesData,
-            {
-              strapiData: (fetchResult.data as { articles: unknown }).articles
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'games':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateGamesData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateGamesData,
-            {
-              strapiData: (fetchResult.data as { games: unknown }).games
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         case 'events':
-          migrationResult = await ctx.runAction(
+          migrationResult = await ctx.runAction(api.strapiMigration.migrateEventsData, {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (internal as any).strapiMigration.migrateEventsData,
-            {
-              strapiData: (fetchResult.data as { events: unknown }).events
-            }
-          );
+            strapiData: strapiData as any
+          });
           break;
 
         default:
@@ -4445,6 +4400,160 @@ export const runCompleteMigration = action({
       totalRecords,
       totalSuccessful,
       totalFailed
+    };
+  }
+});
+
+/**
+ * Resumable migration orchestrator (avoids long 600s action timeouts)
+ * - startCompleteMigration: creates/updates a migrationStatus doc with plan
+ * - continueCompleteMigration: runs for a bounded time and advances one or more steps
+ */
+// Internal helpers for the orchestrator
+export const _orchestrator_createStatus = internalMutation({
+  args: {
+    includeFiles: v.boolean(),
+    orderedTypes: v.array(v.string())
+  },
+  handler: async (ctx, args) => {
+    const id = await ctx.db.insert('migrationRuns', {
+      includeFiles: args.includeFiles,
+      orderedTypes: args.orderedTypes,
+      currentIndex: 0,
+      results: [],
+      status: 'in_progress',
+      startedAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    return id;
+  }
+});
+
+export const _orchestrator_getStatus = internalQuery({
+  args: { statusId: v.string() },
+  handler: async (ctx, args) => {
+    const rec = await ctx.db.get(args.statusId as Id<'migrationRuns'>);
+    return rec;
+  }
+});
+
+export const _orchestrator_updateStatus = internalMutation({
+  args: {
+    statusId: v.string(),
+    currentIndex: v.number(),
+    results: v.any(),
+    total: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    // Determine status based on progress
+    let status: 'in_progress' | 'completed' = 'in_progress';
+    if (typeof args.total === 'number' && args.currentIndex >= args.total) {
+      status = 'completed';
+    }
+    await ctx.db.patch(args.statusId as Id<'migrationRuns'>, {
+      currentIndex: args.currentIndex,
+      results: args.results,
+      updatedAt: Date.now(),
+      status
+    });
+  }
+});
+
+export const startCompleteMigration = action({
+  args: {
+    includeFiles: v.optional(v.boolean()),
+    contentTypes: v.optional(v.array(v.string()))
+  },
+  handler: async (ctx, args): Promise<{ statusId: string; orderedTypes: string[] }> => {
+    const includeFiles = args.includeFiles ?? true;
+
+    // Same global order as runCompleteMigration
+    const migrationOrder = [
+      'tags',
+      'expectations',
+      'players',
+      'venues',
+      'sponsors',
+      'home',
+      'history',
+      'format',
+      'hosting',
+      'testimonials',
+      'eventLocations',
+      'games',
+      'articles',
+      'events'
+    ];
+
+    const requested =
+      args.contentTypes && args.contentTypes.length > 0 ? args.contentTypes : migrationOrder;
+    const orderedTypes = migrationOrder.filter((t) => requested.includes(t));
+
+    // Create a new migration status document in the migrationStatus table
+    const statusId = await ctx.runMutation(internal.strapiMigration._orchestrator_createStatus, {
+      includeFiles,
+      orderedTypes
+    });
+
+    return { statusId, orderedTypes };
+  }
+});
+
+export const continueCompleteMigration = action({
+  args: {
+    statusId: v.string(),
+    timeBudgetMs: v.optional(v.number())
+  },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    done: boolean;
+    progressedTo?: number;
+    total?: number;
+    elapsedMs?: number;
+    error?: string;
+  }> => {
+    const budget = Math.max(5000, Math.min(args.timeBudgetMs ?? 45000, 120000));
+    const start = Date.now();
+
+    // Load status
+    const status = await ctx.runQuery(internal.strapiMigration._orchestrator_getStatus, {
+      statusId: args.statusId
+    });
+
+    if (!status) {
+      return { done: true, error: 'Status not found' };
+    }
+
+    const orderedTypes: string[] = (status as { orderedTypes: string[] }).orderedTypes;
+    let currentIndex: number = (status as { currentIndex: number }).currentIndex;
+    const results: unknown[] = (status as { results?: unknown[] }).results || [];
+
+    while (currentIndex < orderedTypes.length && Date.now() - start < budget) {
+      const contentType = orderedTypes[currentIndex];
+
+      const res = await ctx.runAction(api.strapiMigration.migrateSingleContentType, {
+        contentType
+      });
+
+      results.push({ contentType, res });
+      currentIndex += 1;
+
+      await ctx.runMutation(internal.strapiMigration._orchestrator_updateStatus, {
+        statusId: args.statusId,
+        currentIndex,
+        results,
+        total: orderedTypes.length
+      });
+    }
+
+    const done: boolean = currentIndex >= orderedTypes.length;
+    return {
+      done,
+      progressedTo: currentIndex,
+      total: orderedTypes.length,
+      elapsedMs: Date.now() - start
     };
   }
 });

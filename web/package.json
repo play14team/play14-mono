@@ -25,7 +25,8 @@
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test",
     "verify": "pnpm format && pnpm lint --fix && pnpm lint:convex && pnpm check",
-    "env:inject": "node scripts/inject-env.js"
+    "env:inject": "node scripts/inject-env.js",
+    "migrate": "node scripts/run-migration.js"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
