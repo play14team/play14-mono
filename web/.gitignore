@@ -23,9 +23,6 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Convex
-src/convex/_generated/
-
 # Houdini
 $houdini/
 schema.graphql
