@@ -24,4 +24,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Convex
-src/convex/_generated/
+# Keep generated API committed for type safety & CI stability
+# (was previously ignored)
