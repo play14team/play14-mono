@@ -1,5 +1,5 @@
-// Common types for GraphQL entities
-// Using 'any' to be flexible with Houdini's readonly types and various data shapes
+// Common types for entities
+// Using 'any' to be flexible with various data shapes
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Media = any;

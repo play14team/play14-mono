@@ -1,12 +1,11 @@
 <script lang="ts">
-  import type { Media } from '$lib/types';
   import { onMount, tick } from 'svelte';
   import ProgressiveImage from './ProgressiveImage.svelte';
   import { generateSrcSet, getSizes, generateBlurDataURL } from '$lib/utils/image';
 
-  export let images: Media[] = [];
+  export let images: string[] = []; // Now expects array of image URLs from Convex
 
-  let selectedImage: Media | null = null;
+  let selectedImage: string | null = null;
   let modal: HTMLDivElement;
 
   // Define mosaic pattern for different image sizes
@@ -28,7 +27,7 @@
     return patterns[index % patterns.length];
   };
 
-  const openImage = async (image: Media) => {
+  const openImage = async (image: string) => {
     selectedImage = image;
     await tick();
     if (modal) {
@@ -60,39 +59,37 @@
   };
 </script>
 
-{#if images.length > 0}
+{#if images && images.length > 0}
   <!-- Mosaic Grid -->
   <div
     class="mb-12 grid auto-rows-[200px] grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
   >
-    {#each images as image, index (image.attributes?.name || index)}
-      {#if image.attributes}
-        <button
-          on:click={() => openImage(image)}
-          class="group relative overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:bg-gray-800 {getMosaicClass(
-            index
-          )}"
-          aria-label="View {image.attributes.alternativeText || 'image'}"
-        >
-          <ProgressiveImage
-            src={image.attributes.url}
-            alt={image.attributes.alternativeText || ''}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-            loading="lazy"
-            srcset={generateSrcSet(image.attributes.url)}
-            sizes={getSizes('50vw', '33vw', '20vw')}
-            blurDataURL={generateBlurDataURL()}
-          />
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          ></div>
-        </button>
-      {/if}
+    {#each images.filter((img) => img && img !== '') as image, index (index)}
+      <button
+        on:click={() => openImage(image)}
+        class="group relative overflow-hidden rounded-lg bg-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:bg-gray-800 {getMosaicClass(
+          index
+        )}"
+        aria-label="View image"
+      >
+        <ProgressiveImage
+          src={image}
+          alt=""
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          loading="lazy"
+          srcset={generateSrcSet(image)}
+          sizes={getSizes('50vw', '33vw', '20vw')}
+          blurDataURL={generateBlurDataURL()}
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        ></div>
+      </button>
     {/each}
   </div>
 
   <!-- Modal for selected image -->
-  {#if selectedImage?.attributes}
+  {#if selectedImage}
     <div
       bind:this={modal}
       on:click={handleModalClick}
@@ -105,8 +102,8 @@
     >
       <div class="relative max-h-[90vh] max-w-[90vw]">
         <img
-          src={selectedImage.attributes.url}
-          alt={selectedImage.attributes.alternativeText || ''}
+          src={selectedImage}
+          alt=""
           class="h-auto max-h-[90vh] w-auto max-w-[90vw] object-contain"
         />
         <button

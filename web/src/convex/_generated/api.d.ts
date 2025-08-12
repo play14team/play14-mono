@@ -19,6 +19,7 @@ import type * as events from "../events.js";
 import type * as fileMigration from "../fileMigration.js";
 import type * as fixIdMappings from "../fixIdMappings.js";
 import type * as games from "../games.js";
+import type * as home from "../home.js";
 import type * as imageMigration from "../imageMigration.js";
 import type * as players from "../players.js";
 import type * as search from "../search.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   fileMigration: typeof fileMigration;
   fixIdMappings: typeof fixIdMappings;
   games: typeof games;
+  home: typeof home;
   imageMigration: typeof imageMigration;
   players: typeof players;
   search: typeof search;

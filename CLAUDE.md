@@ -156,3 +156,15 @@ Key content types powering https://play14.org:
 ## Memory of Development Strategies
 
 - It seems you regularly get timeouts on pnpm verify. Why don't you run pnpm format, pnpm lint and pnpm check separately from now on
+
+## Rules
+
+- **IMPORTANT** I will ALWAYS run the server myself. So unless explicitly requested to, you don't need to run `pnpm dev` yourself.
+- **IMPORTANT** Always lint and check before you consider a task done
+- **IMPORTANT** Use run `pnpm format`, `pnpm lint` and `pnpm check` before you attempt to commit
+
+- **ALWAYS** use Svelte 5 and SvelteKit 2 syntax
+- **ALWAYS** use components from ShadCN Svelte https://www.shadcn-svelte.com/docs/components
+- **WHENEVER** the ShadCN Svelte component is not installed, go ahead and install it using `pnpm dlx shadcn-svelte@latest add <component>`
+- **ALWAYS** split pages into small reusable components
+- **ALWAYS** set a key when using the `each` block syntax https://svelte.dev/docs/svelte/each e.g. `{#each expression as name (key)}...{/each}` or `{#each expression as name, index (key)}...{/each}`

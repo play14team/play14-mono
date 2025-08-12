@@ -23,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const response = await resolve(event, {
     filterSerializedResponseHeaders: (name) => {
-      // Allow content-type and other headers needed by Houdini
+      // Allow content-type and other headers
       return name === 'content-type' || name === 'authorization' || name.startsWith('x-');
     },
     transformPageChunk: ({ html, done }) => {

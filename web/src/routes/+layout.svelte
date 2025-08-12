@@ -1,10 +1,15 @@
 <script lang="ts">
   import { ModeWatcher } from 'mode-watcher';
+  import { setupConvex } from 'convex-svelte';
   import '../app.css';
   import Navbar from '$lib/components/layout/Navbar.svelte';
   import Footer from '$lib/components/layout/Footer.svelte';
 
   let { children } = $props();
+
+  // Initialize Convex client with the URL
+  const convexUrl = import.meta.env.VITE_PUBLIC_CONVEX_URL || 'http://127.0.0.1:3210';
+  setupConvex(convexUrl);
 </script>
 
 <ModeWatcher />

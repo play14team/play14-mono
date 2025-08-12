@@ -14,6 +14,9 @@
   - [x] progressive loading https://svelte.dev/docs/kit/images
   - [ ] WepP conversion
 - [x] logo at the top that disapears with animation when scrolling
+- [ ] Migrate from Houdini to Convex
+- [ ] Refactor to components
+- [ ] Use ShadCN instead of default
 - [ ] Home page design
   - [ ] Fancier design
   - [ ] More colors

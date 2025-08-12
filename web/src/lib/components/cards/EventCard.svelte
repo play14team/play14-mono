@@ -1,24 +1,33 @@
 <script lang="ts">
-  import type { Event } from '$lib/types';
   import ProgressiveImage from '../ProgressiveImage.svelte';
   import { generateSrcSet, getSizes, generateBlurDataURL } from '$lib/utils/image';
 
-  export let event: Event;
+  interface EventData {
+    _id: string;
+    name?: string;
+    slug?: string;
+    description?: string;
+    defaultImageUrl?: string | null;
+    start?: number;
+    end?: number;
+    location?: { name?: string; country?: string } | null;
+  }
+
+  export let event: EventData;
 </script>
 
-{#if event.attributes}
+{#if event}
   <article
     class="overflow-hidden rounded-lg bg-white shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900/50 dark:hover:shadow-gray-900/70"
   >
-    {#if event.attributes.defaultImage?.data?.attributes?.url}
+    {#if event.defaultImageUrl}
       <div class="h-48 w-full">
         <ProgressiveImage
-          src={event.attributes.defaultImage.data.attributes.url}
-          alt={event.attributes.defaultImage.data.attributes.alternativeText ||
-            event.attributes.name}
+          src={event.defaultImageUrl}
+          alt={event.name}
           className="h-48 w-full object-cover"
           loading="lazy"
-          srcset={generateSrcSet(event.attributes.defaultImage.data.attributes.url)}
+          srcset={generateSrcSet(event.defaultImageUrl)}
           sizes={getSizes('100vw', '50vw', '33vw')}
           blurDataURL={generateBlurDataURL()}
         />
@@ -27,30 +36,29 @@
     <div class="p-6">
       <h3 class="mb-2 text-xl font-semibold">
         <a
-          href="/events/{event.attributes.slug}"
+          href="/events/{event.slug}"
           class="text-gray-900 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400"
         >
-          {event.attributes.name}
+          {event.name}
         </a>
       </h3>
-      {#if event.attributes.location?.data?.attributes}
+      {#if event.location}
         <p class="mb-2 text-gray-600 dark:text-gray-400">
-          📍 {event.attributes.location.data.attributes.name}, {event.attributes.location.data
-            .attributes.country}
+          📍 {event.location.name}, {event.location.country}
         </p>
       {/if}
-      {#if event.attributes.start}
+      {#if event.start}
         <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          📅 {new Date(event.attributes.start).toLocaleDateString()}
-          {#if event.attributes.end && event.attributes.end !== event.attributes.start}
-            - {new Date(event.attributes.end).toLocaleDateString()}
+          📅 {new Date(event.start).toLocaleDateString()}
+          {#if event.end && event.end !== event.start}
+            - {new Date(event.end).toLocaleDateString()}
           {/if}
         </p>
       {/if}
-      {#if event.attributes.description}
+      {#if event.description}
         <div class="line-clamp-3 text-gray-700 dark:text-gray-300">
           <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-          {@html event.attributes.description}
+          {@html event.description}
         </div>
       {/if}
     </div>

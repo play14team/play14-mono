@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { useQuery } from 'convex-svelte';
+  import { api } from '$lib/../convex/_generated/api';
   import ArticleCard from '$lib/components/cards/ArticleCard.svelte';
   import EventCard from '$lib/components/cards/EventCard.svelte';
   import CodeOfConduct from '$lib/components/CodeOfConduct.svelte';
@@ -6,43 +8,44 @@
   import HeroMosaic from '$lib/components/HeroMosaic.svelte';
   import Manifesto from '$lib/components/Manifesto.svelte';
   import { t, locale } from '$lib/i18n';
-  import type { PageData } from './$types';
 
-  export let data: PageData;
+  // Use Convex query to get homepage data
+  // Pass a function for reactive args so it updates when locale changes
+  const query = useQuery(api.home.getHomePage, () => ({ locale: $locale }));
 
-  // Use the HomePage store from the automatic route load
-  const { HomePage } = data;
+  // Access query results using derived runes
+  const data = $derived(query.data);
+  const isLoading = $derived(query.isLoading);
+  const error = $derived(query.error);
 
-  // Watch for locale changes and refetch
-  let previousLocale = $locale;
-  $: if ($locale && $locale !== previousLocale && HomePage.fetch) {
-    previousLocale = $locale;
-    HomePage.fetch({ variables: { locale: $locale } });
-  }
-
-  // Use the data directly from the store
-  $: upcomingEvents = $HomePage.data?.upcomingEvents?.data || [];
-  $: latestArticles = $HomePage.data?.latestArticles?.data || [];
-  $: homeImages = $HomePage.data?.home?.data?.attributes?.images?.data || [];
-  $: expectations = $HomePage.data?.expectations?.data || [];
+  // Extract data from the query result - these will update when data changes
+  const upcomingEvents = $derived(data?.upcomingEvents || []);
+  const latestArticles = $derived(data?.latestArticles || []);
+  const homeImages = $derived(data?.home?.imageUrls || []);
+  const expectations = $derived(data?.expectations || []);
 </script>
 
 <div>
   <!-- Title Section -->
   <section class="mb-12 text-center">
-    <div class="mb-4 flex justify-center">
+    <div class="mb-12 flex justify-center">
       <img
-        src="/logo/play14_white_bg_full_4800x1506.png"
+        src="/logo/play14_white_bg_transparent_4800x1506.png"
         alt="#play14"
         class="h-auto w-full max-w-2xl dark:hidden"
       />
       <img
-        src="/logo/play14_black_bg_full_4800x1506.png"
+        src="/logo/play14_black_bg_transparent_4800x1506.png"
         alt="#play14"
         class="hidden h-auto w-full max-w-2xl dark:block"
       />
     </div>
-    <p class="text-xl font-semibold text-blue-600 dark:text-blue-400">play is the way</p>
+    <p class="text-5xl font-semibold">
+      <span class="text-orange-500">play</span>
+      <span class="text-yellow-500">is</span>
+      <span class="text-blue-600 dark:text-blue-400">the</span>
+      <span class="text-green-500">way</span>
+    </p>
   </section>
 
   <!-- What is #play14? Section -->
@@ -102,19 +105,16 @@
   </section>
 
   <!-- Loading state -->
-  {#if $HomePage.fetching}
+  {#if isLoading}
     <div class="py-8 text-center">
-      <p class="text-gray-500">{$t('home.loading')}</p>
+      <p class="text-gray-500">Loading...</p>
     </div>
   {/if}
 
   <!-- Error state -->
-  {#if $HomePage.errors}
-    <div class="mb-8 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-      <strong>{$t('home.error')}:</strong>
-      {#each $HomePage.errors as error, index (index)}
-        <p>{error.message}</p>
-      {/each}
+  {#if error}
+    <div class="py-8 text-center">
+      <p class="text-red-500">Error loading data: {error.message}</p>
     </div>
   {/if}
 
@@ -125,7 +125,7 @@
         {$t('home.upcomingEvents')}
       </h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {#each upcomingEvents as event (event.id)}
+        {#each upcomingEvents as event (event._id)}
           <EventCard {event} />
         {/each}
       </div>
@@ -198,7 +198,7 @@
         {$t('home.latestArticles')}
       </h2>
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {#each latestArticles as article (article.id)}
+        {#each latestArticles as article (article._id)}
           <ArticleCard {article} />
         {/each}
       </div>
@@ -210,14 +210,14 @@
     <section class="mb-16 pt-24">
       <Expectations
         expectations={expectations
-          .filter((exp) => exp.id && exp.attributes)
+          .filter((exp) => exp._id && exp.title)
           .map((exp) => ({
-            id: exp.id!,
+            id: exp._id,
             attributes: {
-              title: exp.attributes!.title,
-              type: exp.attributes!.type as 'Main' | 'Secondary',
-              icon: exp.attributes!.icon,
-              content: exp.attributes!.content
+              title: exp.title,
+              type: exp.type as 'Main' | 'Secondary',
+              icon: exp.icon,
+              content: exp.content
             }
           }))}
         category="main"
