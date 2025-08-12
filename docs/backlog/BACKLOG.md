@@ -14,9 +14,16 @@
   - [x] progressive loading https://svelte.dev/docs/kit/images
   - [ ] WepP conversion
 - [x] logo at the top that disapears with animation when scrolling
-- [ ] Migrate from Houdini to Convex
-- [ ] Refactor to components
+- [x] Migrate from Houdini to Convex
 - [ ] Use ShadCN instead of default
+  - [ ] Fix layout
+  - [ ] Fix translations
+- [ ] Move to Biome for linting and formatting
+  - [ ] Project
+  - [ ] CI
+- [ ] Refactor to components
+- [ ] Authentication with Google
+- [ ] Admin panel for Players
 - [ ] Home page design
   - [ ] Fancier design
   - [ ] More colors

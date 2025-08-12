@@ -11,6 +11,7 @@
       "mcp__strapi__strapi_list_servers",
       "mcp__convex__status",
       "Bash(pnpm lint*)",
+      "Bash(pnpm format:*)",
       "Bash(pnpm check*)",
       "Bash(pnpm verify*)",
       "Bash(pnpm test*)",

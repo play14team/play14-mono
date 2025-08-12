@@ -39,7 +39,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^24.1.0",
     "@vitest/browser": "^3.2.3",
-    "bits-ui": "^2.8.14",
+    "bits-ui": "^2.9.2",
     "clsx": "^2.1.1",
     "convex": "^1.25.4",
     "convex-svelte": "^0.0.11",
@@ -68,6 +68,7 @@
   },
   "dependencies": {
     "boxicons": "^2.1.4",
+    "lucide-svelte": "^0.539.0",
     "mode-watcher": "^1.1.0"
   }
 }

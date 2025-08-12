@@ -92,12 +92,17 @@ pnpm test:e2e     # Run end-to-end tests with Playwright
 
 **Alternative/future implementation - not currently in production**
 
-- **Framework**: SvelteKit 5 with TypeScript
+- **Framework**: SvelteKit 5 with TypeScript (using Svelte 5 runes mode)
 - **Backend**: Convex for real-time database and backend functions
 - **UI Components**: shadcn/ui (Svelte port) with Tailwind CSS
 - **Styling**: Tailwind CSS v4 with custom animations
-- **State Management**: Convex reactive queries
+- **State Management**: Convex reactive queries with convex-svelte integration
 - **Development**: Parallel frontend/backend development with npm-run-all
+- **Convex Integration**:
+  - Client setup: Pass URL string to `setupConvex()` in root layout
+  - Queries: Use `useQuery()` hook with reactive args function
+  - Data access: Use `$derived` for reactive data in Svelte 5
+  - Storage: Convert storage IDs to URLs with `ctx.storage.getUrl()`
 
 ### Database Schema (Production - Strapi/PostgreSQL)
 
@@ -157,14 +162,40 @@ Key content types powering https://play14.org:
 
 - It seems you regularly get timeouts on pnpm verify. Why don't you run pnpm format, pnpm lint and pnpm check separately from now on
 
+## Lessons Learned from Migrations
+
+### Houdini to Convex Migration (2025-08-12)
+
+**Key Issues Encountered:**
+
+1. **Svelte Context Setup**: Pass URL string directly to `setupConvex()`, not a ConvexClient instance
+2. **Data Structure Mismatch**: Components expecting nested GraphQL/Strapi structure vs flat Convex objects
+3. **Storage IDs vs URLs**: Convex storage IDs must be converted to URLs using `ctx.storage.getUrl()`
+4. **Svelte 5 Compatibility**: Use `$derived` instead of `$:` reactive statements in runes mode
+5. **TypeScript Typing**: Replace `any` types with proper interfaces to avoid linting errors
+6. **Unused Imports**: Remove unused type imports immediately to prevent ESLint failures
+
+**Best Practices for Future Migrations:**
+
+- Always check the actual data structure in the database before updating components
+- Test data flow from backend to frontend incrementally
+- Define proper TypeScript interfaces instead of using `any`
+- Run linting before attempting commits to catch issues early
+- When working with storage/media files, ensure proper URL conversion
+- Check Svelte version compatibility (Svelte 5 uses runes, not legacy reactive statements)
+
 ## Rules
 
 - **IMPORTANT** I will ALWAYS run the server myself. So unless explicitly requested to, you don't need to run `pnpm dev` yourself.
 - **IMPORTANT** Always lint and check before you consider a task done
-- **IMPORTANT** Use run `pnpm format`, `pnpm lint` and `pnpm check` before you attempt to commit
+- **IMPORTANT** Remove unused imports immediately after refactoring to prevent linting errors
+- **IMPORTANT** Use proper TypeScript types instead of `any` - define interfaces for data structures
 
-- **ALWAYS** use Svelte 5 and SvelteKit 2 syntax
+- **ALWAYS** refer to the [coding guidelines](docs/coding-guidelines.md)
+- **ALWAYS** use Svelte 5 and SvelteKit 2 syntax. Refer to the [Svelte 5 syntax changes documentation](docs/svelte5-syntax-changes-from-svelte4.md)
 - **ALWAYS** use components from ShadCN Svelte https://www.shadcn-svelte.com/docs/components
-- **WHENEVER** the ShadCN Svelte component is not installed, go ahead and install it using `pnpm dlx shadcn-svelte@latest add <component>`
 - **ALWAYS** split pages into small reusable components
 - **ALWAYS** set a key when using the `each` block syntax https://svelte.dev/docs/svelte/each e.g. `{#each expression as name (key)}...{/each}` or `{#each expression as name, index (key)}...{/each}`
+
+- **WHENEVER** the ShadCN Svelte component is not installed, go ahead and install it using `pnpm dlx shadcn-svelte@latest add <component>`
+- **WHENEVER** necessary, refer to the [refactoring guidelines](docs/refactoring-guildelines.md)
