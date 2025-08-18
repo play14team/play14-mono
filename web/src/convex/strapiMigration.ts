@@ -835,6 +835,19 @@ interface StrapiExpectation {
   type: string;
   icon: string;
   content: string;
+  locale?: string;
+  localizations?: {
+    data: Array<{
+      id: string;
+      attributes: {
+        title: string;
+        type: string;
+        icon: string;
+        content: string;
+        locale: string;
+      };
+    }>;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -849,34 +862,92 @@ export const migrateExpectationsData = mutation({
 
     for (const expectation of expectations.data) {
       try {
-        // Check if expectation already exists
+        // Get the locale from the expectation (default to 'en' if not specified)
+        const mainLocale = expectation.attributes.locale || 'en';
+
+        // Check if expectation already exists for this locale
         const existing = await ctx.db
           .query('expectations')
-          .filter((q) => q.eq(q.field('strapiId'), expectation.id))
+          .filter((q) =>
+            q.and(q.eq(q.field('strapiId'), expectation.id), q.eq(q.field('locale'), mainLocale))
+          )
           .first();
 
         if (existing) {
-          console.log(`Expectation ${expectation.attributes.title} already exists, skipping`);
-          continue;
+          console.log(
+            `Expectation ${expectation.attributes.title} (${mainLocale}) already exists, skipping`
+          );
+        } else {
+          // Insert main expectation
+          const expectationId = await ctx.db.insert('expectations', {
+            strapiId: expectation.id,
+            title: expectation.attributes.title,
+            type: expectation.attributes.type as 'Main' | 'Secondary',
+            icon: expectation.attributes.icon,
+            content: expectation.attributes.content,
+            locale: mainLocale
+          });
+
+          // Track ID mapping
+          await ctx.db.insert('idMappings', {
+            strapiType: `expectation_${mainLocale}`,
+            strapiId: expectation.id,
+            convexId: expectationId
+          });
+
+          results.push({
+            success: true,
+            strapiId: expectation.id,
+            locale: mainLocale,
+            convexId: expectationId
+          });
         }
 
-        // Insert new expectation
-        const expectationId = await ctx.db.insert('expectations', {
-          strapiId: expectation.id,
-          title: expectation.attributes.title,
-          type: expectation.attributes.type as 'Main' | 'Secondary',
-          icon: expectation.attributes.icon,
-          content: expectation.attributes.content
-        });
+        // Process localizations if they exist
+        if (expectation.attributes.localizations?.data) {
+          for (const localization of expectation.attributes.localizations.data) {
+            const locale = localization.attributes.locale;
 
-        // Track ID mapping
-        await ctx.db.insert('idMappings', {
-          strapiType: 'expectation',
-          strapiId: expectation.id,
-          convexId: expectationId
-        });
+            // Check if localization already exists
+            const existingLocalization = await ctx.db
+              .query('expectations')
+              .filter((q) =>
+                q.and(q.eq(q.field('strapiId'), localization.id), q.eq(q.field('locale'), locale))
+              )
+              .first();
 
-        results.push({ success: true, strapiId: expectation.id, convexId: expectationId });
+            if (existingLocalization) {
+              console.log(
+                `Expectation ${localization.attributes.title} (${locale}) already exists, skipping`
+              );
+              continue;
+            }
+
+            // Insert localized expectation
+            const localizedId = await ctx.db.insert('expectations', {
+              strapiId: localization.id,
+              title: localization.attributes.title,
+              type: localization.attributes.type as 'Main' | 'Secondary',
+              icon: localization.attributes.icon,
+              content: localization.attributes.content,
+              locale: locale
+            });
+
+            // Track ID mapping for localization
+            await ctx.db.insert('idMappings', {
+              strapiType: `expectation_${locale}`,
+              strapiId: localization.id,
+              convexId: localizedId
+            });
+
+            results.push({
+              success: true,
+              strapiId: localization.id,
+              locale: locale,
+              convexId: localizedId
+            });
+          }
+        }
       } catch (error) {
         console.error(`Error migrating expectation ${expectation.id}:`, error);
         results.push({

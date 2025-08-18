@@ -1,4 +1,4 @@
-import { query } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import type { QueryCtx } from './_generated/server';
 
@@ -7,7 +7,7 @@ export const getHomePage = query({
   args: {
     locale: v.optional(v.string())
   },
-  handler: async (ctx: QueryCtx) => {
+  handler: async (ctx: QueryCtx, args) => {
     // Get upcoming events (next 6 events where start date is in the future)
     const upcomingEvents = await ctx.db
       .query('events')
@@ -40,8 +40,11 @@ export const getHomePage = query({
       homeImageUrls = urls.filter((url): url is string => url !== null);
     }
 
-    // Get expectations
-    const expectations = await ctx.db.query('expectations').collect();
+    // Get expectations (filter by locale if provided, default to 'en' for backward compatibility)
+    const expectationsQuery = ctx.db.query('expectations');
+    const expectations = args.locale
+      ? await expectationsQuery.filter((q) => q.eq(q.field('locale'), args.locale)).collect()
+      : await expectationsQuery.collect();
 
     // Get event locations for map
     const eventLocations = await ctx.db.query('eventLocations').collect();
@@ -165,5 +168,110 @@ export const getLatestArticles = query({
         };
       })
     );
+  }
+});
+
+// Query: Get expectations by locale
+export const getExpectations = query({
+  args: {
+    locale: v.string()
+  },
+  handler: async (ctx: QueryCtx, args: { locale: string }) => {
+    return await ctx.db
+      .query('expectations')
+      .withIndex('by_locale', (q) => q.eq('locale', args.locale))
+      .collect();
+  }
+});
+
+// Query: Get all expectations grouped by locale
+export const getAllExpectations = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const allExpectations = await ctx.db.query('expectations').collect();
+
+    // Group by locale (use 'en' as default for expectations without locale)
+    const grouped = allExpectations.reduce(
+      (acc, expectation) => {
+        const locale = expectation.locale || 'en';
+        if (!acc[locale]) {
+          acc[locale] = [];
+        }
+        acc[locale].push(expectation);
+        return acc;
+      },
+      {} as Record<string, typeof allExpectations>
+    );
+
+    return grouped;
+  }
+});
+
+// Mutation: Add or update an expectation with locale
+export const upsertExpectation = mutation({
+  args: {
+    strapiId: v.optional(v.string()),
+    title: v.string(),
+    type: v.union(v.literal('Main'), v.literal('Secondary')),
+    icon: v.string(),
+    content: v.string(),
+    locale: v.string()
+  },
+  handler: async (ctx, args) => {
+    // Check if expectation exists for this locale
+    const existing = args.strapiId
+      ? await ctx.db
+          .query('expectations')
+          .filter((q) =>
+            q.and(q.eq(q.field('strapiId'), args.strapiId), q.eq(q.field('locale'), args.locale))
+          )
+          .first()
+      : null;
+
+    if (existing) {
+      // Update existing expectation
+      await ctx.db.patch(existing._id, {
+        title: args.title,
+        type: args.type,
+        icon: args.icon,
+        content: args.content
+      });
+      return existing._id;
+    } else {
+      // Create new expectation
+      return await ctx.db.insert('expectations', {
+        strapiId: args.strapiId,
+        title: args.title,
+        type: args.type,
+        icon: args.icon,
+        content: args.content,
+        locale: args.locale
+      });
+    }
+  }
+});
+
+// Mutation: Add locale field to existing expectations (migration helper)
+export const addLocaleToExistingExpectations = mutation({
+  args: {
+    defaultLocale: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const locale = args.defaultLocale || 'en';
+    const expectations = await ctx.db.query('expectations').collect();
+
+    let updated = 0;
+    for (const expectation of expectations) {
+      if (!expectation.locale) {
+        await ctx.db.patch(expectation._id, { locale });
+        updated++;
+      }
+    }
+
+    return {
+      total: expectations.length,
+      updated,
+      message: `Updated ${updated} expectations with locale '${locale}'`
+    };
   }
 });

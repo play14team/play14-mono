@@ -333,8 +333,12 @@ export default defineSchema({
     title: v.string(),
     type: v.union(v.literal('Main'), v.literal('Secondary')),
     icon: v.string(),
-    content: v.string() // rich text as HTML
-  }).index('by_strapi_id', ['strapiId']),
+    content: v.string(), // rich text as HTML
+    locale: v.string() // Language code (e.g., 'en', 'fr') - required field
+  })
+    .index('by_strapi_id', ['strapiId'])
+    .index('by_locale', ['locale'])
+    .index('by_type_and_locale', ['type', 'locale']),
 
   // Single type tables
   home: defineTable({

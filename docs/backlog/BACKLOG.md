@@ -16,8 +16,9 @@
 - [x] logo at the top that disapears with animation when scrolling
 - [x] Migrate from Houdini to Convex
 - [ ] Use ShadCN instead of default
-  - [ ] Fix layout
-  - [ ] Fix translations
+  - [x] Fix layout
+  - [x] Fix translations
+  - [x] Store locale-specific expectations in the database with a locale field
 - [ ] Move to Biome for linting and formatting
   - [ ] Project
   - [ ] CI

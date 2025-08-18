@@ -8,11 +8,13 @@
   import HeroMosaic from '$lib/components/HeroMosaic.svelte';
   import Manifesto from '$lib/components/Manifesto.svelte';
   import { t, locale } from '$lib/i18n';
-  import { get } from 'svelte/store';
+
+  // Make locale reactive for Svelte 5
+  const currentLocale = $derived($locale);
 
   // Use Convex query to get homepage data
   // Pass a function for reactive args so it updates when locale changes
-  const query = useQuery(api.home.getHomePage, () => ({ locale: get(locale) }));
+  const query = useQuery(api.home.getHomePage, () => ({ locale: currentLocale }));
 
   // Access query results using derived runes
   const data = $derived(query.data);
@@ -24,6 +26,13 @@
   const latestArticles = $derived(data?.latestArticles || []);
   const homeImages = $derived(data?.home?.imageUrls || []);
   const expectations = $derived(data?.expectations || []);
+
+  // Debug: Log when expectations change
+  $effect(() => {
+    if (expectations.length > 0) {
+      console.log('Expectations updated for locale:', currentLocale, expectations);
+    }
+  });
 </script>
 
 <div>
@@ -207,7 +216,13 @@
   {/if}
 
   <!-- Expectations Section -->
-  {#if expectations.length > 0}
+  {#if isLoading}
+    <section class="mb-16 pt-24">
+      <div class="flex justify-center">
+        <div class="text-gray-500">Loading expectations...</div>
+      </div>
+    </section>
+  {:else if expectations.length > 0}
     <section class="mb-16 pt-24">
       <Expectations
         expectations={expectations

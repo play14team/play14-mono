@@ -867,12 +867,13 @@ export const HISTORY_MIGRATION_QUERY = `
 `;
 
 /**
- * EXPECTATIONS - Complete migration query
+ * EXPECTATIONS - Complete migration query with localization support
  */
 export const EXPECTATIONS_MIGRATION_QUERY = `
   query ExpectationsMigration {
     expectations(
       pagination: { limit: ${MIGRATION_PAGINATION_LIMIT} }
+      locale: "all"
     ) {
       data {
         id
@@ -881,8 +882,21 @@ export const EXPECTATIONS_MIGRATION_QUERY = `
           type
           icon
           content
+          locale
           createdAt
           updatedAt
+          localizations {
+            data {
+              id
+              attributes {
+                title
+                type
+                icon
+                content
+                locale
+              }
+            }
+          }
         }
       }
       meta {
