@@ -129,13 +129,35 @@ export const getUpcomingEvents = query({
       .order('asc')
       .take(limit);
 
-    // Get location details for each event
+    // Get location details and convert image IDs to URLs for each event
     return Promise.all(
       events.map(async (event) => {
         const location = event.locationId ? await ctx.db.get(event.locationId) : null;
         const venue = event.venueId ? await ctx.db.get(event.venueId) : null;
+
+        // Convert default image storage ID to URL
+        let defaultImageUrl: string | null = null;
+        if (event.defaultImageId) {
+          defaultImageUrl = await ctx.storage.getUrl(event.defaultImageId);
+        }
+
+        // Convert gallery image storage IDs to URLs
+        let imageUrls: string[] = [];
+        if (event.imageIds && event.imageIds.length > 0) {
+          const urls = await Promise.all(
+            event.imageIds.map(async (imageId) => {
+              const url = await ctx.storage.getUrl(imageId);
+              return url;
+            })
+          );
+          // Filter out null URLs
+          imageUrls = urls.filter((url): url is string => url !== null);
+        }
+
         return {
           ...event,
+          defaultImageUrl,
+          imageUrls,
           location,
           venue
         };
@@ -158,12 +180,20 @@ export const getLatestArticles = query({
       .order('desc')
       .take(limit);
 
-    // Get author details for each article
+    // Get author details and convert image IDs to URLs for each article
     return Promise.all(
       articles.map(async (article) => {
         const author = article.authorId ? await ctx.db.get(article.authorId) : null;
+
+        // Convert image storage ID to URL
+        let imageUrl: string | null = null;
+        if (article.defaultImageId) {
+          imageUrl = await ctx.storage.getUrl(article.defaultImageId);
+        }
+
         return {
           ...article,
+          imageUrl,
           author
         };
       })
@@ -248,6 +278,29 @@ export const upsertExpectation = mutation({
         locale: args.locale
       });
     }
+  }
+});
+
+// Query: Get home images for gallery
+export const getHomeImages = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const home = await ctx.db.query('home').first();
+
+    // Convert image storage IDs to URLs
+    let imageUrls: string[] = [];
+    if (home?.imageIds && home.imageIds.length > 0) {
+      const urls = await Promise.all(
+        home.imageIds.map(async (imageId) => {
+          const url = await ctx.storage.getUrl(imageId);
+          return url;
+        })
+      );
+      // Filter out null URLs
+      imageUrls = urls.filter((url): url is string => url !== null);
+    }
+
+    return imageUrls;
   }
 });
 

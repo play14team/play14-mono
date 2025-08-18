@@ -19,10 +19,15 @@
   - [x] Fix layout
   - [x] Fix translations
   - [x] Store locale-specific expectations in the database with a locale field
-- [ ] Move to Biome for linting and formatting
-  - [ ] Project
-  - [ ] CI
-- [ ] Refactor to components
+- [ ] Refactor Home to components
+  - [x] extract components
+  - [ ] split query
+  - [ ] implement alert for errors as a reusable component
+  - [ ] implement loader as a reusable component
+  - [ ] replace latest articles with a carousel of testimonials
+  - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
+  - [ ] Use shadcn cards
+  - [ ] Use flags `pnpm i -D svelte-flags`
 - [ ] Authentication with Google
 - [ ] Admin panel for Players
 - [ ] Home page design
@@ -32,6 +37,9 @@
   - [ ] More spacing
 - [ ] Check breaking because of migration tests
 - [ ] Event map
+- [ ] Move to Biome for linting and formatting
+  - [ ] Project
+  - [ ] CI
 - Fix the tests (Lint)
 - [ ] Create a CI
   - [ ] Lint
