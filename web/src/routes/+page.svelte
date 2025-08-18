@@ -4,6 +4,7 @@
   import DiscoverPower from '$lib/components/home/DiscoverPower.svelte';
   import WhyAttend from '$lib/components/home/WhyAttend.svelte';
   import Events from '$lib/components/home/Events.svelte';
+  import EventsWorldMap from '$lib/components/home/EventsWorldMap.svelte';
   import WhatToExpect from '$lib/components/home/WhatToExpect.svelte';
   import Gallery from '$lib/components/home/Gallery.svelte';
   import ManifestoAndCode from '$lib/components/home/ManifestoAndCode.svelte';
@@ -17,6 +18,7 @@
   <DiscoverPower />
   <WhyAttend />
   <Events />
+  <EventsWorldMap />
   <WhatToExpect />
   <Gallery />
   <ManifestoAndCode />

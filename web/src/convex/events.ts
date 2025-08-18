@@ -429,3 +429,99 @@ async function getEventAttendees(ctx: QueryCtx, eventId: Id<'events'>) {
 
   return attendees.filter(Boolean);
 }
+
+// Query: Get all countries that have hosted or will host non-cancelled #play14 events
+export const getCountriesWithEvents = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    // Get all non-cancelled events
+    const events = await ctx.db
+      .query('events')
+      .withIndex('by_status')
+      .filter((q) =>
+        q.and(q.neq(q.field('status'), 'Cancelled'), q.neq(q.field('publishedAt'), undefined))
+      )
+      .collect();
+
+    // Get unique location IDs
+    const locationIds = [...new Set(events.map((e) => e.locationId).filter(Boolean))];
+
+    // Get locations to extract country codes
+    const locations = await Promise.all(
+      locationIds.map((id) => ctx.db.get(id as Id<'eventLocations'>))
+    );
+
+    // Extract unique country codes
+    const countryCodes = [
+      ...new Set(
+        locations
+          .filter(Boolean)
+          .map((location) => location?.country)
+          .filter(Boolean)
+      )
+    ];
+
+    return countryCodes;
+  }
+});
+
+// Query: Get events grouped by country with detailed information
+export const getEventsGroupedByCountry = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    // Get all non-cancelled events
+    const events = await ctx.db
+      .query('events')
+      .withIndex('by_status')
+      .filter((q) =>
+        q.and(q.neq(q.field('status'), 'Cancelled'), q.neq(q.field('publishedAt'), undefined))
+      )
+      .collect();
+
+    // Get locations for all events
+    const eventsWithLocations = await Promise.all(
+      events.map(async (event) => {
+        const location = event.locationId ? await ctx.db.get(event.locationId) : null;
+        return { event, location };
+      })
+    );
+
+    // Group events by country code
+    const eventsByCountry: Record<
+      string,
+      Array<{
+        name: string;
+        slug: string;
+        start: number;
+        end: number;
+        status: string;
+        locationName: string;
+      }>
+    > = {};
+
+    eventsWithLocations.forEach(({ event, location }) => {
+      if (location?.country) {
+        const countryCode = location.country.toUpperCase();
+        if (!eventsByCountry[countryCode]) {
+          eventsByCountry[countryCode] = [];
+        }
+
+        eventsByCountry[countryCode].push({
+          name: event.name,
+          slug: event.slug,
+          start: event.start,
+          end: event.end,
+          status: event.status,
+          locationName: location.name || 'Unknown'
+        });
+      }
+    });
+
+    // Sort events by date (most recent first) for each country
+    Object.keys(eventsByCountry).forEach((country) => {
+      eventsByCountry[country].sort((a, b) => b.start - a.start);
+    });
+
+    return eventsByCountry;
+  }
+});

@@ -1,6 +1,24 @@
 /* Play14 Theme Styles */
 @import 'tailwindcss' reference;
 
+/* #play14 Brand Colors - From Logo */
+:root {
+  --play14-red: #d80000; /* # */
+  --play14-orange: #ff5200; /* p */
+  --play14-yellow: #ffc900; /* l */
+  --play14-green: #92c900; /* a */
+  --play14-blue: #0098dd; /* y */
+  --play14-gray: #393939; /* 14 */
+
+  /* Darker variants for borders/hover */
+  --play14-red-dark: #b30000;
+  --play14-orange-dark: #e64700;
+  --play14-yellow-dark: #e6b500;
+  --play14-green-dark: #7aad00;
+  --play14-blue-dark: #007fbb;
+  --play14-gray-dark: #2a2a2a;
+}
+
 /* Font declarations - Using Nunito from Google Fonts */
 
 /* Base typography */

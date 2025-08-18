@@ -23,24 +23,25 @@
   - [x] extract components
   - [x] split query
   - [x] implement alert for errors as a reusable component
-  - [ ] implement loader as a reusable component
   - [x] Use shadcn cards
     - [x] button to register
     - [x] animation
-  - [ ] replace latest articles with a carousel of testimonials
-  - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
   - [x] Use flags `pnpm i -D svelte-flags`
+  - [ ] replace latest articles with a carousel of testimonials
+  - [ ] Implement world map
+  - [ ] Use CSS variables for all colors
+  - [ ] implement loader or skeleton as a reusable component
   - [ ] Statistics
     - [ ] Number of events (except cancelled)
     - [ ] Number of locations/countries
     - [ ] Number of players
     - [ ] Number of games documented (only published)
-  - [ ] Implement world map
   - [ ] Fancier design
   - [ ] More colors
   - [ ] More spacing
   - [ ] What to expect? ==> What will happen?
 - [ ] Event list by year
+  - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
 - [ ] Authentication with Google
 - [ ] Admin panel for Players
 - [ ] Search using Convex full text and vector search features
