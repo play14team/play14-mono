@@ -24,17 +24,26 @@
   - [x] split query
   - [x] implement alert for errors as a reusable component
   - [ ] implement loader as a reusable component
-  - [ ] Use shadcn cards
+  - [x] Use shadcn cards
+    - [x] button to register
+    - [x] animation
   - [ ] replace latest articles with a carousel of testimonials
   - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
-  - [ ] Use flags `pnpm i -D svelte-flags`
-- [ ] Authentication with Google
-- [ ] Admin panel for Players
-- [ ] Home page design
+  - [x] Use flags `pnpm i -D svelte-flags`
+  - [ ] Statistics
+    - [ ] Number of events (except cancelled)
+    - [ ] Number of locations/countries
+    - [ ] Number of players
+    - [ ] Number of games documented (only published)
+  - [ ] Implement world map
   - [ ] Fancier design
   - [ ] More colors
-  - [ ] Event cards to be reviewed
   - [ ] More spacing
+  - [ ] What to expect? ==> What will happen?
+- [ ] Event list by year
+- [ ] Authentication with Google
+- [ ] Admin panel for Players
+- [ ] Search using Convex full text and vector search features
 - [ ] Check breaking because of migration tests
 - [ ] Event map
 - [ ] Move to Biome for linting and formatting

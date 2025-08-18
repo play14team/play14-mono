@@ -201,7 +201,14 @@ const enTranslations: Translations = {
     calendar: 'Calendar',
     map: 'Map',
     hosting: 'Hosting an event',
-    viewEvent: 'View event'
+    viewEvent: 'View event',
+    registerNow: 'Register now',
+    status: {
+      announced: 'Announced',
+      open: 'Open',
+      over: 'Over',
+      cancelled: 'Cancelled'
+    }
   },
   community: {
     players: 'Players',
@@ -346,7 +353,14 @@ const frTranslations: Translations = {
     calendar: 'Calendrier',
     map: 'Carte',
     hosting: 'Organiser un événement',
-    viewEvent: "Voir l'événement"
+    viewEvent: "Voir l'événement",
+    registerNow: "S'inscrire maintenant",
+    status: {
+      announced: 'Annoncé',
+      open: 'Ouvert',
+      over: 'Terminé',
+      cancelled: 'Annulé'
+    }
   },
   community: {
     players: 'Joueurs',

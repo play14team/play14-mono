@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Badge } from '$lib/components/ui/badge';
   import ProgressiveImage from '../ProgressiveImage.svelte';
   import { generateSrcSet, getSizes, generateBlurDataURL } from '$lib/utils/image';
 
@@ -12,19 +13,23 @@
     publishedAt?: string;
   }
 
-  export let article: ArticleData;
+  interface Props {
+    article: ArticleData;
+  }
+
+  let { article }: Props = $props();
 </script>
 
 {#if article}
-  <article
-    class="overflow-hidden rounded-lg bg-white shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800 dark:shadow-gray-900/50 dark:hover:shadow-gray-900/70"
+  <div
+    class="bg-card text-card-foreground group overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
   >
     {#if article.imageUrl}
-      <div class="h-48 w-full">
+      <div class="h-48 w-full overflow-hidden">
         <ProgressiveImage
           src={article.imageUrl}
           alt={article.title}
-          className="h-48 w-full object-cover"
+          className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
           srcset={generateSrcSet(article.imageUrl)}
           sizes={getSizes('100vw', '50vw', '33vw')}
@@ -34,30 +39,25 @@
     {/if}
     <div class="p-6">
       {#if article.category}
-        <span
-          class="mb-2 inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-        >
+        <Badge variant="secondary" class="mb-2 w-fit">
           {article.category}
-        </span>
+        </Badge>
       {/if}
-      <h3 class="mb-2 text-xl font-semibold">
-        <a
-          href="/articles/{article.slug}"
-          class="text-gray-900 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400"
-        >
+      <h3 class="mb-2 text-2xl font-semibold leading-none tracking-tight">
+        <a href="/articles/{article.slug}" class="hover:text-primary">
           {article.title}
         </a>
       </h3>
       {#if article.summary}
-        <p class="mb-3 line-clamp-3 text-gray-700 dark:text-gray-300">
+        <p class="text-muted-foreground line-clamp-3">
           {article.summary}
         </p>
       {/if}
       {#if article.publishedAt}
-        <p class="text-sm text-gray-500 dark:text-gray-400">
+        <p class="text-muted-foreground mt-4 text-sm">
           {new Date(article.publishedAt).toLocaleDateString()}
         </p>
       {/if}
     </div>
-  </article>
+  </div>
 {/if}
