@@ -21,12 +21,12 @@
   - [x] Store locale-specific expectations in the database with a locale field
 - [ ] Refactor Home to components
   - [x] extract components
-  - [ ] split query
-  - [ ] implement alert for errors as a reusable component
+  - [x] split query
+  - [x] implement alert for errors as a reusable component
   - [ ] implement loader as a reusable component
+  - [ ] Use shadcn cards
   - [ ] replace latest articles with a carousel of testimonials
   - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
-  - [ ] Use shadcn cards
   - [ ] Use flags `pnpm i -D svelte-flags`
 - [ ] Authentication with Google
 - [ ] Admin panel for Players

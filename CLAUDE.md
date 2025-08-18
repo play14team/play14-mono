@@ -193,6 +193,7 @@ Key content types powering https://play14.org:
 - **IMPORTANT** Always lint and check before you commit
 - **IMPORTANT** Remove unused imports immediately after refactoring to prevent linting errors
 - **IMPORTANT** Use proper TypeScript types instead of `any` - define interfaces for data structures
+- **IMPORTANT** Respect the syntax imposed by eslint and prettier rules
 
 - **ALWAYS** refer to the [coding guidelines](docs/coding-guidelines.md)
 - **ALWAYS** use Svelte 5 and SvelteKit 2 syntax. Refer to the [Svelte 5 syntax changes documentation](docs/svelte5-syntax-changes-from-svelte4.md)
