@@ -1,38 +1,85 @@
-# sv
+# Play14 Web Application
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+SvelteKit web application with Convex backend for the #play14 platform.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+## Quick Start
 
 ```bash
-# create a new project in the current directory
-npx sv create
+# Install dependencies
+pnpm install
 
-# create a new project in my-app
-npx sv create my-app
+# Start development servers (frontend + backend)
+pnpm dev
+
+# Or open browser automatically
+pnpm devo
 ```
 
-## Developing
+## Data Migration
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+To migrate data from Strapi to Convex:
 
 ```bash
-npm run dev
+# Run complete migration
+pnpm migrate
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# Check migration status
+pnpm migrate:status
+
+# Clean and re-migrate
+pnpm migrate:clean
+pnpm migrate
+```
+
+See [Migration Guide](docs/MIGRATION.md) for detailed instructions.
+
+## Development Commands
+
+```bash
+# Frontend only
+pnpm dev:frontend
+
+# Backend only
+pnpm dev:backend
+
+# Open Convex dashboard
+pnpm dashboard
+
+# Linting and formatting
+pnpm lint
+pnpm format
+pnpm check
+
+# Run all checks
+pnpm verify
+
+# Testing
+pnpm test:unit
+pnpm test:e2e
 ```
 
 ## Building
 
-To create a production version of your app:
-
 ```bash
-npm run build
+# Build for production
+pnpm build
+
+# Preview production build
+pnpm preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Documentation
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- [Migration Guide](docs/MIGRATION.md) - Strapi to Convex data migration
+- [Coding Guidelines](docs/coding-guidelines.md) - Development standards
+- [Svelte 5 Syntax](docs/svelte5-syntax-changes-from-svelte4.md) - Svelte 5 changes
+- [Refactoring Guidelines](docs/refactoring-guildelines.md) - Code refactoring guide
+
+## Tech Stack
+
+- **Frontend**: SvelteKit 2 + Svelte 5 (runes mode)
+- **Backend**: Convex (real-time database)
+- **UI Components**: shadcn-svelte
+- **Styling**: Tailwind CSS v4
+- **Testing**: Vitest + Playwright
+- **Package Manager**: PNPM

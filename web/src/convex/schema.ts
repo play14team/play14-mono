@@ -391,5 +391,16 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     type: v.string()
-  }).index('by_strapi_id', ['strapiId'])
+  }).index('by_strapi_id', ['strapiId']),
+
+  // Migration tracking
+  migrationSessions: defineTable({
+    contentTypes: v.array(v.string()),
+    includeFiles: v.boolean(),
+    currentIndex: v.number(),
+    status: v.union(v.literal('in_progress'), v.literal('completed'), v.literal('failed')),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    results: v.any() // Dynamic object with content type results
+  })
 });

@@ -8,26 +8,25 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
-import type * as articles from "../articles.js";
-import type * as clearData from "../clearData.js";
-import type * as events from "../events.js";
-import type * as fileMigration from "../fileMigration.js";
-import type * as fixIdMappings from "../fixIdMappings.js";
-import type * as games from "../games.js";
-import type * as home from "../home.js";
-import type * as imageMigration from "../imageMigration.js";
-import type * as players from "../players.js";
-import type * as search from "../search.js";
-import type * as strapiMigration from "../strapiMigration.js";
-import type * as strapiMigrationBatched from "../strapiMigrationBatched.js";
-import type * as strapiMigrationQueries from "../strapiMigrationQueries.js";
-import type * as supporting from "../supporting.js";
-import type * as types from "../types.js";
+import type { ApiFromModules, FilterApi, FunctionReference } from 'convex/server';
+import type * as articles from '../articles.js';
+import type * as chunkedMigration from '../chunkedMigration.js';
+import type * as cleanupStorage from '../cleanupStorage.js';
+import type * as clearData from '../clearData.js';
+import type * as events from '../events.js';
+import type * as fileMigration from '../fileMigration.js';
+import type * as fixIdMappings from '../fixIdMappings.js';
+import type * as games from '../games.js';
+import type * as home from '../home.js';
+import type * as imageMigration from '../imageMigration.js';
+import type * as migrationStatus from '../migrationStatus.js';
+import type * as players from '../players.js';
+import type * as search from '../search.js';
+import type * as strapiMigration from '../strapiMigration.js';
+import type * as strapiMigrationBatched from '../strapiMigrationBatched.js';
+import type * as strapiMigrationQueries from '../strapiMigrationQueries.js';
+import type * as supporting from '../supporting.js';
+import type * as types from '../types.js';
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -39,6 +38,8 @@ import type * as types from "../types.js";
  */
 declare const fullApi: ApiFromModules<{
   articles: typeof articles;
+  chunkedMigration: typeof chunkedMigration;
+  cleanupStorage: typeof cleanupStorage;
   clearData: typeof clearData;
   events: typeof events;
   fileMigration: typeof fileMigration;
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   home: typeof home;
   imageMigration: typeof imageMigration;
+  migrationStatus: typeof migrationStatus;
   players: typeof players;
   search: typeof search;
   strapiMigration: typeof strapiMigration;
@@ -54,11 +56,5 @@ declare const fullApi: ApiFromModules<{
   supporting: typeof supporting;
   types: typeof types;
 }>;
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
-export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
->;
+export declare const api: FilterApi<typeof fullApi, FunctionReference<any, 'public'>>;
+export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, 'internal'>>;

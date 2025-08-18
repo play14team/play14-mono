@@ -25,7 +25,12 @@
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test",
     "verify": "pnpm format && pnpm lint --fix && pnpm lint:convex && pnpm check",
-    "env:inject": "node scripts/inject-env.js"
+    "env:inject": "node scripts/inject-env.js",
+    "migrate": "tsx scripts/run-migration.ts",
+    "migrate:chunked": "tsx scripts/run-chunked-migration.ts",
+    "migrate:chunked:parallel": "tsx scripts/run-chunked-migration.ts --parallel",
+    "migrate:clean": "tsx scripts/run-migration.ts --clean",
+    "migrate:status": "tsx scripts/run-migration.ts --status"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
@@ -44,6 +49,7 @@
     "convex": "^1.25.4",
     "convex-svelte": "^0.0.11",
     "convex-test": "^0.0.38",
+    "dotenv": "^17.2.1",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^3.0.0",
@@ -58,6 +64,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwind-variants": "^1.0.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.20.4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",

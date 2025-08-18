@@ -186,6 +186,8 @@ Key content types powering https://play14.org:
 
 ## Rules
 
+- **NEVER** add your name to a commit message
+
 - **IMPORTANT** I will ALWAYS run the server myself. So unless explicitly requested to, you don't need to run `pnpm dev` yourself.
 - **IMPORTANT** Always lint and check before you consider a task done
 - **IMPORTANT** Remove unused imports immediately after refactoring to prevent linting errors
