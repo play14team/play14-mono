@@ -7,7 +7,7 @@
   import * as Sheet from '$lib/components/ui/sheet';
   import * as NavigationMenu from '$lib/components/ui/navigation-menu';
   import { Button } from '$lib/components/ui/button';
-  import { Menu, ChevronDown, Home, Calendar, Users, Info, Mail } from '@lucide/svelte';
+  import { Menu, Home, Calendar, Users, Info, Mail } from '@lucide/svelte';
   import { cn } from '$lib/utils';
 
   let isOpen = false;
@@ -99,20 +99,16 @@
       </a>
 
       <!-- Desktop Navigation -->
-      <NavigationMenu.Root class="hidden md:flex">
+      <NavigationMenu.Root class="hidden md:flex" viewport={false}>
         <NavigationMenu.List>
           {#each navItems as item (item.label)}
             {#if item.children}
               <NavigationMenu.Item>
-                <NavigationMenu.Trigger class="group">
-                  <span class="flex items-center gap-1">
-                    <svelte:component this={item.icon} class="h-4 w-4" />
-                    {$t(item.label)}
-                    <ChevronDown
-                      class="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180"
-                      aria-hidden="true"
-                    />
-                  </span>
+                <NavigationMenu.Trigger
+                  class="bg-background hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent/50 group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <svelte:component this={item.icon} class="mr-2 h-4 w-4" />
+                  {$t(item.label)}
                 </NavigationMenu.Trigger>
                 <NavigationMenu.Content>
                   <ul class="grid w-[200px] gap-3 p-4">
