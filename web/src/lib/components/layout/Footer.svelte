@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button';
   import * as Separator from '$lib/components/ui/separator';
-  import { Building, Mail, Linkedin, Youtube, Facebook } from '@lucide/svelte';
+  import { Building, Mail, Linkedin, Youtube, Facebook } from 'lucide-svelte';
+  import { t } from '$lib/i18n';
 
   const socialLinks = [
     {
@@ -19,19 +20,6 @@
       icon: Facebook,
       label: 'Facebook'
     }
-  ];
-
-  const exploreLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'About', href: '/about/story' },
-    { label: 'Contact', href: '/contact' }
-  ];
-
-  const resourceLinks = [
-    { label: 'Our events', href: '/events' },
-    { label: 'Our players', href: '/players' },
-    { label: 'Our games', href: '/games' },
-    { label: 'Our articles', href: '/articles' }
   ];
 
   const currentYear = new Date().getFullYear();
@@ -58,7 +46,9 @@
             class="hidden h-auto w-48 dark:block"
           />
         </a>
-        <p class="text-muted-foreground mb-4 text-center md:text-left">play is the way</p>
+        <p class="text-muted-foreground mb-4 text-center md:text-left">
+          {$t('common.footer.playIsTheWay')}
+        </p>
         <div class="flex gap-2">
           {#each socialLinks as social (social.url)}
             <a href={social.url} target="_blank" rel="noreferrer" aria-label={social.label}>
@@ -72,41 +62,59 @@
 
       <!-- Explore -->
       <div>
-        <h3 class="mb-4 text-lg font-semibold">Explore</h3>
+        <h3 class="mb-4 text-lg font-semibold">{$t('common.footer.explore')}</h3>
         <ul class="space-y-2">
-          {#each exploreLinks as link (link.href)}
-            <li>
-              <a
-                href={link.href}
-                class="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {link.label}
-              </a>
-            </li>
-          {/each}
+          <li>
+            <a href="/" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.home')}
+            </a>
+          </li>
+          <li>
+            <a
+              href="/about/story"
+              class="text-muted-foreground hover:text-primary transition-colors"
+            >
+              {$t('common.about')}
+            </a>
+          </li>
+          <li>
+            <a href="/contact" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.contact')}
+            </a>
+          </li>
         </ul>
       </div>
 
       <!-- Resources -->
       <div>
-        <h3 class="mb-4 text-lg font-semibold">Resources</h3>
+        <h3 class="mb-4 text-lg font-semibold">{$t('common.footer.resources')}</h3>
         <ul class="space-y-2">
-          {#each resourceLinks as link (link.href)}
-            <li>
-              <a
-                href={link.href}
-                class="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {link.label}
-              </a>
-            </li>
-          {/each}
+          <li>
+            <a href="/events" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.footer.ourEvents')}
+            </a>
+          </li>
+          <li>
+            <a href="/players" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.footer.ourPlayers')}
+            </a>
+          </li>
+          <li>
+            <a href="/games" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.footer.ourGames')}
+            </a>
+          </li>
+          <li>
+            <a href="/articles" class="text-muted-foreground hover:text-primary transition-colors">
+              {$t('common.footer.ourArticles')}
+            </a>
+          </li>
         </ul>
       </div>
 
       <!-- Address -->
       <div>
-        <h3 class="mb-4 text-lg font-semibold">Address</h3>
+        <h3 class="mb-4 text-lg font-semibold">{$t('common.footer.address')}</h3>
         <div class="text-muted-foreground space-y-3">
           <div class="flex items-start gap-3">
             <Building class="mt-1 h-4 w-4 flex-shrink-0 text-orange-500" />
@@ -134,7 +142,7 @@
       <p class="text-muted-foreground text-center text-sm md:text-left">
         © 2014 - {currentYear}
         <strong class="font-semibold">#play14</strong>
-        developed by
+        {$t('common.footer.developedBy')}
         <a
           href="https://www.linkedin.com/in/c%C3%A9dric-pontet/"
           target="_blank"
@@ -149,10 +157,10 @@
           href="/privacy"
           class="text-muted-foreground hover:text-primary text-sm transition-colors"
         >
-          Privacy Policy
+          {$t('common.footer.privacyPolicy')}
         </a>
         <a href="/terms" class="text-muted-foreground hover:text-primary text-sm transition-colors">
-          Terms of Service
+          {$t('common.footer.termsOfService')}
         </a>
       </div>
     </div>

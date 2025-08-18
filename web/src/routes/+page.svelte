@@ -8,10 +8,11 @@
   import HeroMosaic from '$lib/components/HeroMosaic.svelte';
   import Manifesto from '$lib/components/Manifesto.svelte';
   import { t, locale } from '$lib/i18n';
+  import { get } from 'svelte/store';
 
   // Use Convex query to get homepage data
   // Pass a function for reactive args so it updates when locale changes
-  const query = useQuery(api.home.getHomePage, () => ({ locale: $locale }));
+  const query = useQuery(api.home.getHomePage, () => ({ locale: get(locale) }));
 
   // Access query results using derived runes
   const data = $derived(query.data);

@@ -3,53 +3,50 @@
   import { onMount } from 'svelte';
   import { invalidateAll } from '$app/navigation';
   import * as Select from '$lib/components/ui/select';
-  import { Globe } from '@lucide/svelte';
+  import { Globe } from 'lucide-svelte';
 
-  let currentLocale: Locale = 'en';
+  let currentLocale: Locale = $state('en');
 
   // Subscribe to locale changes
-  locale.subscribe((value) => {
+  const unsubscribe = locale.subscribe((value) => {
     currentLocale = value;
   });
 
   // Initialize locale from localStorage
   onMount(() => {
     locale.initialize();
+    return unsubscribe;
   });
 
-  async function changeLocale(value: string | undefined) {
-    if (value) {
-      locale.set(value as Locale);
+  async function handleLocaleChange(newValue: string | undefined) {
+    if (newValue && newValue !== currentLocale) {
+      locale.set(newValue as Locale);
       // Invalidate all load functions to trigger data reload
       await invalidateAll();
     }
   }
 
   const languageOptions = [
-    { value: 'en', label: 'English', flag: '🇬🇧' },
-    { value: 'fr', label: 'Français', flag: '🇫🇷' }
+    { value: 'en', label: 'English' },
+    { value: 'fr', label: 'Français' }
   ];
 
-  $: selectedLanguage = languageOptions.find((lang) => lang.value === currentLocale);
+  const selectedLanguage = $derived(languageOptions.find((lang) => lang.value === currentLocale));
 </script>
 
-<Select.Root value={currentLocale} onValueChange={changeLocale}>
-  <Select.Trigger class="w-[140px]" aria-label="Select language">
+<Select.Root type="single" value={currentLocale} onValueChange={handleLocaleChange}>
+  <Select.Trigger class="w-[80px]" aria-label="Select language">
     <div class="flex items-center gap-2">
       <Globe class="h-4 w-4" />
       {#if selectedLanguage}
-        <span>{selectedLanguage.flag}</span>
         <span class="font-medium">{currentLocale.toUpperCase()}</span>
       {/if}
     </div>
   </Select.Trigger>
   <Select.Content>
     {#each languageOptions as lang (lang.value)}
-      <Select.Item value={lang.value}>
-        <div class="flex items-center gap-2">
-          <span>{lang.flag}</span>
-          <span>{lang.label}</span>
-        </div>
+      <Select.Item value={lang.value} label={lang.label}>
+        <span>{lang.label}</span>
       </Select.Item>
     {/each}
   </Select.Content>
