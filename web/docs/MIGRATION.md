@@ -9,7 +9,7 @@ This guide explains how to migrate data from the Strapi CMS backend to the Conve
 1. **Environment Variables**: Ensure your `.env.local` file contains:
 
    ```env
-   VITE_CONVEX_URL=your-convex-deployment-url
+   CONVEX_URL=your-convex-deployment-url
    STRAPI_API_URL=your-strapi-api-url
    STRAPI_SECRET=your-strapi-api-secret
    ```
@@ -186,7 +186,7 @@ You can also run migrations directly from the Convex dashboard:
 ### Common Issues
 
 1. **CONVEX_URL not found**
-   - Ensure `.env.local` contains `VITE_CONVEX_URL`
+   - Ensure `.env.local` contains `CONVEX_URL`
    - Run `pnpm env:inject` to inject environment variables
 
 2. **Authentication Error**

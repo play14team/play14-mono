@@ -22,11 +22,11 @@ import { resolve } from 'path';
 config({ path: resolve(process.cwd(), '.env.local'), quiet: true });
 
 // Get Convex URL from environment
-const CONVEX_URL = process.env.VITE_CONVEX_URL || process.env.PUBLIC_CONVEX_URL;
+const CONVEX_URL = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
 
 if (!CONVEX_URL) {
   console.error('❌ CONVEX_URL not found in environment variables');
-  console.error('Please set VITE_CONVEX_URL or PUBLIC_CONVEX_URL');
+  console.error('Please set CONVEX_URL or VITE_CONVEX_URL');
   process.exit(1);
 }
 
