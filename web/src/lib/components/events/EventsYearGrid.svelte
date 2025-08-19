@@ -15,6 +15,10 @@
   const isLoading = $derived(query.isLoading);
   const error = $derived(query.error);
 
+  // Total published events (all years)
+  const totalQuery = useQuery(api.events.count, () => ({}));
+  const totalEvents = $derived(totalQuery.data ?? 0);
+
   // Cache number of events per year to stabilize layout across navigation
   const countsCache = $state<Record<number, number>>({});
   $effect(() => {
@@ -34,6 +38,18 @@
   <ErrorAlert {error} title="Failed to load events" />
 {:else}
   <div class="crossfade-wrapper" aria-live="polite">
+    <div
+      class="text-muted-foreground mb-4 flex items-center justify-between text-sm"
+      aria-live="polite"
+    >
+      <div>
+        {#if totalQuery.isLoading}
+          {$t('loading')}...
+        {:else}
+          {$t('events.countSummary', { visible: events.length, total: totalEvents })}
+        {/if}
+      </div>
+    </div>
     <!-- Base (previous or current) events always in normal flow to preserve height -->
     <div class="transition-opacity duration-300">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

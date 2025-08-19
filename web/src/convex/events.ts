@@ -209,6 +209,18 @@ export const listByYear = query({
   }
 });
 
+// Query: total published events count (for UI summaries)
+export const count = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const total = await ctx.db
+      .query('events')
+      .filter((q) => q.neq(q.field('publishedAt'), undefined))
+      .collect();
+    return total.length;
+  }
+});
+
 // Query: Get events for map markers (matches GraphQL Markers query)
 export const getMarkers = query({
   args: {},

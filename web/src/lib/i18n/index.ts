@@ -206,6 +206,8 @@ const enTranslations: Translations = {
   events: {
     calendar: 'Calendar',
     map: 'Map',
+    upcomingTab: 'Upcoming',
+    newerUpcoming: 'Newer (Upcoming)',
     hosting: 'Hosting an event',
     viewEvent: 'View event',
     registerNow: 'Register now',
@@ -219,7 +221,8 @@ const enTranslations: Translations = {
       open: 'Open',
       over: 'Over',
       cancelled: 'Cancelled'
-    }
+    },
+    countSummary: '{visible} of {total} events'
   },
   players: {
     title: 'Players',
@@ -388,6 +391,8 @@ const frTranslations: Translations = {
   events: {
     calendar: 'Calendrier',
     map: 'Carte',
+    upcomingTab: 'À venir',
+    newerUpcoming: 'Plus récent (À venir)',
     hosting: 'Organiser un événement',
     viewEvent: "Voir l'événement",
     registerNow: "S'inscrire maintenant",
@@ -401,7 +406,8 @@ const frTranslations: Translations = {
       open: 'Ouvert',
       over: 'Terminé',
       cancelled: 'Annulé'
-    }
+    },
+    countSummary: '{visible} sur {total} événements'
   },
   players: {
     title: 'Joueurs',

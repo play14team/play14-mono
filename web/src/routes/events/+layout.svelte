@@ -41,7 +41,7 @@
 
 <nav aria-label={$t('events.yearNav')} class="mb-8 flex flex-wrap items-center gap-2">
   <a
-    aria-label="Newer (Upcoming)"
+    aria-label={$t('events.newerUpcoming')}
     class={cn(
       buttonVariants({ variant: 'ghost', size: 'icon' }),
       'rounded-full',
@@ -55,7 +55,7 @@
       buttonVariants({ variant: isUpcoming ? 'default' : 'outline', size: 'sm' }),
       'rounded-full'
     )}
-    aria-current={isUpcoming ? 'page' : undefined}>Upcoming</a
+    aria-current={isUpcoming ? 'page' : undefined}>{$t('events.upcomingTab')}</a
   >
   {#each years as y (y)}
     <a

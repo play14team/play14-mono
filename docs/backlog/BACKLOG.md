@@ -34,8 +34,8 @@
   - [ ] Even spacing between sections
   - [ ] What to expect? ==> What will happen?
 - [x] Event list by year
-  - [ ] "Upcoming" not translated
-  - [ ] Add number of events
+  - [x] "Upcoming" not translated
+  - [x] Add number of events
 - [x] Players list
   - [x] quick nav buttons left and right
   - [x] card layout to review

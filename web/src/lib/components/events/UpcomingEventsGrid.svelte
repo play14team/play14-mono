@@ -11,6 +11,10 @@
   const isLoading = $derived(query.isLoading);
   const error = $derived(query.error);
   const todayYear = new Date().getFullYear();
+
+  // Total published events overall
+  const totalQuery = useQuery(api.events.count, () => ({}));
+  const totalEvents = $derived(totalQuery.data ?? 0);
 </script>
 
 {#if error}
@@ -41,6 +45,15 @@
     </p>
   </div>
 {:else}
+  <div class="text-muted-foreground mb-4 flex items-center justify-between text-sm">
+    <div>
+      {#if totalQuery.isLoading}
+        {$t('loading')}...
+      {:else}
+        {$t('events.countSummary', { visible: events.length, total: totalEvents })}
+      {/if}
+    </div>
+  </div>
   <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {#each events as event (event._id)}
       <EventCard {event} />
