@@ -14,23 +14,41 @@
   const isLoading = $derived(query.isLoading);
   const error = $derived(query.error);
 
+  // Total players (all initials) for summary
+  const totalQuery = useQuery(api.players.count, () => ({}));
+  const totalPlayers = $derived(totalQuery.data ?? 0);
+
   const countsCache = $state<Record<string, number>>({});
   $effect(() => {
     if (query.data) countsCache[initial] = query.data.length;
   });
-  const skeletonCount = $derived(countsCache[initial] ? Math.max(countsCache[initial], 1) : 8);
+  const skeletonCount = $derived(countsCache[initial] ? Math.max(countsCache[initial], 1) : 20);
   let lastPlayers = $state<typeof players>([]);
   $effect(() => {
     if (!isLoading && players.length) {
       lastPlayers = players;
     }
   });
+
+  const visibleCount = $derived(players.length);
 </script>
 
 {#if error}
   <ErrorAlert {error} title="Failed to load players" />
 {:else}
   <div class="crossfade-wrapper" aria-live="polite">
+    <div
+      class="text-muted-foreground mb-4 flex items-center justify-between text-sm"
+      aria-live="polite"
+    >
+      <div>
+        {#if totalQuery.isLoading}
+          {$t('loading')}...
+        {:else}
+          {$t('players.countSummary', { visible: visibleCount, total: totalPlayers, initial })}
+        {/if}
+      </div>
+    </div>
     <div class="transition-opacity duration-300">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {#each isLoading && lastPlayers.length ? lastPlayers : players as player (player._id)}

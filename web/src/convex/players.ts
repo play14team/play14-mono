@@ -1,6 +1,6 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import type { Id } from './_generated/dataModel';
+import type { Id, Doc } from './_generated/dataModel';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 
 // Query: Get single player by slug (matches GraphQL Player query)
@@ -301,12 +301,21 @@ export const listByInitial = query({
     players.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
     // Attach avatarUrl to each player
     const playersWithUrls = await Promise.all(
-      players.map(async (p: { avatarId?: Id<'_storage'> }) => ({
+      players.map(async (p: Doc<'players'>) => ({
         ...p,
         avatarUrl: p.avatarId ? ((await ctx.storage.getUrl(p.avatarId)) ?? null) : null
       }))
     );
     return playersWithUrls;
+  }
+});
+
+// Query: total players count (lightweight helper for UI summaries)
+export const count = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const players = await ctx.db.query('players').collect();
+    return players.length;
   }
 });
 

@@ -225,6 +225,7 @@ const enTranslations: Translations = {
     title: 'Players',
     nav: 'Letters',
     empty: 'No players for {initial}.',
+    countSummary: '{visible} of {total} players',
     role: { player: 'Player', host: 'Host', mentor: 'Mentor', founder: 'Founder' },
     social: {
       linkedin: 'LinkedIn profile',
@@ -406,6 +407,7 @@ const frTranslations: Translations = {
     title: 'Joueurs',
     nav: 'Lettres',
     empty: 'Aucun joueur pour {initial}.',
+    countSummary: '{visible} sur {total} joueurs',
     role: { player: 'Joueur', host: 'Hôte', mentor: 'Mentor', founder: 'Fondateur' },
     social: {
       linkedin: 'Profil LinkedIn',

@@ -36,20 +36,23 @@
 - [x] Event list by year
   - [ ] "Upcoming" not translated
   - [ ] Add number of events
-- [ ] Players list
-  - [ ] Reintroduce progressive loading (with a simpler fade) if desired.
-  - [ ] Add decoding=\"async\" and fetchpriority=\"low\" for perf.
-  - [ ] Provide blur placeholder via a tiny Convex-stored blurhash later.
-  - [ ] Remove default avatar and use default shadcn avatar behavior
-  - [ ] Add number of players
+- [x] Players list
+  - [x] quick nav buttons left and right
+  - [x] card layout to review
+    - [x] move role badge
+    - [x] long names
+    - [x] badge colors with #play14 scheme
+  - [x] large picture when clicking on avatar
+  - [x] Add number of players
+- [ ] Convex cleanup
+  - [ ] Clean migration functions errors
+  - [ ] Move all migration code to a separate directory
+  - [ ] Clean up unused queries
 - [ ] Statistics
   - [ ] Number of events (except cancelled)
   - [ ] Number of locations/countries
   - [ ] Number of players
   - [ ] Number of games documented (only published)
-- [ ] Convex cleanup
-  - [ ] Move all migration code to a separate directory
-  - [ ] Clean up unused queries
 - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
 - [ ] Map
   - [ ] Persist color assignments across sessions
