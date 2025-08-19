@@ -29,7 +29,7 @@
     - [x] implement skeleton
   - [x] Use flags `pnpm i -D svelte-flags`
   - [x] Implement world map
-  - [ ] replace latest articles with a carousel of testimonials
+  - [x] replace latest articles with a carousel of testimonials
   - [ ] Use CSS variables for all colors
   - [ ] Even spacing between sections
   - [ ] What to expect? ==> What will happen?

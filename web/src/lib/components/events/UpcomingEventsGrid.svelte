@@ -1,5 +1,5 @@
 <script lang="ts">
-  import EventCard from '$lib/components/cards/EventCard.svelte';
+  import EventCard from '$lib/components/events/EventCard.svelte';
   import ErrorAlert from '$lib/components/ErrorAlert.svelte';
   import { t } from '$lib/i18n';
   import { useQuery } from 'convex-svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQuery } from 'convex-svelte';
   import { api } from '$lib/../convex/_generated/api';
-  import ArticleCard from '$lib/components/cards/ArticleCard.svelte';
+  import ArticleCard from '$lib/components/articles/ArticleCard.svelte';
   import ErrorAlert from '$lib/components/ErrorAlert.svelte';
   import { t } from '$lib/i18n';
 

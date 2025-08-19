@@ -10,7 +10,8 @@
     category?: string;
     summary?: string;
     imageUrl?: string | null;
-    publishedAt?: string;
+    // Convex articles may return numeric timestamps; Strapi (if reused) may provide ISO strings
+    publishedAt?: string | number;
   }
 
   interface Props {

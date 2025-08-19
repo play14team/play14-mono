@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQuery } from 'convex-svelte';
   import { api } from '$lib/../convex/_generated/api';
-  import EventCard from '$lib/components/cards/EventCard.svelte';
+  import EventCard from '$lib/components/events/EventCard.svelte';
   import ErrorAlert from '$lib/components/ErrorAlert.svelte';
   import { t } from '$lib/i18n';
 
