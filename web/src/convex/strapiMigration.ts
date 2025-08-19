@@ -1007,6 +1007,7 @@ export const insertPlayer = internalMutation({
       strapiId: args.strapiId,
       name: args.name,
       slug: args.slug,
+      slugInitial: args.slug?.[0]?.toUpperCase(),
       position: args.position,
       company: args.company || undefined,
       tagline: args.tagline || undefined,

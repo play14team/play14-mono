@@ -157,6 +157,7 @@ export default defineSchema({
     strapiId: v.optional(v.union(v.string(), v.number())), // Preserved from Strapi
     name: v.string(),
     slug: v.string(),
+    slugInitial: v.optional(v.string()),
     position: v.union(
       v.literal('Player'),
       v.literal('Host'),
@@ -186,6 +187,7 @@ export default defineSchema({
   })
     .index('by_strapi_id', ['strapiId'])
     .index('by_slug', ['slug'])
+    .index('by_slugInitial', ['slugInitial'])
     .index('by_position', ['position'])
     .index('by_user', ['userId']),
 

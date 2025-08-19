@@ -35,6 +35,13 @@
   - [ ] What to expect? ==> What will happen?
 - [x] Event list by year
   - [ ] "Upcoming" not translated
+  - [ ] Add number of events
+- [ ] Players list
+  - [ ] Reintroduce progressive loading (with a simpler fade) if desired.
+  - [ ] Add decoding=\"async\" and fetchpriority=\"low\" for perf.
+  - [ ] Provide blur placeholder via a tiny Convex-stored blurhash later.
+  - [ ] Remove default avatar and use default shadcn avatar behavior
+  - [ ] Add number of players
 - [ ] Statistics
   - [ ] Number of events (except cancelled)
   - [ ] Number of locations/countries

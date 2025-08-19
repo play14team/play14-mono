@@ -24,8 +24,15 @@ export const get = query({
       getPlayerMentoredEvents(ctx, player._id)
     ]);
 
+    // Resolve avatar URL (do not expose raw storage ID only)
+    let avatarUrl: string | null = null;
+    if (player.avatarId) {
+      avatarUrl = (await ctx.storage.getUrl(player.avatarId)) ?? null;
+    }
+
     return {
       ...player,
+      avatarUrl,
       attended: attendedEvents,
       hosted: hostedEvents,
       mentored: mentoredEvents
@@ -64,8 +71,16 @@ export const list = query({
     const offset = (args.page - 1) * args.pageSize;
     const paginatedPlayers = allPlayers.slice(offset, offset + args.pageSize);
 
+    // Attach avatarUrl to each player
+    const playersWithUrls = await Promise.all(
+      paginatedPlayers.map(async (p) => ({
+        ...p,
+        avatarUrl: p.avatarId ? ((await ctx.storage.getUrl(p.avatarId)) ?? null) : null
+      }))
+    );
+
     return {
-      data: paginatedPlayers,
+      data: playersWithUrls,
       meta: {
         pagination: {
           page: args.page,
@@ -120,8 +135,10 @@ export const create = mutation({
       userId?: Id<'users'>;
     }
   ) => {
+    const slugInitial = args.slug?.[0]?.toUpperCase();
     const playerId = await ctx.db.insert('players', {
       ...args,
+      slugInitial,
       socialNetworks: []
     });
 
@@ -183,7 +200,11 @@ export const update = mutation({
     }
   ) => {
     const { id, ...updates } = args;
-
+    if (updates.slug) {
+      // Maintain slugInitial if slug changes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (updates as any).slugInitial = updates.slug[0]?.toUpperCase();
+    }
     await ctx.db.patch(id, updates);
     return id;
   }
@@ -239,6 +260,69 @@ export const remove = mutation({
     // Delete the player
     await ctx.db.delete(args.id);
     return args.id;
+  }
+});
+
+// Query: list available initials (A-Z subset) present in players
+export const listInitials = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const players = await ctx.db.query('players').collect();
+    interface PlayerRecord {
+      slug?: string;
+      slugInitial?: string;
+    }
+    const initials = new Set<string>(
+      (players as PlayerRecord[])
+        .map((p) => p.slugInitial || p.slug?.[0]?.toUpperCase())
+        .filter((val): val is string => Boolean(val))
+    );
+    return Array.from(initials).sort();
+  }
+});
+
+// Query: list players by initial (alphabetical by name)
+export const listByInitial = query({
+  args: { initial: v.string() },
+  handler: async (ctx: QueryCtx, args: { initial: string }) => {
+    const initial = args.initial.toUpperCase();
+    // Prefer index if data already backfilled; fallback filter
+    let players = await ctx.db
+      .query('players')
+      .withIndex('by_slugInitial', (q) => q.eq('slugInitial', initial))
+      .collect();
+    if (!players.length) {
+      players = await ctx.db.query('players').collect();
+      players = players.filter(
+        (p: { slugInitial?: string; slug?: string }) =>
+          (p.slugInitial || p.slug?.[0]?.toUpperCase()) === initial
+      );
+    }
+    players.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+    // Attach avatarUrl to each player
+    const playersWithUrls = await Promise.all(
+      players.map(async (p: { avatarId?: Id<'_storage'> }) => ({
+        ...p,
+        avatarUrl: p.avatarId ? ((await ctx.storage.getUrl(p.avatarId)) ?? null) : null
+      }))
+    );
+    return playersWithUrls;
+  }
+});
+
+// Mutation: backfill slugInitial for existing players
+export const backfillSlugInitials = mutation({
+  args: {},
+  handler: async (ctx: MutationCtx) => {
+    const players = await ctx.db.query('players').collect();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const p of players as any[]) {
+      const initial = p.slug?.[0]?.toUpperCase();
+      if (initial && p.slugInitial !== initial) {
+        await ctx.db.patch(p._id, { slugInitial: initial });
+      }
+    }
+    return { updated: players.length };
   }
 });
 

@@ -221,6 +221,24 @@ const enTranslations: Translations = {
       cancelled: 'Cancelled'
     }
   },
+  players: {
+    title: 'Players',
+    nav: 'Letters',
+    empty: 'No players for {initial}.',
+    role: { player: 'Player', host: 'Host', mentor: 'Mentor', founder: 'Founder' },
+    social: {
+      linkedin: 'LinkedIn profile',
+      facebook: 'Facebook page',
+      youtube: 'YouTube channel',
+      instagram: 'Instagram profile',
+      xing: 'Xing profile',
+      email: 'Email',
+      website: 'Website',
+      wikipedia: 'Wikipedia page',
+      vimeo: 'Vimeo channel',
+      other: 'Profile link'
+    }
+  },
   community: {
     players: 'Players',
     games: 'Games',
@@ -382,6 +400,24 @@ const frTranslations: Translations = {
       open: 'Ouvert',
       over: 'Terminé',
       cancelled: 'Annulé'
+    }
+  },
+  players: {
+    title: 'Joueurs',
+    nav: 'Lettres',
+    empty: 'Aucun joueur pour {initial}.',
+    role: { player: 'Joueur', host: 'Hôte', mentor: 'Mentor', founder: 'Fondateur' },
+    social: {
+      linkedin: 'Profil LinkedIn',
+      facebook: 'Page Facebook',
+      youtube: 'Chaîne YouTube',
+      instagram: 'Profil Instagram',
+      xing: 'Profil Xing',
+      email: 'Email',
+      website: 'Site web',
+      wikipedia: 'Page Wikipédia',
+      vimeo: 'Chaîne Vimeo',
+      other: 'Lien de profil'
     }
   },
   community: {
