@@ -1,14 +1,28 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   interface Props {
     selected?: string[];
     onclick?: (code: string) => void;
     onmouseenter?: (code: string) => void;
     onmouseleave?: () => void;
+    /** Enable automatic map coloring using play14 palette (default true) */
+    autoColors?: boolean;
   }
 
-  let { selected = [], onclick, onmouseenter, onmouseleave }: Props = $props();
+  let { selected = [], onclick, onmouseenter, onmouseleave, autoColors = false }: Props = $props();
 
-  const classes = $derived(selected.map((code) => `selected-${code.toLowerCase()}`).join(' '));
+  let svgEl: SVGSVGElement;
+
+  // Data reused for selection coloring
+  let countryPaths: Record<string, SVGPathElement[]> = {};
+  let adjacency: Record<string, Set<string>> = {};
+
+  const classes = $derived(
+    `${autoColors ? 'auto-coloring' : ''} ${selected
+      .map((code) => `selected-${code.toLowerCase()}`)
+      .join(' ')}`.trim()
+  );
 
   function getCountryCode(element: HTMLElement): string | null {
     // Use the data-country-code attribute if available
@@ -83,9 +97,253 @@
       click(mockEvent);
     }
   }
+
+  // --- Automatic coloring logic (greedy graph coloring) ---
+  onMount(() => {
+    if (!autoColors || !svgEl) return;
+
+    const colorVars = [
+      'var(--play14-blue)',
+      'var(--play14-green)',
+      'var(--play14-yellow)',
+      'var(--play14-orange)',
+      'var(--play14-red)'
+    ];
+
+    // Gather paths grouped by country code
+    const allPaths = Array.from(svgEl.querySelectorAll('path')) as SVGPathElement[];
+    countryPaths = {};
+
+    for (const p of allPaths) {
+      const code = getCountryCode(p as unknown as HTMLElement);
+      if (!code) continue;
+      (countryPaths[code] ||= []).push(p);
+    }
+
+    const codes = Object.keys(countryPaths);
+
+    // Build adjacency via bounding box proximity (simple heuristic)
+    adjacency = {};
+    const bboxes: Record<string, DOMRect[]> = {};
+    for (const code of codes) {
+      bboxes[code] = countryPaths[code].map((p) => p.getBBox());
+      adjacency[code] = new Set();
+    }
+
+    function boxesTouch(a: DOMRect, b: DOMRect) {
+      const pad = 0.8; // small padding to catch near-touching
+      return !(
+        a.x + a.width + pad < b.x ||
+        b.x + b.width + pad < a.x ||
+        a.y + a.height + pad < b.y ||
+        b.y + b.height + pad < a.y
+      );
+    }
+
+    for (let i = 0; i < codes.length; i++) {
+      for (let j = i + 1; j < codes.length; j++) {
+        const ci = codes[i];
+        const cj = codes[j];
+        // Skip if same code
+        if (ci === cj) continue;
+        // Fast reject by any bbox pair
+        let touch = false;
+        outer: for (const bi of bboxes[ci]) {
+          for (const bj of bboxes[cj]) {
+            if (boxesTouch(bi, bj)) {
+              touch = true;
+              break outer;
+            }
+          }
+        }
+        if (touch) {
+          adjacency[ci].add(cj);
+          adjacency[cj].add(ci);
+        }
+      }
+    }
+
+    // Greedy coloring: order by descending degree to reduce conflicts
+    const ordering = codes.sort((a, b) => adjacency[b].size - adjacency[a].size);
+    const assigned: Record<string, number> = {};
+
+    for (const code of ordering) {
+      const neighborColors = new Set(
+        Array.from(adjacency[code])
+          .map((n) => assigned[n])
+          .filter((v) => v !== undefined)
+      );
+      let colorIndex = 0;
+      while (neighborColors.has(colorIndex) && colorIndex < colorVars.length) colorIndex++;
+      if (colorIndex >= colorVars.length) colorIndex = 0; // fallback (shouldn't usually happen with 5 colors)
+      assigned[code] = colorIndex;
+    }
+
+    // Apply base auto colors
+    for (const code of codes) {
+      const color = colorVars[assigned[code]];
+      for (const p of countryPaths[code]) {
+        // Avoid overriding selected styling (which uses !important) & the special SG highlight color override
+        p.classList.add('auto-colored');
+        p.style.setProperty('--auto-fill', color);
+      }
+    }
+  });
+
+  // Reactive: assign distinct colors to selected countries (graph coloring among selected subset)
+  $effect(() => {
+    if (!svgEl) return;
+    if (!selected || selected.length === 0) {
+      // Cleanup any previous selected-colored styles
+      for (const code in countryPaths) {
+        for (const p of countryPaths[code] || []) {
+          p.classList.remove('selected-colored');
+          p.style.removeProperty('--selected-fill');
+          p.style.removeProperty('--selected-stroke');
+        }
+      }
+      return;
+    }
+
+    // Play14 palette for selected countries (exclude gray as requested)
+    const fillPalette = [
+      'var(--play14-blue)',
+      'var(--play14-green)',
+      'var(--play14-yellow)',
+      'var(--play14-orange)',
+      'var(--play14-red)'
+    ];
+    const strokePalette = [
+      'var(--play14-blue-dark)',
+      'var(--play14-green-dark)',
+      'var(--play14-yellow-dark)',
+      'var(--play14-orange-dark)',
+      'var(--play14-red-dark)'
+    ];
+
+    // Build adjacency if not already (in case autoColors disabled)
+    if (Object.keys(countryPaths).length === 0) {
+      const allPaths = Array.from(svgEl.querySelectorAll('path')) as SVGPathElement[];
+      countryPaths = {};
+      for (const p of allPaths) {
+        const code = getCountryCode(p as unknown as HTMLElement);
+        if (!code) continue;
+        (countryPaths[code] ||= []).push(p);
+      }
+    }
+    if (Object.keys(adjacency).length === 0) {
+      adjacency = {};
+      const codes = Object.keys(countryPaths);
+      for (const c of codes) adjacency[c] = new Set();
+      const bboxes: Record<string, DOMRect[]> = {};
+      for (const c of Object.keys(countryPaths))
+        bboxes[c] = countryPaths[c].map((p) => p.getBBox());
+      const codesArr = Object.keys(countryPaths);
+      const pad = 0.8;
+      const touch = (a: DOMRect, b: DOMRect) =>
+        !(
+          a.x + a.width + pad < b.x ||
+          b.x + b.width + pad < a.x ||
+          a.y + a.height + pad < b.y ||
+          b.y + b.height + pad < a.y
+        );
+      for (let i = 0; i < codesArr.length; i++) {
+        for (let j = i + 1; j < codesArr.length; j++) {
+          const ci = codesArr[i];
+          const cj = codesArr[j];
+          let near = false;
+          outer: for (const bi of bboxes[ci]) {
+            for (const bj of bboxes[cj]) {
+              if (touch(bi, bj)) {
+                near = true;
+                break outer;
+              }
+            }
+          }
+          if (near) {
+            adjacency[ci].add(cj);
+            adjacency[cj].add(ci);
+          }
+        }
+      }
+    }
+
+    const selectedSet = new Set(selected.map((c) => c.toUpperCase()));
+    const selectedCodes = Array.from(selectedSet);
+    // Order by neighbor count among selected for better greedy coloring
+    selectedCodes.sort((a, b) => {
+      const da = Array.from(adjacency[a] || []).filter((n) => selectedSet.has(n)).length;
+      const db = Array.from(adjacency[b] || []).filter((n) => selectedSet.has(n)).length;
+      return db - da;
+    });
+
+    const assigned: Record<string, number> = {};
+    const usageCounts = Array(fillPalette.length).fill(0) as number[];
+    for (const code of selectedCodes) {
+      // Track colors used by already-colored neighbors (boolean array faster & lints cleanly)
+      const neighborUsed: boolean[] = [];
+      for (const n of adjacency[code] || []) {
+        const usedIdx = assigned[n];
+        if (usedIdx !== undefined) neighborUsed[usedIdx] = true;
+      }
+      // Collect candidate colors not used by neighbors
+      const candidates: number[] = [];
+      for (let i = 0; i < fillPalette.length; i++) if (!neighborUsed[i]) candidates.push(i);
+      let chosen: number;
+      if (candidates.length === 0) {
+        // All colors blocked; pick globally least used (will duplicate a neighbor, rare high-degree case)
+        let min = Infinity;
+        let sel = 0;
+        for (let i = 0; i < usageCounts.length; i++) {
+          if (usageCounts[i] < min) {
+            min = usageCounts[i];
+            sel = i;
+          }
+        }
+        chosen = sel;
+      } else {
+        // Choose candidate with lowest global usage count to balance palette
+        let min = Infinity;
+        let sel = candidates[0];
+        for (const c of candidates) {
+          if (usageCounts[c] < min) {
+            min = usageCounts[c];
+            sel = c;
+          }
+        }
+        chosen = sel;
+      }
+      assigned[code] = chosen;
+      usageCounts[chosen]++;
+    }
+
+    // Apply styles (inline with !important to override existing ID-based !important rules)
+    // First clear old ones for non-selected
+    for (const code in countryPaths) {
+      if (!selectedSet.has(code)) {
+        for (const p of countryPaths[code]) {
+          p.classList.remove('selected-colored');
+          p.style.removeProperty('fill');
+          p.style.removeProperty('stroke');
+        }
+      }
+    }
+
+    for (const code of selectedCodes) {
+      const idx = assigned[code];
+      const fill = fillPalette[idx];
+      const stroke = strokePalette[idx];
+      for (const p of countryPaths[code] || []) {
+        p.classList.add('selected-colored');
+        p.style.setProperty('fill', fill, 'important');
+        p.style.setProperty('stroke', stroke, 'important');
+      }
+    }
+  });
 </script>
 
 <svg
+  bind:this={svgEl}
   role="button"
   tabindex="0"
   baseProfile="tiny"
@@ -1116,6 +1374,14 @@
     class="Malaysia"
     d="M 1564.3 461.9 1565.7 462.5 1569.2 466.4 1571.7 470.7 1572.3 475 1571.8 477.9 1572.4 480.1 1572.9 483.9 1575 485.7 1577.3 491.4 1577.3 493.5 1573.3 494 1567.8 489.2 1561 484.1 1560.2 480.8 1556.8 476.5 1555.8 471.2 1553.6 467.7 1554 463 1552.6 460.3 1553.5 459.2 1558.3 462 1558.9 465.3 1562.6 464.5 1564.3 461.9 Z"
     data-country-code="MY"
+  >
+  </path>
+  <!-- Singapore: positioned just south of the Malaysian peninsula tip -->
+  <path
+    id="SG"
+    name="Singapore"
+    d="M1576 494.6 l2.4 0.4 1.8 1.2 -0.5 1.4 -2.2 0.8 -2.3 -0.5 -1.5 -1.4 0.6 -1.2 1.7 -0.7 z"
+    data-country-code="SG"
   >
   </path>
   <path
@@ -3091,6 +3357,13 @@
       stroke-width 0.2s ease;
   }
 
+  /* Auto coloring base */
+  :global(svg.auto-coloring path.auto-colored) {
+    fill: var(--auto-fill);
+    stroke: var(--play14-gray-dark);
+    stroke-width: 0.3;
+  }
+
   svg[role='button'] path:hover {
     stroke-width: 1;
     opacity: 0.8;
@@ -3297,5 +3570,10 @@
     fill: var(--play14-blue) !important;
     stroke: var(--play14-blue-dark) !important;
     stroke-width: 0.5 !important;
+  }
+
+  /* Override: per-country selected dynamic colors (applied via JS with selected-colored class) */
+  :global(svg path.selected-colored) {
+    stroke-width: 0.5 !important; /* colors applied inline */
   }
 </style>

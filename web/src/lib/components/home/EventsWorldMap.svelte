@@ -4,6 +4,7 @@
   import World from './World.svelte';
   import countries from 'i18n-iso-countries';
   import en from 'i18n-iso-countries/langs/en.json';
+  import { t } from '$lib/i18n';
 
   // Register English locale for country names
   countries.registerLocale(en);
@@ -82,81 +83,98 @@
   }
 </script>
 
-<div
-  class="events-world-map"
-  role="region"
-  aria-label="World map showing countries with #play14 events"
-  onmousemove={handleMouseMove}
->
-  {#if countriesWithEvents.error || eventsGroupedByCountry.error}
-    <div class="error-message">Failed to load event locations. Please try again later.</div>
-  {:else if countriesWithEvents.isLoading || eventsGroupedByCountry.isLoading}
-    <div class="loading-message">Loading event locations...</div>
-  {:else}
-    <div class="map-wrapper">
-      <World
-        selected={selectedCountries}
-        onclick={interactive ? handleCountryClick : undefined}
-        onmouseenter={handleCountryMouseEnter}
-        onmouseleave={handleCountryMouseLeave}
-      />
+<section class="events-world-map-wrapper mb-40 pb-8 pt-24">
+  <h2 id="eventsWorldMapTitle" class="mb-6 text-3xl font-bold text-gray-900 dark:text-gray-100">
+    {$t('home.eventsMapHeading')}
+  </h2>
+  <div
+    class="events-world-map"
+    role="region"
+    aria-labelledby="eventsWorldMapTitle"
+    aria-label="World map showing countries with #play14 events"
+    onmousemove={handleMouseMove}
+  >
+    {#if countriesWithEvents.error || eventsGroupedByCountry.error}
+      <div class="error-message">Failed to load event locations. Please try again later.</div>
+    {:else if countriesWithEvents.isLoading || eventsGroupedByCountry.isLoading}
+      <div class="loading-message">Loading event locations...</div>
+    {:else}
+      <div class="map-wrapper">
+        <World
+          selected={selectedCountries}
+          onclick={interactive ? handleCountryClick : undefined}
+          onmouseenter={handleCountryMouseEnter}
+          onmouseleave={handleCountryMouseLeave}
+        />
 
-      {#if hoveredCountry && eventsByCountry[hoveredCountry]}
-        <div class="tooltip-container" style="left: {tooltipX + 10}px; top: {tooltipY - 10}px;">
-          <div class="country-events">
-            <h3 class="country-name">{getCountryName(hoveredCountry)}</h3>
-            <div class="events-count">
-              {eventsByCountry[hoveredCountry].length} event{eventsByCountry[hoveredCountry]
-                .length !== 1
-                ? 's'
-                : ''}
-            </div>
+        {#if hoveredCountry && eventsByCountry[hoveredCountry]}
+          <div class="tooltip-container" style="left: {tooltipX + 10}px; top: {tooltipY - 10}px;">
+            <div class="country-events">
+              <h3 class="country-name">{getCountryName(hoveredCountry)}</h3>
+              <div class="events-count">
+                {eventsByCountry[hoveredCountry].length} event{eventsByCountry[hoveredCountry]
+                  .length !== 1
+                  ? 's'
+                  : ''}
+              </div>
 
-            <div class="events-list">
-              {#each eventsByCountry[hoveredCountry].slice(0, 5) as event (event.slug)}
-                <div class="event-item">
-                  <div class="event-name">{event.name}</div>
-                  <div class="event-details">
-                    <span class="event-location">{event.locationName}</span>
-                    <span class="event-date">{formatDate(event.start)}</span>
+              <div class="events-list">
+                {#each eventsByCountry[hoveredCountry].slice(0, 5) as event (event.slug)}
+                  <div class="event-item">
+                    <div class="event-name">{event.name}</div>
+                    <div class="event-details">
+                      <span class="event-location">{event.locationName}</span>
+                      <span class="event-date">{formatDate(event.start)}</span>
+                    </div>
+                    <span class="event-status status-{event.status.toLowerCase()}"
+                      >{event.status}</span
+                    >
                   </div>
-                  <span class="event-status status-{event.status.toLowerCase()}"
-                    >{event.status}</span
-                  >
-                </div>
-              {/each}
+                {/each}
 
-              {#if eventsByCountry[hoveredCountry].length > 5}
-                <div class="more-events">
-                  +{eventsByCountry[hoveredCountry].length - 5} more event{eventsByCountry[
-                    hoveredCountry
-                  ].length -
-                    5 !==
-                  1
-                    ? 's'
-                    : ''}
-                </div>
-              {/if}
+                {#if eventsByCountry[hoveredCountry].length > 5}
+                  <div class="more-events">
+                    +{eventsByCountry[hoveredCountry].length - 5} more event{eventsByCountry[
+                      hoveredCountry
+                    ].length -
+                      5 !==
+                    1
+                      ? 's'
+                      : ''}
+                  </div>
+                {/if}
+              </div>
             </div>
           </div>
-        </div>
-      {/if}
-    </div>
+        {/if}
+      </div>
+    {/if}
+  </div>
 
-    <div class="map-legend">
-      <span class="legend-item">
-        <span class="legend-color selected"></span>
-        Countries with #play14 events
+  <div class="map-legend">
+    <span class="legend-item">
+      <span class="legend-colors-group" aria-hidden="true">
+        <span class="legend-color swatch-blue"></span>
+        <span class="legend-color swatch-green"></span>
+        <span class="legend-color swatch-yellow"></span>
+        <span class="legend-color swatch-orange"></span>
+        <span class="legend-color swatch-red"></span>
       </span>
-    </div>
-  {/if}
-</div>
+      {$t('home.eventsMapLegend')}
+    </span>
+  </div>
+</section>
 
 <style>
+  .events-world-map-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
   .events-world-map {
     position: relative;
     width: 100%;
-    padding: 1rem;
+    padding: 1rem 0 0; /* reduce inner padding now wrapper handles */
   }
 
   .map-wrapper {
@@ -201,6 +219,31 @@
   .legend-color.selected {
     background-color: var(--play14-blue);
     border-color: var(--play14-blue-dark);
+  }
+
+  .legend-colors-group {
+    display: inline-flex;
+    gap: 2px;
+  }
+  .legend-color.swatch-blue {
+    background-color: var(--play14-blue);
+    border-color: var(--play14-blue-dark);
+  }
+  .legend-color.swatch-green {
+    background-color: var(--play14-green);
+    border-color: var(--play14-green-dark);
+  }
+  .legend-color.swatch-yellow {
+    background-color: var(--play14-yellow);
+    border-color: var(--play14-yellow-dark);
+  }
+  .legend-color.swatch-orange {
+    background-color: var(--play14-orange);
+    border-color: var(--play14-orange-dark);
+  }
+  .legend-color.swatch-red {
+    background-color: var(--play14-red);
+    border-color: var(--play14-red-dark);
   }
 
   /* Tooltip styles */
@@ -326,8 +369,11 @@
   }
 
   @media (max-width: 640px) {
+    .events-world-map-wrapper {
+      padding-top: 5rem;
+    }
     .events-world-map {
-      padding: 0.5rem;
+      padding: 0.5rem 0 0;
     }
 
     .map-legend {

@@ -169,7 +169,9 @@ const enTranslations: Translations = {
     eventsMapAlt: 'World map showing all #play14 events',
     publishedEvents: 'Published Events',
     announcedEvents: 'Announced Events',
-    cancelledEvents: 'Cancelled Events'
+    cancelledEvents: 'Cancelled Events',
+    eventsMapHeading: 'Where are we present?',
+    eventsMapLegend: 'Countries with #play14 events'
   },
   manifesto: {
     title: 'Manifesto',
@@ -317,7 +319,9 @@ const frTranslations: Translations = {
     eventsMapAlt: 'Carte du monde montrant tous les événements #play14',
     publishedEvents: 'Événements Publiés',
     announcedEvents: 'Événements Annoncés',
-    cancelledEvents: 'Événements Annulés'
+    cancelledEvents: 'Événements Annulés',
+    eventsMapHeading: 'Où sommes-nous présents ?',
+    eventsMapLegend: 'Pays avec des événements #play14'
   },
   manifesto: {
     title: 'Manifeste',
