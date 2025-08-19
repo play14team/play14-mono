@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
-import { action, mutation, query, internalMutation, internalQuery } from './_generated/server';
-import { internal, api } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import { action, mutation, query, internalMutation, internalQuery } from '../_generated/server';
+import { internal, api } from '../_generated/api';
+import type { Id } from '../_generated/dataModel';
 import {
   MIGRATION_QUERIES,
   type MigrationContentType,
@@ -558,7 +558,7 @@ async function migrateSingleImage(
 
   try {
     const fullUrl = getFullFileUrl(attributes.url);
-    const result = await ctx.runAction(api.fileMigration.migrateFile, {
+    const result = await ctx.runAction(api.migration.fileMigration.migrateFile, {
       fileUrl: fullUrl,
       fileName: attributes.name,
       mimeType: attributes.mime
@@ -619,7 +619,7 @@ async function migrateMultipleImages(
 
     try {
       const fullUrl = getFullFileUrl(attributes.url);
-      const result = await ctx.runAction(api.fileMigration.migrateFile, {
+      const result = await ctx.runAction(api.migration.fileMigration.migrateFile, {
         fileUrl: fullUrl,
         fileName: attributes.name,
         mimeType: attributes.mime
@@ -681,7 +681,7 @@ async function migrateAudioFile(
 
   try {
     const fullUrl = getFullFileUrl(attributes.url);
-    const result = await ctx.runAction(api.fileMigration.migrateFile, {
+    const result = await ctx.runAction(api.migration.fileMigration.migrateFile, {
       fileUrl: fullUrl,
       fileName: attributes.name,
       mimeType: attributes.mime
@@ -742,7 +742,7 @@ async function migrateResourceFiles(
 
     try {
       const fullUrl = getFullFileUrl(attributes.url);
-      const result = await ctx.runAction(api.fileMigration.migrateFile, {
+      const result = await ctx.runAction(api.migration.fileMigration.migrateFile, {
         fileUrl: fullUrl,
         fileName: attributes.name,
         mimeType: attributes.mime
@@ -1214,7 +1214,7 @@ export const migratePlayersData = action({
         console.log(`Processing player: ${player.attributes.name} (${player.id})`);
 
         // Check if player already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkPlayerExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkPlayerExists, {
           strapiId: player.id
         });
 
@@ -1288,20 +1288,23 @@ export const migratePlayersData = action({
             .replace(/(^-|-$)/g, '');
 
         // Insert new player using internal mutation
-        const playerId: string = await ctx.runMutation(internal.strapiMigration.insertPlayer, {
-          strapiId: player.id,
-          name: player.attributes.name,
-          slug,
-          position,
-          company: player.attributes.company || null,
-          tagline: player.attributes.tagline || null,
-          bio: player.attributes.bio || null,
-          website: player.attributes.website || null,
-          avatarId: avatarId || undefined,
-          location,
-          locationOriginal,
-          socialNetworks
-        });
+        const playerId: string = await ctx.runMutation(
+          internal.migration.strapiMigration.insertPlayer,
+          {
+            strapiId: player.id,
+            name: player.attributes.name,
+            slug,
+            position,
+            company: player.attributes.company || null,
+            tagline: player.attributes.tagline || null,
+            bio: player.attributes.bio || null,
+            website: player.attributes.website || null,
+            avatarId: avatarId || undefined,
+            location,
+            locationOriginal,
+            socialNetworks
+          }
+        );
 
         console.log(`Successfully inserted player with convex ID: ${playerId}`);
 
@@ -1371,7 +1374,7 @@ export const migrateVenuesData = action({
     for (const venue of venues.data) {
       try {
         // Check if venue already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkVenueExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkVenueExists, {
           strapiId: venue.id
         });
 
@@ -1405,17 +1408,20 @@ export const migrateVenuesData = action({
         const logo = await migrateSingleImage(ctx, venue.attributes.logo);
 
         // Insert new venue using internal mutation
-        const venueId: string = await ctx.runMutation(internal.strapiMigration.insertVenue, {
-          strapiId: venue.id,
-          name: venue.attributes.name,
-          shortName: venue.attributes.shortName || undefined,
-          logo: logo || undefined,
-          website: venue.attributes.website || undefined,
-          location,
-          locationOriginal,
-          addressDetails: venue.attributes.addressDetails || undefined,
-          socialNetworks: venue.attributes.socialNetworks || []
-        });
+        const venueId: string = await ctx.runMutation(
+          internal.migration.strapiMigration.insertVenue,
+          {
+            strapiId: venue.id,
+            name: venue.attributes.name,
+            shortName: venue.attributes.shortName || undefined,
+            logo: logo || undefined,
+            website: venue.attributes.website || undefined,
+            location,
+            locationOriginal,
+            addressDetails: venue.attributes.addressDetails || undefined,
+            socialNetworks: venue.attributes.socialNetworks || []
+          }
+        );
 
         results.push({ success: true, strapiId: venue.id, convexId: venueId });
         console.log(`Successfully migrated venue: ${venue.attributes.name}`);
@@ -1472,7 +1478,7 @@ export const migrateSponsorsData = action({
     for (const sponsor of sponsors.data) {
       try {
         // Check if sponsor already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkSponsorExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkSponsorExists, {
           strapiId: sponsor.id
         });
 
@@ -1496,13 +1502,16 @@ export const migrateSponsorsData = action({
             })) || [];
 
         // Insert new sponsor using internal mutation
-        const sponsorId: string = await ctx.runMutation(internal.strapiMigration.insertSponsor, {
-          strapiId: sponsor.id,
-          name: sponsor.attributes.name,
-          url: sponsor.attributes.url || undefined,
-          logo: logoId || undefined,
-          socialNetworks
-        });
+        const sponsorId: string = await ctx.runMutation(
+          internal.migration.strapiMigration.insertSponsor,
+          {
+            strapiId: sponsor.id,
+            name: sponsor.attributes.name,
+            url: sponsor.attributes.url || undefined,
+            logo: logoId || undefined,
+            socialNetworks
+          }
+        );
 
         results.push({ success: true, strapiId: sponsor.id, convexId: sponsorId });
         console.log(`Successfully migrated sponsor: ${sponsor.attributes.name}`);
@@ -1975,7 +1984,7 @@ export const migrateHomeData = action({
 
     try {
       // Check if already migrated
-      const existing = await ctx.runQuery(internal.strapiMigration.checkHomeExists, {
+      const existing = await ctx.runQuery(internal.migration.strapiMigration.checkHomeExists, {
         strapiId: home.id
       });
 
@@ -1994,7 +2003,7 @@ export const migrateHomeData = action({
       const imageIds = await migrateMultipleImages(ctx, home.attributes.images);
 
       // Insert home record
-      const homeId = await ctx.runMutation(internal.strapiMigration.insertHome, {
+      const homeId = await ctx.runMutation(internal.migration.strapiMigration.insertHome, {
         strapiId: home.id,
         imageIds
       });
@@ -2128,7 +2137,7 @@ export const migrateHistoryData = action({
 
     try {
       // Check if already migrated
-      const existing = await ctx.runQuery(internal.strapiMigration.checkHistoryExists, {
+      const existing = await ctx.runQuery(internal.migration.strapiMigration.checkHistoryExists, {
         strapiId: history.id
       });
 
@@ -2170,7 +2179,7 @@ export const migrateHistoryData = action({
       }
 
       // Insert history record
-      const historyId = await ctx.runMutation(internal.strapiMigration.insertHistory, {
+      const historyId = await ctx.runMutation(internal.migration.strapiMigration.insertHistory, {
         strapiId: history.id,
         founders: history.attributes.founders || null,
         intro: history.attributes.intro || null,
@@ -2288,7 +2297,7 @@ export const migrateFormatData = action({
 
     try {
       // Check if already migrated
-      const existing = await ctx.runQuery(internal.strapiMigration.checkFormatExists, {
+      const existing = await ctx.runQuery(internal.migration.strapiMigration.checkFormatExists, {
         strapiId: format.id
       });
 
@@ -2304,7 +2313,7 @@ export const migrateFormatData = action({
       }
 
       // Insert format record
-      const formatId = await ctx.runMutation(internal.strapiMigration.insertFormat, {
+      const formatId = await ctx.runMutation(internal.migration.strapiMigration.insertFormat, {
         strapiId: format.id,
         openspace: format.attributes.openspace || null,
         lawOfTwoFeet: format.attributes.lawOfTwoFeet || null,
@@ -2411,7 +2420,7 @@ export const migrateHostingData = action({
 
     try {
       // Check if already migrated
-      const existing = await ctx.runQuery(internal.strapiMigration.checkHostingExists, {
+      const existing = await ctx.runQuery(internal.migration.strapiMigration.checkHostingExists, {
         strapiId: hosting.id
       });
 
@@ -2427,7 +2436,7 @@ export const migrateHostingData = action({
       }
 
       // Insert hosting record
-      const hostingId = await ctx.runMutation(internal.strapiMigration.insertHosting, {
+      const hostingId = await ctx.runMutation(internal.migration.strapiMigration.insertHosting, {
         strapiId: hosting.id,
         content: hosting.attributes.content || null
       });
@@ -2559,9 +2568,12 @@ export const migrateTestimonialsData = action({
     for (const testimonial of testimonialsData.data) {
       try {
         // Check if testimonial already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkTestimonialExists, {
-          strapiId: testimonial.id
-        });
+        const existing = await ctx.runQuery(
+          internal.migration.strapiMigration.checkTestimonialExists,
+          {
+            strapiId: testimonial.id
+          }
+        );
 
         if (existing) {
           console.log(`Testimonial ${testimonial.id} already exists, skipping`);
@@ -2572,10 +2584,13 @@ export const migrateTestimonialsData = action({
         // Find author if exists (need to look up by Strapi ID)
         let authorId: string | null = null;
         if (testimonial.attributes.author?.data?.id) {
-          const authorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-            strapiType: 'player',
-            strapiId: testimonial.attributes.author.data.id
-          });
+          const authorMapping = await ctx.runQuery(
+            internal.migration.strapiMigration.findIdMapping,
+            {
+              strapiType: 'player',
+              strapiId: testimonial.attributes.author.data.id
+            }
+          );
           if (authorMapping) {
             authorId = authorMapping.convexId;
           }
@@ -2585,13 +2600,16 @@ export const migrateTestimonialsData = action({
         const audioId = await migrateAudioFile(ctx, testimonial.attributes.audio);
 
         // Insert testimonial record
-        const testimonialId = await ctx.runMutation(internal.strapiMigration.insertTestimonial, {
-          strapiId: testimonial.id,
-          content: testimonial.attributes.content,
-          url: testimonial.attributes.url || null,
-          audioId,
-          authorId
-        });
+        const testimonialId = await ctx.runMutation(
+          internal.migration.strapiMigration.insertTestimonial,
+          {
+            strapiId: testimonial.id,
+            content: testimonial.attributes.content,
+            url: testimonial.attributes.url || null,
+            audioId,
+            authorId
+          }
+        );
 
         results.push({ success: true, strapiId: testimonial.id, convexId: testimonialId });
         console.log(`Successfully migrated testimonial: ${testimonial.id}`);
@@ -2710,9 +2728,12 @@ export const migrateEventLocationsData = action({
     for (const eventLocation of eventLocationsData.data) {
       try {
         // Check if event location already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkEventLocationExists, {
-          strapiId: eventLocation.id
-        });
+        const existing = await ctx.runQuery(
+          internal.migration.strapiMigration.checkEventLocationExists,
+          {
+            strapiId: eventLocation.id
+          }
+        );
 
         if (existing) {
           console.log(`Event location ${eventLocation.attributes.name} already exists, skipping`);
@@ -2771,7 +2792,7 @@ export const migrateEventLocationsData = action({
 
         // Insert event location record
         const eventLocationId = await ctx.runMutation(
-          internal.strapiMigration.insertEventLocation,
+          internal.migration.strapiMigration.insertEventLocation,
           {
             strapiId: eventLocation.id,
             name: eventLocation.attributes.name,
@@ -2995,7 +3016,7 @@ export const migrateGamesData = action({
     for (const game of gamesData.data) {
       try {
         // Check if game already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkGameExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkGameExists, {
           strapiId: game.id
         });
 
@@ -3008,10 +3029,13 @@ export const migrateGamesData = action({
         // Find firstPlayedAtEvent if exists
         let firstPlayedAtEventId: string | null = null;
         if (game.attributes.firstPlayedAtEvent?.data?.id) {
-          const eventMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-            strapiType: 'event',
-            strapiId: game.attributes.firstPlayedAtEvent.data.id
-          });
+          const eventMapping = await ctx.runQuery(
+            internal.migration.strapiMigration.findIdMapping,
+            {
+              strapiType: 'event',
+              strapiId: game.attributes.firstPlayedAtEvent.data.id
+            }
+          );
           if (eventMapping) {
             firstPlayedAtEventId = eventMapping.convexId;
           }
@@ -3034,7 +3058,7 @@ export const migrateGamesData = action({
           .replace(/(^-|-$)/g, '');
 
         // Insert game record - use defaults for missing fields
-        const gameId = await ctx.runMutation(internal.strapiMigration.insertGame, {
+        const gameId = await ctx.runMutation(internal.migration.strapiMigration.insertGame, {
           strapiId: game.id,
           name: game.attributes.name,
           slug,
@@ -3073,12 +3097,15 @@ export const migrateGamesData = action({
         // Insert game relationships
         if (game.attributes.documentedBy?.data) {
           for (const documenter of game.attributes.documentedBy.data) {
-            const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'player',
-              strapiId: documenter.id
-            });
+            const playerMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'player',
+                strapiId: documenter.id
+              }
+            );
             if (playerMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertGameDocumenter, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertGameDocumenter, {
                 gameId,
                 playerId: playerMapping.convexId
               });
@@ -3088,12 +3115,15 @@ export const migrateGamesData = action({
 
         if (game.attributes.proposedBy?.data) {
           for (const proposer of game.attributes.proposedBy.data) {
-            const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'player',
-              strapiId: proposer.id
-            });
+            const playerMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'player',
+                strapiId: proposer.id
+              }
+            );
             if (playerMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertGameProposer, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertGameProposer, {
                 gameId,
                 playerId: playerMapping.convexId
               });
@@ -3251,7 +3281,7 @@ export const migrateArticlesData = action({
     for (const article of articlesData.data) {
       try {
         // Check if article already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkArticleExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkArticleExists, {
           strapiId: article.id
         });
 
@@ -3264,10 +3294,13 @@ export const migrateArticlesData = action({
         // Find author if exists
         let authorId: string | null = null;
         if (article.attributes.author?.data?.id) {
-          const authorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-            strapiType: 'player',
-            strapiId: article.attributes.author.data.id
-          });
+          const authorMapping = await ctx.runQuery(
+            internal.migration.strapiMigration.findIdMapping,
+            {
+              strapiType: 'player',
+              strapiId: article.attributes.author.data.id
+            }
+          );
           if (authorMapping) {
             authorId = authorMapping.convexId;
           }
@@ -3289,7 +3322,7 @@ export const migrateArticlesData = action({
           .replace(/(^-|-$)/g, '');
 
         // Insert article record
-        const articleId = await ctx.runMutation(internal.strapiMigration.insertArticle, {
+        const articleId = await ctx.runMutation(internal.migration.strapiMigration.insertArticle, {
           strapiId: article.id,
           title: article.attributes.title,
           slug,
@@ -3307,12 +3340,15 @@ export const migrateArticlesData = action({
         // Insert article tag relationships
         if (article.attributes.tags?.data) {
           for (const tag of article.attributes.tags.data) {
-            const tagMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'tag',
-              strapiId: tag.id
-            });
+            const tagMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'tag',
+                strapiId: tag.id
+              }
+            );
             if (tagMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertArticleTag, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertArticleTag, {
                 articleId,
                 tagId: tagMapping.convexId
               });
@@ -3607,7 +3643,7 @@ export const migrateEventsData = action({
     for (const event of eventsData.data) {
       try {
         // Check if event already exists
-        const existing = await ctx.runQuery(internal.strapiMigration.checkEventExists, {
+        const existing = await ctx.runQuery(internal.migration.strapiMigration.checkEventExists, {
           strapiId: event.id
         });
 
@@ -3620,10 +3656,13 @@ export const migrateEventsData = action({
         // Find location if exists
         let locationId: string | null = null;
         if (event.attributes.location?.data?.id) {
-          const locationMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-            strapiType: 'eventLocation',
-            strapiId: event.attributes.location.data.id
-          });
+          const locationMapping = await ctx.runQuery(
+            internal.migration.strapiMigration.findIdMapping,
+            {
+              strapiType: 'eventLocation',
+              strapiId: event.attributes.location.data.id
+            }
+          );
           if (locationMapping) {
             locationId = locationMapping.convexId;
           }
@@ -3632,10 +3671,13 @@ export const migrateEventsData = action({
         // Find venue if exists
         let venueId: string | null = null;
         if (event.attributes.venue?.data?.id) {
-          const venueMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-            strapiType: 'venue',
-            strapiId: event.attributes.venue.data.id
-          });
+          const venueMapping = await ctx.runQuery(
+            internal.migration.strapiMigration.findIdMapping,
+            {
+              strapiType: 'venue',
+              strapiId: event.attributes.venue.data.id
+            }
+          );
           if (venueMapping) {
             venueId = venueMapping.convexId;
           }
@@ -3648,10 +3690,13 @@ export const migrateEventsData = action({
             const sponsorIds: string[] = [];
             if (sponsorship.sponsors?.data) {
               for (const sponsor of sponsorship.sponsors.data) {
-                const sponsorMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-                  strapiType: 'sponsor',
-                  strapiId: sponsor.id
-                });
+                const sponsorMapping = await ctx.runQuery(
+                  internal.migration.strapiMigration.findIdMapping,
+                  {
+                    strapiType: 'sponsor',
+                    strapiId: sponsor.id
+                  }
+                );
                 if (sponsorMapping) {
                   sponsorIds.push(sponsorMapping.convexId);
                 }
@@ -3696,7 +3741,7 @@ export const migrateEventsData = action({
         }
 
         // Insert event record
-        const eventId = await ctx.runMutation(internal.strapiMigration.insertEvent, {
+        const eventId = await ctx.runMutation(internal.migration.strapiMigration.insertEvent, {
           strapiId: event.id,
           name: event.attributes.name,
           slug,
@@ -3728,12 +3773,15 @@ export const migrateEventsData = action({
         // Insert player relationships
         if (event.attributes.hosts?.data) {
           for (const host of event.attributes.hosts.data) {
-            const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'player',
-              strapiId: host.id
-            });
+            const playerMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'player',
+                strapiId: host.id
+              }
+            );
             if (playerMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertEventHost, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertEventHost, {
                 eventId,
                 playerId: playerMapping.convexId
               });
@@ -3743,12 +3791,15 @@ export const migrateEventsData = action({
 
         if (event.attributes.mentors?.data) {
           for (const mentor of event.attributes.mentors.data) {
-            const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'player',
-              strapiId: mentor.id
-            });
+            const playerMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'player',
+                strapiId: mentor.id
+              }
+            );
             if (playerMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertEventMentor, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertEventMentor, {
                 eventId,
                 playerId: playerMapping.convexId
               });
@@ -3758,12 +3809,15 @@ export const migrateEventsData = action({
 
         if (event.attributes.players?.data) {
           for (const player of event.attributes.players.data) {
-            const playerMapping = await ctx.runQuery(internal.strapiMigration.findIdMapping, {
-              strapiType: 'player',
-              strapiId: player.id
-            });
+            const playerMapping = await ctx.runQuery(
+              internal.migration.strapiMigration.findIdMapping,
+              {
+                strapiType: 'player',
+                strapiId: player.id
+              }
+            );
             if (playerMapping) {
-              await ctx.runMutation(internal.strapiMigration.insertEventAttendee, {
+              await ctx.runMutation(internal.migration.strapiMigration.insertEventAttendee, {
                 eventId,
                 playerId: playerMapping.convexId
               });
@@ -3937,9 +3991,12 @@ export const cleanupAllMigrationData = action({
         try {
           console.log(`Clearing ${contentType}...`);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const result: any = await ctx.runMutation(api.strapiMigration.clearMigrationData, {
-            contentType
-          });
+          const result: any = await ctx.runMutation(
+            api.migration.strapiMigration.clearMigrationData,
+            {
+              contentType
+            }
+          );
           totalDeletedItems += result.deletedItems;
           totalDeletedMappings += result.deletedMappings;
           results.push({
@@ -3975,14 +4032,14 @@ export const cleanupAllMigrationData = action({
       for (const tableName of relationshipTables) {
         try {
           const relationships = await ctx.runQuery(
-            internal.strapiMigration.getAllRecordsForCleanup,
+            internal.migration.strapiMigration.getAllRecordsForCleanup,
             {
               tableName
             }
           );
 
           for (const relationship of relationships) {
-            await ctx.runMutation(internal.strapiMigration.deleteRelationshipRecord, {
+            await ctx.runMutation(internal.migration.strapiMigration.deleteRelationshipRecord, {
               tableName,
               recordId: relationship._id
             });
@@ -3999,11 +4056,11 @@ export const cleanupAllMigrationData = action({
       console.log('Step 3: Clearing migration status...');
       try {
         const migrationStatuses = await ctx.runQuery(
-          internal.strapiMigration.getAllMigrationStatuses,
+          internal.migration.strapiMigration.getAllMigrationStatuses,
           {}
         );
         for (const status of migrationStatuses) {
-          await ctx.runMutation(internal.strapiMigration.deleteMigrationStatus, {
+          await ctx.runMutation(internal.migration.strapiMigration.deleteMigrationStatus, {
             statusId: status._id
           });
         }
@@ -4349,13 +4406,13 @@ export const runCompleteMigration = action({
         if (contentType === 'events') {
           // Use batched fetch for events to avoid timeouts
           console.log('🔄 Using batched fetch for events...');
-          strapiResult = await ctx.runAction(api.strapiMigration.fetchEventsBatched, {});
+          strapiResult = await ctx.runAction(api.migration.strapiMigration.fetchEventsBatched, {});
           console.log(
             `📊 Batched fetch result: ${strapiResult.totalFetched} events from ${strapiResult.totalPages} pages`
           );
         } else {
           // Use regular fetch for other content types
-          strapiResult = await ctx.runAction(api.strapiMigration.fetchStrapiData, {
+          strapiResult = await ctx.runAction(api.migration.strapiMigration.fetchStrapiData, {
             contentType
           });
         }
@@ -4376,72 +4433,96 @@ export const runCompleteMigration = action({
         let migrationResult;
         switch (contentType) {
           case 'tags':
-            migrationResult = await ctx.runMutation(api.strapiMigration.migrateTagsData, {
+            migrationResult = await ctx.runMutation(api.migration.strapiMigration.migrateTagsData, {
               strapiData
             });
             break;
           case 'expectations':
-            migrationResult = await ctx.runMutation(api.strapiMigration.migrateExpectationsData, {
-              strapiData
-            });
+            migrationResult = await ctx.runMutation(
+              api.migration.strapiMigration.migrateExpectationsData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'players':
-            migrationResult = await ctx.runAction(api.strapiMigration.migratePlayersData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migratePlayersData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'venues':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateVenuesData, {
+            migrationResult = await ctx.runAction(api.migration.strapiMigration.migrateVenuesData, {
               strapiData
             });
             break;
           case 'sponsors':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateSponsorsData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateSponsorsData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'home':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateHomeData, {
+            migrationResult = await ctx.runAction(api.migration.strapiMigration.migrateHomeData, {
               strapiData
             });
             break;
           case 'history':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateHistoryData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateHistoryData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'format':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateFormatData, {
+            migrationResult = await ctx.runAction(api.migration.strapiMigration.migrateFormatData, {
               strapiData
             });
             break;
           case 'hosting':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateHostingData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateHostingData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'testimonials':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateTestimonialsData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateTestimonialsData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'eventLocations':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateEventLocationsData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateEventLocationsData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'games':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateGamesData, {
+            migrationResult = await ctx.runAction(api.migration.strapiMigration.migrateGamesData, {
               strapiData
             });
             break;
           case 'articles':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateArticlesData, {
-              strapiData
-            });
+            migrationResult = await ctx.runAction(
+              api.migration.strapiMigration.migrateArticlesData,
+              {
+                strapiData
+              }
+            );
             break;
           case 'events':
-            migrationResult = await ctx.runAction(api.strapiMigration.migrateEventsData, {
+            migrationResult = await ctx.runAction(api.migration.strapiMigration.migrateEventsData, {
               strapiData
             });
             break;

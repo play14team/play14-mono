@@ -146,7 +146,7 @@ You can also run migrations directly from the Convex dashboard:
    pnpm dashboard
    ```
 
-2. Navigate to **Functions** → **strapiMigration**
+2. Navigate to **Functions** → **migration/strapiMigration**
 
 3. Run individual migration functions:
    - **Complete Migration**:

@@ -1,7 +1,7 @@
-import { action, internalMutation, internalQuery } from './_generated/server';
+import { action, internalMutation, internalQuery } from '../_generated/server';
 import { v } from 'convex/values';
-import type { Id } from './_generated/dataModel';
-import { internal, api } from './_generated/api';
+import type { Id } from '../_generated/dataModel';
+import { internal, api } from '../_generated/api';
 
 /**
  * Get all storage IDs from all content tables
@@ -109,7 +109,7 @@ export const cleanupAllStorageFiles = action({
     console.log('🗑️ Starting storage cleanup...');
 
     // Get all storage IDs from database
-    const storageIds = await ctx.runQuery(internal.cleanupStorage.getAllStorageIds, {});
+    const storageIds = await ctx.runQuery(internal.migration.cleanupStorage.getAllStorageIds, {});
     console.log(`Found ${storageIds.length} storage files to delete`);
 
     let successCount = 0;
@@ -118,7 +118,7 @@ export const cleanupAllStorageFiles = action({
 
     // Delete each storage file
     for (const storageId of storageIds) {
-      const result = await ctx.runMutation(internal.cleanupStorage.deleteStorageFile, {
+      const result = await ctx.runMutation(internal.migration.cleanupStorage.deleteStorageFile, {
         storageId
       });
 
@@ -177,11 +177,17 @@ export const completeCleanup = action({
     console.log('🧹 Starting complete cleanup (data + storage)...');
 
     // First, cleanup all storage files
-    const storageResult = await ctx.runAction(api.cleanupStorage.cleanupAllStorageFiles, {});
+    const storageResult = await ctx.runAction(
+      api.migration.cleanupStorage.cleanupAllStorageFiles,
+      {}
+    );
     console.log(`Storage cleanup: ${storageResult.deleted} files deleted`);
 
     // Then, cleanup all migration data
-    const dataResult = await ctx.runAction(api.strapiMigration.cleanupAllMigrationData, {});
+    const dataResult = await ctx.runAction(
+      api.migration.strapiMigration.cleanupAllMigrationData,
+      {}
+    );
     console.log(`Data cleanup: ${dataResult.totalDeletedItems} records deleted`);
 
     return {

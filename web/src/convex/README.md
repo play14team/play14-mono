@@ -83,7 +83,8 @@ To complete the migration:
 2. **Data Migration**:
    - Export PostgreSQL data from production Strapi
    - Transform data to match Convex schema
-   - Import using Convex migration scripts
+   - Import using Convex migration scripts (now located under `src/convex/migration/*`)
+   - All migration-related functions (Strapi fetchers, chunked migration runner, file/image helpers, cleanup utilities) have been reorganized into the dedicated `migration` directory for clarity.
 
 3. **SvelteKit Integration**:
    - Install `convex-svelte` client

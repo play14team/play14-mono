@@ -78,7 +78,7 @@ Examples:
 
 Content Types:
   Foundation: tags, expectations
-  Core:       players, venues, sponsors  
+  Core:       players, venues, sponsors
   Single:     home, history, format, hosting
   Complex:    testimonials, eventLocations, games, articles
   Events:     events (depends on all others)
@@ -99,7 +99,11 @@ const client = new ConvexClient(convexUrl);
 async function showMigrationStatus() {
   console.log('📊 Checking migration status...\n');
 
-  const status = await client.query(api.migrationStatus.getComprehensiveMigrationStatus, {});
+  // migrationStatus moved under migration namespace
+  const status = await client.query(
+    api.migration.migrationStatus.getComprehensiveMigrationStatus,
+    {}
+  );
 
   console.log('Current Database Status:');
   console.log('========================');
@@ -153,7 +157,7 @@ async function cleanMigrationData() {
   }
 
   console.log('\nCleaning data...');
-  const result = await client.action(api.strapiMigration.cleanupAllMigrationData, {});
+  const result = await client.action(api.migration.strapiMigration.cleanupAllMigrationData, {});
 
   console.log(
     `✅ Cleaned ${result.totalDeletedItems} items and ${result.totalDeletedMappings} mappings`
@@ -178,7 +182,7 @@ async function runMigration() {
 
   try {
     // Run the chunked migration
-    const result = await client.action(api.chunkedMigration.runChunkedMigration, {
+    const result = await client.action(api.migration.chunkedMigration.runChunkedMigration, {
       includeFiles: !noFiles,
       contentTypes: contentTypes,
       parallel: parallel

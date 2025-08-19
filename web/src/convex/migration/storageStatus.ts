@@ -1,4 +1,4 @@
-import { query } from './_generated/server';
+import { query } from '../_generated/server';
 
 /**
  * Get storage usage statistics for all content types

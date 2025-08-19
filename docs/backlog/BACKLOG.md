@@ -48,6 +48,15 @@
   - [ ] Clean migration functions errors
   - [ ] Move all migration code to a separate directory
   - [ ] Clean up unused queries
+
+- [ ] Authentication with Google
+- [ ] Admin panel for Players
+  - [ ] User logs in
+  - [ ] User can claim Player profile if none is assigned to him, or create a new one
+  - [ ] User can edit all the fields for a player
+  - [ ] User can save the fields in Convex using a mutation
+  - [ ] User can update his location using maplibre
+
 - [ ] Statistics
   - [ ] Number of events (except cancelled)
   - [ ] Number of locations/countries
@@ -59,8 +68,6 @@
   - [ ] Improve adjacency detection for island nations
   - [ ] Add accessibility notes / aria-live updates for hover events
 
-- [ ] Authentication with Google
-- [ ] Admin panel for Players
 - [ ] Search using Convex full text and vector search features
 - [ ] Check breaking because of migration tests
 - [ ] Event map

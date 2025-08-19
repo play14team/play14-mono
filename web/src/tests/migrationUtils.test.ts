@@ -97,22 +97,18 @@ describe('Migration Utils Tests', () => {
     });
 
     it('should handle missing fields gracefully', () => {
-      const incompleteData = {
-        id: '1',
-        attributes: {
-          name: 'Test'
-          // Missing other fields
-        }
-      };
-
+      interface StrapiPartial {
+        id: string;
+        attributes: { name: string; slug?: string; createdAt?: string; updatedAt?: string };
+      }
+      const incompleteData: StrapiPartial = { id: '1', attributes: { name: 'Test' } };
       const transformed = {
         strapiId: incompleteData.id,
         name: incompleteData.attributes.name,
-        slug: incompleteData.attributes.slug || null,
-        createdAt: incompleteData.attributes.createdAt || new Date().toISOString(),
-        updatedAt: incompleteData.attributes.updatedAt || new Date().toISOString()
+        slug: incompleteData.attributes.slug ?? null,
+        createdAt: incompleteData.attributes.createdAt ?? new Date().toISOString(),
+        updatedAt: incompleteData.attributes.updatedAt ?? new Date().toISOString()
       };
-
       expect(transformed.strapiId).toBe('1');
       expect(transformed.name).toBe('Test');
       expect(transformed.slug).toBeNull();
@@ -141,19 +137,13 @@ describe('Migration Utils Tests', () => {
     });
 
     it('should handle null relationships', () => {
-      const nullRelationship = {
-        data: null
-      };
-
+      const nullRelationship: { data: { id: string } | null } = { data: null };
       const relationshipId = nullRelationship.data?.id;
       expect(relationshipId).toBeUndefined();
     });
 
     it('should handle empty array relationships', () => {
-      const emptyRelationship = {
-        data: []
-      };
-
+      const emptyRelationship: { data: Array<{ id: string }> } = { data: [] };
       const relationshipIds = emptyRelationship.data.map((item) => item.id);
       expect(relationshipIds).toEqual([]);
     });

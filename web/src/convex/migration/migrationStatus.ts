@@ -1,5 +1,5 @@
-import { query } from './_generated/server';
-import type { TableNames } from './_generated/dataModel';
+import { query } from '../_generated/server';
+import type { TableNames } from '../_generated/dataModel';
 
 /**
  * Get comprehensive migration status by checking actual data in tables

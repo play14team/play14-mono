@@ -46,7 +46,11 @@ async function showMigrationStatus() {
 
   try {
     // Use the comprehensive status that checks actual table data
-    const status = await client.query(api.migrationStatus.getComprehensiveMigrationStatus);
+    // Updated path: migrationStatus moved under migration namespace
+    const status = await client.query(
+      api.migration.migrationStatus.getComprehensiveMigrationStatus,
+      {}
+    );
 
     // Debug: Check what we received
     if (!status || typeof status !== 'object') {
@@ -100,7 +104,8 @@ async function showMigrationStatus() {
     }
 
     // Show ID mappings count
-    const mappings = await client.query(api.strapiMigration.getIdMappingCounts);
+    // strapiMigration functions moved under migration namespace
+    const mappings = await client.query(api.migration.strapiMigration.getIdMappingCounts, {});
     console.log('\nID Mappings:');
     console.log('============');
     if (mappings && typeof mappings === 'object') {
@@ -125,7 +130,8 @@ async function cleanMigrationData() {
 
   try {
     // Use complete cleanup that includes storage files
-    const result = await client.action(api.cleanupStorage.completeCleanup);
+    // cleanupStorage now under migration namespace
+    const result = await client.action(api.migration.cleanupStorage.completeCleanup, {});
 
     console.log('✅ Cleanup completed successfully');
     console.log('\n📁 Storage cleanup:');
@@ -158,26 +164,59 @@ async function runMigration() {
 
   try {
     // Run the complete migration
-    const result = await client.action(api.strapiMigration.runCompleteMigration, {
+    const result = await client.action(api.migration.strapiMigration.runCompleteMigration, {
       includeFiles: !noFiles,
       contentTypes: contentTypes,
       batchSize: 50
     });
 
     console.log('\n✅ Migration completed successfully!');
-    console.log('\nResults:');
-    console.log('========');
-
-    for (const [type, status] of Object.entries(result)) {
-      if (typeof status === 'object' && status !== null) {
-        const typedStatus = status as { success: boolean; count?: number; error?: string };
-        const emoji = typedStatus.success ? '✅' : '❌';
-        console.log(`${emoji} ${type.padEnd(15)} - ${typedStatus.count || 0} records`);
-
-        if (typedStatus.error) {
-          console.log(`   └─ Error: ${typedStatus.error}`);
-        }
+    if (result && typeof result === 'object') {
+      interface MigrationSummaryEntry {
+        contentType: string;
+        success: boolean;
+        totalProcessed: number;
+        successful: number;
+        failed: number;
+        error?: string;
       }
+      interface MigrationResultShape {
+        success: boolean;
+        summary?: {
+          totalTypes: number;
+          successful: number;
+          failed: number;
+          results: MigrationSummaryEntry[];
+        };
+        totalRecords?: number;
+        totalSuccessful?: number;
+        totalFailed?: number;
+      }
+      const r = result as MigrationResultShape;
+      if (r.summary) {
+        console.log('\nSummary:');
+        console.log('========');
+        console.log(`Content types: ${r.summary.totalTypes}`);
+        console.log(`Successful:    ${r.summary.successful}`);
+        console.log(`Failed:        ${r.summary.failed}`);
+        console.log(
+          `Records:       processed=${r.totalRecords ?? 'n/a'} success=${r.totalSuccessful ?? 'n/a'} failed=${r.totalFailed ?? 'n/a'}`
+        );
+        console.log('\nPer Content Type:');
+        for (const entry of r.summary.results) {
+          const emoji = entry.success ? '✅' : '❌';
+          console.log(
+            `${emoji} ${entry.contentType.padEnd(15)} - ${entry.successful}/${entry.totalProcessed} migrated`
+          );
+          if (!entry.success && entry.error) {
+            console.log(`   └─ Error: ${entry.error}`);
+          }
+        }
+      } else {
+        console.log('No detailed summary available in response.');
+      }
+    } else {
+      console.log('Unexpected migration result shape.');
     }
   } catch (error) {
     console.error('\n❌ Migration failed:', error);

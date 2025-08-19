@@ -73,7 +73,7 @@
         <Command.Input
           placeholder={$t('common.searchPlaceholder')}
           bind:value={searchQuery}
-          on:keydown={(e) => {
+          onkeydown={(e: KeyboardEvent) => {
             if (e.key === 'Enter' && searchQuery) {
               handleSearch();
             }

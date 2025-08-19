@@ -128,7 +128,7 @@
 
   // Lightbox state for enlarged avatar
   let showAvatar = $state(false);
-  let imgEl: HTMLImageElement | null = null;
+  let imgEl = $state<HTMLImageElement | null>(null);
   let imgWidth = $state<number | null>(null);
   function updateImgWidth() {
     if (imgEl) imgWidth = imgEl.clientWidth;

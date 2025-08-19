@@ -1,6 +1,6 @@
-import { action, mutation, query } from './_generated/server';
+import { action, mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import { api } from './_generated/api';
+import { api } from '../_generated/api';
 
 // Migration state tracking
 export const initMigrationSession = mutation({
@@ -68,7 +68,7 @@ export const migrateSingleContentType = action({
 
     try {
       // Run the migration for this single content type
-      const result = await ctx.runAction(api.strapiMigration.migrateSingleContentType, {
+      const result = await ctx.runAction(api.migration.strapiMigration.migrateSingleContentType, {
         contentType: args.contentType
       });
 
@@ -77,7 +77,7 @@ export const migrateSingleContentType = action({
 
       // Update session if provided
       if (args.sessionId) {
-        await ctx.runMutation(api.chunkedMigration.updateMigrationSession, {
+        await ctx.runMutation(api.migration.chunkedMigration.updateMigrationSession, {
           sessionId: args.sessionId,
           contentType: args.contentType,
           result: {
@@ -101,7 +101,7 @@ export const migrateSingleContentType = action({
 
       // Update session with error
       if (args.sessionId) {
-        await ctx.runMutation(api.chunkedMigration.updateMigrationSession, {
+        await ctx.runMutation(api.migration.chunkedMigration.updateMigrationSession, {
           sessionId: args.sessionId,
           contentType: args.contentType,
           result: {
@@ -235,7 +235,7 @@ export const runChunkedMigration = action({
 
         // Run all types in this phase in parallel
         const promises = phaseTypes.map((contentType) =>
-          ctx.runAction(api.chunkedMigration.migrateSingleContentType, {
+          ctx.runAction(api.migration.chunkedMigration.migrateSingleContentType, {
             contentType,
             includeFiles,
             sessionId: undefined
@@ -252,11 +252,14 @@ export const runChunkedMigration = action({
     } else {
       // Sequential migration
       for (const contentType of orderedTypes) {
-        const result = await ctx.runAction(api.chunkedMigration.migrateSingleContentType, {
-          contentType,
-          includeFiles,
-          sessionId: undefined
-        });
+        const result = await ctx.runAction(
+          api.migration.chunkedMigration.migrateSingleContentType,
+          {
+            contentType,
+            includeFiles,
+            sessionId: undefined
+          }
+        );
 
         results[contentType] = result;
 
