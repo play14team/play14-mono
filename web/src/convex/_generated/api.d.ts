@@ -31,6 +31,7 @@ import type * as strapiMigration from "../strapiMigration.js";
 import type * as strapiMigrationBatched from "../strapiMigrationBatched.js";
 import type * as strapiMigrationQueries from "../strapiMigrationQueries.js";
 import type * as supporting from "../supporting.js";
+import type * as testimonials from "../testimonials.js";
 import type * as types from "../types.js";
 
 /**
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   strapiMigrationBatched: typeof strapiMigrationBatched;
   strapiMigrationQueries: typeof strapiMigrationQueries;
   supporting: typeof supporting;
+  testimonials: typeof testimonials;
   types: typeof types;
 }>;
 export declare const api: FilterApi<

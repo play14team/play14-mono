@@ -15,7 +15,7 @@
   - [ ] WepP conversion
 - [x] logo at the top that disapears with animation when scrolling
 - [x] Migrate from Houdini to Convex
-- [ ] Use ShadCN instead of default
+- [x] Use ShadCN instead of default
   - [x] Fix layout
   - [x] Fix translations
   - [x] Store locale-specific expectations in the database with a locale field
@@ -26,21 +26,23 @@
   - [x] Use shadcn cards
     - [x] button to register
     - [x] animation
+    - [x] implement skeleton
   - [x] Use flags `pnpm i -D svelte-flags`
-  - [ ] replace latest articles with a carousel of testimonials
   - [x] Implement world map
+  - [ ] replace latest articles with a carousel of testimonials
   - [ ] Use CSS variables for all colors
-  - [ ] implement loader or skeleton as a reusable component
-  - [ ] Statistics
-    - [ ] Number of events (except cancelled)
-    - [ ] Number of locations/countries
-    - [ ] Number of players
-    - [ ] Number of games documented (only published)
-  - [ ] Fancier design
-  - [ ] More colors
-  - [ ] More spacing
+  - [ ] Even spacing between sections
   - [ ] What to expect? ==> What will happen?
 - [x] Event list by year
+  - [ ] "Upcoming" not translated
+- [ ] Statistics
+  - [ ] Number of events (except cancelled)
+  - [ ] Number of locations/countries
+  - [ ] Number of players
+  - [ ] Number of games documented (only published)
+- [ ] Convex cleanup
+  - [ ] Move all migration code to a separate directory
+  - [ ] Clean up unused queries
 - [ ] use aspect ratio for image gallery https://www.shadcn-svelte.com/docs/components/aspect-ratio
 - [ ] Map
   - [ ] Persist color assignments across sessions

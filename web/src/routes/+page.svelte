@@ -8,8 +8,8 @@
   import WhatToExpect from '$lib/components/home/WhatToExpect.svelte';
   import Gallery from '$lib/components/home/Gallery.svelte';
   import ManifestoAndCode from '$lib/components/home/ManifestoAndCode.svelte';
-  import Articles from '$lib/components/home/Articles.svelte';
   import Expectations from '$lib/components/home/Expectations.svelte';
+  import TestimonialsCarousel from '$lib/components/home/TestimonialsCarousel.svelte';
 </script>
 
 <div>
@@ -22,6 +22,6 @@
   <WhatToExpect />
   <Gallery />
   <ManifestoAndCode />
-  <Articles />
+  <TestimonialsCarousel />
   <Expectations />
 </div>
