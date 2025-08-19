@@ -158,18 +158,54 @@ export const getUpcoming = query({
       .order('asc')
       .collect();
 
-    // Get location data for each event
-    const eventsWithLocations = await Promise.all(
+    // Get location and default image URL for each event
+    return Promise.all(
       upcomingEvents.map(async (event) => {
         const location = event.locationId ? await ctx.db.get(event.locationId) : null;
-        return {
-          ...event,
-          location
-        };
+        let defaultImageUrl: string | null = null;
+        if (event.defaultImageId) {
+          defaultImageUrl = await ctx.storage.getUrl(event.defaultImageId);
+        }
+        return { ...event, location, defaultImageUrl };
       })
     );
+  }
+});
 
-    return eventsWithLocations;
+// Query: List events for a given calendar year (inclusive of all statuses including Cancelled)
+// Returns events with location and defaultImageUrl (matching EventCard expectations)
+export const listByYear = query({
+  args: { year: v.number() },
+  handler: async (ctx: QueryCtx, args: { year: number }) => {
+    const { year } = args;
+    // Calculate UTC boundaries for the year
+    const startOfYear = Date.UTC(year, 0, 1, 0, 0, 0, 0);
+    const startOfNextYear = Date.UTC(year + 1, 0, 1, 0, 0, 0, 0);
+
+    // Use by_start index to efficiently scan events in time window
+    const events = await ctx.db
+      .query('events')
+      .withIndex('by_start')
+      .filter((q) =>
+        q.and(
+          q.gte(q.field('start'), startOfYear),
+          q.lt(q.field('start'), startOfNextYear),
+          q.neq(q.field('publishedAt'), undefined)
+        )
+      )
+      .order('asc')
+      .collect();
+
+    return Promise.all(
+      events.map(async (event) => {
+        const location = event.locationId ? await ctx.db.get(event.locationId) : null;
+        let defaultImageUrl: string | null = null;
+        if (event.defaultImageId) {
+          defaultImageUrl = await ctx.storage.getUrl(event.defaultImageId);
+        }
+        return { ...event, location, defaultImageUrl };
+      })
+    );
   }
 });
 

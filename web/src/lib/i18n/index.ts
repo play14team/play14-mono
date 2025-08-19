@@ -205,6 +205,11 @@ const enTranslations: Translations = {
     hosting: 'Hosting an event',
     viewEvent: 'View event',
     registerNow: 'Register now',
+    title: 'Events',
+    yearNav: 'Years',
+    empty: 'No events for {year}.',
+    noUpcoming: 'No upcoming events scheduled yet.',
+    viewCurrentYear: 'View all events in {year}',
     status: {
       announced: 'Announced',
       open: 'Open',
@@ -359,6 +364,11 @@ const frTranslations: Translations = {
     hosting: 'Organiser un événement',
     viewEvent: "Voir l'événement",
     registerNow: "S'inscrire maintenant",
+    title: 'Événements',
+    yearNav: 'Années',
+    empty: 'Aucun événement pour {year}.',
+    noUpcoming: 'Aucun événement à venir pour le moment.',
+    viewCurrentYear: 'Voir tous les événements de {year}',
     status: {
       announced: 'Annoncé',
       open: 'Ouvert',

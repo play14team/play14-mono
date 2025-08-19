@@ -92,7 +92,7 @@
 
 {#if event}
   <div
-    class="bg-card text-card-foreground group overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+    class="bg-card text-card-foreground group overflow-hidden rounded-xl border shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
   >
     {#if event.defaultImageUrl}
       <div class="h-64 w-full overflow-hidden">
@@ -148,7 +148,7 @@
           </div>
         {/if}
       </div>
-      {#if event.registration && (event.registration.link || event.registration.widgetCode)}
+      {#if event.status === 'Open' && event.registration && (event.registration.link || event.registration.widgetCode)}
         <div class="mt-auto pt-4">
           {#if event.registration.link}
             <a
